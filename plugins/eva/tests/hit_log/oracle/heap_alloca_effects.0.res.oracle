@@ -1,0 +1,63 @@
+[kernel] Parsing heap_alloca_effects.c (with preprocessing)
+Heap effects received by az :: heap_alloca_effects.c:35 <- alloca_main:
+  heap_alloca_effects.c:26, in alloca: allocation of __alloca_az_l26_3: policy by_stack, stack alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:35 <- alloca_main, rank 0, size {4}, type char, created, suffix alloca :: heap_alloca_effects.c:26
+Heap effects received by az :: heap_alloca_effects.c:38 <- alloca_main:
+  heap_alloca_effects.c:26, in alloca: allocation of __alloca_az_l26_4: policy by_stack, stack alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:38 <- alloca_main, rank 0, size {4}, type char, created, suffix alloca :: heap_alloca_effects.c:26
+Heap effects received by alloca_main:
+  heap_alloca_effects.c:35, in az: allocation of __alloca_az_l26_3: policy by_stack, stack alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:35 <- alloca_main, rank 0, size {4}, type char, created, suffix alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:35
+  heap_alloca_effects.c:35: removal of __alloca_az_l26_3
+  heap_alloca_effects.c:35: sweep of __alloca_az_l26_3, exact
+  heap_alloca_effects.c:38, in az: allocation of __alloca_az_l26_4: policy by_stack, stack alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:38 <- alloca_main, rank 0, size {4}, type char, created, suffix alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:38
+  heap_alloca_effects.c:38: removal of __alloca_az_l26_4
+  heap_alloca_effects.c:38: sweep of __alloca_az_l26_4, exact
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:35 <- alloca_main: 0: strong, record Variable [0..31--31], type char [4], alloca
+  list of alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:38 <- alloca_main: 0: strong, record Variable [0..31--31], type char [4], alloca
+  block 0 of alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:35 <- alloca_main: owned by az :: heap_alloca_effects.c:35 <- alloca_main
+  block 0 of alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:38 <- alloca_main: owned by az :: heap_alloca_effects.c:38 <- alloca_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:35 <- alloca_main: 0: __alloca_az_l26
+  names on alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:38 <- alloca_main: 0: __alloca_az_l26
+These are the names of the run without memexec.
+Calls:
+  alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:35 <- alloca_main: builtin
+  az :: heap_alloca_effects.c:35 <- alloca_main: analysed, cache entry 7
+  alloca :: heap_alloca_effects.c:26 <- az :: heap_alloca_effects.c:38 <- alloca_main: builtin
+  az :: heap_alloca_effects.c:38 <- alloca_main: analysed, cache entry 8
+  alloca_main: analysed, cache entry 9
+Heap calls, not stored by memexec: alloca_main 1, az 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+alloca_main, start:
+  joined: z ∈ {0}
+          gc ∈ {0}
+  alloca_main: z ∈ {0}
+               gc ∈ {0}
+alloca_main, before heap_alloca_effects.c:39 `z = 0;` (Escaping):
+  joined: z ∈ {1}
+          gc ∈ ESCAPINGADDR
+  alloca_main: z ∈ {1}
+               gc ∈ ESCAPINGADDR
+alloca_main, after heap_alloca_effects.c:40 `return;`:
+  joined: z ∈ {0}
+          gc ∈ ESCAPINGADDR
+  alloca_main: z ∈ {0}
+               gc ∈ ESCAPINGADDR
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 173 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 66 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 66 points.
+Filtered requests that reject one callstack: 11.
+Requests made: 305; reported by the trap: 305, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 47 requests, 59 reads of the legacy store in them, 70 reads outside any request.
+  with -eva-hit-log: 47 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 33 requests
+    statistics: 13 requests
+    summary: 1 request
+Statuses of the properties: those of the run without memexec, for 65 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.5000, 0 alarms, those of the run without memexec.
+Heap effects emitted in the run: 6.

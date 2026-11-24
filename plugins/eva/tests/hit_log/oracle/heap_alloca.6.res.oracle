@@ -1,0 +1,37 @@
+[kernel] Parsing heap_alloca.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of alloca :: heap_alloca.c:40 <- use :: heap_alloca.c:130 <- iter_main: 0: strong, record Variable [0..63--63], type int [2], alloca
+  block 0 of alloca :: heap_alloca.c:40 <- use :: heap_alloca.c:130 <- iter_main: owned by use :: heap_alloca.c:130 <- iter_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on alloca :: heap_alloca.c:40 <- use :: heap_alloca.c:130 <- iter_main: 0: __alloca_use_l40
+These are the names of the run without memexec.
+Calls:
+  alloca :: heap_alloca.c:40 <- use :: heap_alloca.c:130 <- iter_main: builtin
+  use :: heap_alloca.c:130 <- iter_main: analysed, cache entry 11
+  alloca :: heap_alloca.c:40 <- use :: heap_alloca.c:130 <- iter_main: builtin
+  use :: heap_alloca.c:130 <- iter_main: analysed, cache entry 12
+  alloca :: heap_alloca.c:40 <- use :: heap_alloca.c:130 <- iter_main: builtin
+  use :: heap_alloca.c:130 <- iter_main: analysed, cache entry 13
+  alloca :: heap_alloca.c:40 <- use :: heap_alloca.c:130 <- iter_main: builtin
+  use :: heap_alloca.c:130 <- iter_main: analysed, cache entry 14
+  iter_main: analysed, cache entry 15
+Heap calls, not stored by memexec: iter_main 1, use 4.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 548 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 260 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 260 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 1068; reported by the trap: 1068, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 136 requests, 50 reads of the legacy store in them, 54 reads outside any request.
+  with -eva-hit-log: 136 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 121 requests
+    statistics: 12 requests
+    summary: 3 requests
+Statuses of the properties: those of the run without memexec, for 298 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1000, 0 alarms, those of the run without memexec.

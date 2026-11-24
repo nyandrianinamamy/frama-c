@@ -1,0 +1,123 @@
+[kernel] Parsing heap_vla.c (with preprocessing)
+[eva:alarm] heap_vla.c:152: Warning: 
+  out of bounds write. assert \valid(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:153: Warning: 
+  accessing uninitialized left-value. assert \initialized(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:153: Warning: 
+  out of bounds read. assert \valid_read(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:150: Warning: 
+  assertion 'alloca_bounds' got status unknown.
+[eva:alarm] heap_vla.c:151: Warning: out of bounds write. assert \valid(a + 0);
+[eva:alarm] heap_vla.c:153: Warning: 
+  out of bounds read. assert \valid_read(a + 0);
+[eva:alarm] heap_vla.c:152: Warning: 
+  out of bounds write. assert \valid(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:153: Warning: 
+  accessing uninitialized left-value. assert \initialized(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:153: Warning: 
+  out of bounds read. assert \valid_read(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:150: Warning: 
+  assertion 'alloca_bounds' got status unknown.
+[eva:alarm] heap_vla.c:151: Warning: out of bounds write. assert \valid(a + 0);
+[eva:alarm] heap_vla.c:153: Warning: 
+  out of bounds read. assert \valid_read(a + 0);
+[eva:alarm] heap_vla.c:152: Warning: 
+  out of bounds write. assert \valid(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:153: Warning: 
+  accessing uninitialized left-value. assert \initialized(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:153: Warning: 
+  out of bounds read. assert \valid_read(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:150: Warning: 
+  assertion 'alloca_bounds' got status unknown.
+[eva:alarm] heap_vla.c:151: Warning: out of bounds write. assert \valid(a + 0);
+[eva:alarm] heap_vla.c:153: Warning: 
+  out of bounds read. assert \valid_read(a + 0);
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:157 <- size_main: 0: strong, record Variable [0..63--63], type int [2], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:158 <- size_main: 0: strong, record Variable [0..63--63], type int [2], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:159 <- size_main: 0: strong, record Variable [0..95--95], type int [3], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:160 <- size_main: 0: strong, record Variable [0..95--95], type int [3], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:162 <- size_main: 0: strong, record Variable [0..31--127], type int [], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:163 <- size_main: 0: strong, record Variable [0..31--127], type int [], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:165 <- size_main: 0: strong, record Variable [0..-1--63], type int [], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:166 <- size_main: 0: strong, record Variable [0..31--63], type int [], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:168 <- size_main: 0: strong, record Variable [0..-1--34359738335], type int [], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:169 <- size_main: 0: strong, record Variable [0..31--63], type int [], variable-length array
+  block 0 of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:157 <- size_main: owned by sized :: heap_vla.c:157 <- size_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:158 <- size_main: owned by sized :: heap_vla.c:158 <- size_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:159 <- size_main: owned by sized :: heap_vla.c:159 <- size_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:160 <- size_main: owned by sized :: heap_vla.c:160 <- size_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:162 <- size_main: owned by sized :: heap_vla.c:162 <- size_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:163 <- size_main: owned by sized :: heap_vla.c:163 <- size_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:165 <- size_main: owned by sized :: heap_vla.c:165 <- size_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:166 <- size_main: owned by sized :: heap_vla.c:166 <- size_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:168 <- size_main: owned by sized :: heap_vla.c:168 <- size_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:169 <- size_main: owned by sized :: heap_vla.c:169 <- size_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:157 <- size_main: 0: __malloc_sized_l150
+  names on __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:158 <- size_main: 0: __malloc_sized_l150
+  names on __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:159 <- size_main: 0: __malloc_sized_l150
+  names on __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:160 <- size_main: 0: __malloc_sized_l150
+  names on __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:162 <- size_main: 0: __malloc_sized_l150
+  names on __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:163 <- size_main: 0: __malloc_sized_l150
+  names on __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:165 <- size_main: 0: __malloc_sized_l150
+  names on __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:166 <- size_main: 0: __malloc_sized_l150
+  names on __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:168 <- size_main: 0: __malloc_sized_l150
+  names on __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:169 <- size_main: 0: __malloc_sized_l150
+These are the names of the run without memexec.
+Calls:
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:157 <- size_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:157 <- size_main: builtin
+  sized :: heap_vla.c:157 <- size_main: analysed, cache entry 23
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:158 <- size_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:158 <- size_main: builtin
+  sized :: heap_vla.c:158 <- size_main: analysed, cache entry 24
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:159 <- size_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:159 <- size_main: builtin
+  sized :: heap_vla.c:159 <- size_main: analysed, cache entry 25
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:160 <- size_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:160 <- size_main: builtin
+  sized :: heap_vla.c:160 <- size_main: analysed, cache entry 26
+  Frama_C_interval :: heap_vla.c:161 <- size_main: specification
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:162 <- size_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:162 <- size_main: builtin
+  sized :: heap_vla.c:162 <- size_main: analysed, cache entry 27
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:163 <- size_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:163 <- size_main: builtin
+  sized :: heap_vla.c:163 <- size_main: analysed, cache entry 28
+  Frama_C_interval :: heap_vla.c:164 <- size_main: specification
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:165 <- size_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:165 <- size_main: builtin
+  sized :: heap_vla.c:165 <- size_main: analysed, cache entry 29
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:166 <- size_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:166 <- size_main: builtin
+  sized :: heap_vla.c:166 <- size_main: analysed, cache entry 30
+  Frama_C_interval :: heap_vla.c:167 <- size_main: specification
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:168 <- size_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:168 <- size_main: builtin
+  sized :: heap_vla.c:168 <- size_main: analysed, cache entry 31
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:169 <- size_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:169 <- size_main: builtin
+  sized :: heap_vla.c:169 <- size_main: analysed, cache entry 32
+  size_main: analysed, cache entry 33
+Heap calls, not stored by memexec: size_main 1, sized 10.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 979 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 379 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 379 points.
+Filtered requests that reject one callstack: 19.
+Requests made: 1737; reported by the trap: 1737, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 276 requests, 286 reads of the legacy store in them, 313 reads outside any request.
+  with -eva-hit-log: 270 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 197 requests
+    statuses of the properties: 29 requests
+    statistics: 23 requests
+    summary: 21 requests
+Statuses of the properties: those of the run without memexec, for 237 properties.
+Alarms: 5, of which 5 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1053, 5 alarms, those of the run without memexec.

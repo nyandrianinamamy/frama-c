@@ -1,0 +1,101 @@
+[kernel] Parsing heap_alloca.c (with preprocessing)
+[eva:alarm] heap_alloca.c:100: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&gp);
+[eva:alarm] heap_alloca.c:101: Warning: 
+  accessing left-value that contains escaping addresses. assert ¬\dangling(&c);
+[eva:alarm] heap_alloca.c:102: Warning: 
+  accessing left-value that contains escaping addresses. assert ¬\dangling(m);
+[eva:alarm] heap_alloca.c:100: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&gp);
+[eva:alarm] heap_alloca.c:101: Warning: 
+  accessing left-value that contains escaping addresses. assert ¬\dangling(&c);
+[eva:alarm] heap_alloca.c:102: Warning: 
+  accessing left-value that contains escaping addresses. assert ¬\dangling(m);
+[eva:alarm] heap_alloca.c:100: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&gp);
+[eva:alarm] heap_alloca.c:101: Warning: 
+  accessing left-value that contains escaping addresses. assert ¬\dangling(&c);
+[eva:alarm] heap_alloca.c:102: Warning: 
+  accessing left-value that contains escaping addresses. assert ¬\dangling(m);
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of alloca :: heap_alloca.c:73 <- to_global :: heap_alloca.c:88 <- store_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:73 <- to_global :: heap_alloca.c:90 <- store_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:92 <- store_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:94 <- store_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:96 <- store_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:98 <- store_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of malloc :: heap_alloca.c:86 <- store_main: 0: strong, record Variable [0..31--31], type int *, malloc
+  block 0 of alloca :: heap_alloca.c:73 <- to_global :: heap_alloca.c:88 <- store_main: owned by to_global :: heap_alloca.c:88 <- store_main
+  block 0 of alloca :: heap_alloca.c:73 <- to_global :: heap_alloca.c:90 <- store_main: owned by to_global :: heap_alloca.c:90 <- store_main
+  block 0 of alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:92 <- store_main: owned by to_cell :: heap_alloca.c:92 <- store_main
+  block 0 of alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:94 <- store_main: owned by to_cell :: heap_alloca.c:94 <- store_main
+  block 0 of alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:96 <- store_main: owned by to_cell :: heap_alloca.c:96 <- store_main
+  block 0 of alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:98 <- store_main: owned by to_cell :: heap_alloca.c:98 <- store_main
+  block 0 of malloc :: heap_alloca.c:86 <- store_main: owned by store_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on alloca :: heap_alloca.c:73 <- to_global :: heap_alloca.c:88 <- store_main: 0: __alloca_to_global_l73
+  names on alloca :: heap_alloca.c:73 <- to_global :: heap_alloca.c:90 <- store_main: 0: __alloca_to_global_l73
+  names on alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:92 <- store_main: 0: __alloca_to_cell_l79
+  names on alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:94 <- store_main: 0: __alloca_to_cell_l79
+  names on alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:96 <- store_main: 0: __alloca_to_cell_l79
+  names on alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:98 <- store_main: 0: __alloca_to_cell_l79
+  names on malloc :: heap_alloca.c:86 <- store_main: 0: __malloc_store_main_l86
+These are the names of the run without memexec.
+Calls:
+  malloc :: heap_alloca.c:86 <- store_main: builtin
+  alloca :: heap_alloca.c:73 <- to_global :: heap_alloca.c:88 <- store_main: builtin
+  to_global :: heap_alloca.c:88 <- store_main: analysed, cache entry 15
+  alloca :: heap_alloca.c:73 <- to_global :: heap_alloca.c:90 <- store_main: builtin
+  to_global :: heap_alloca.c:90 <- store_main: analysed, cache entry 16
+  alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:92 <- store_main: builtin
+  to_cell :: heap_alloca.c:92 <- store_main: analysed, cache entry 17
+  alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:94 <- store_main: builtin
+  to_cell :: heap_alloca.c:94 <- store_main: analysed, cache entry 18
+  alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:96 <- store_main: builtin
+  to_cell :: heap_alloca.c:96 <- store_main: analysed, cache entry 19
+  alloca :: heap_alloca.c:79 <- to_cell :: heap_alloca.c:98 <- store_main: builtin
+  to_cell :: heap_alloca.c:98 <- store_main: analysed, cache entry 20
+  Frama_C_interval :: heap_alloca.c:99 <- store_main: specification
+  store_main: analysed, cache entry 21
+Heap calls, not stored by memexec: store_main 1, to_cell 4, to_global 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+store_main, start:
+  joined: x ∈ {0}
+          gp ∈ {0}
+  store_main: x ∈ {0}
+              gp ∈ {0}
+store_main, before heap_alloca.c:99 `x = Frama_C_interval(0,2);` (Escaping):
+  joined: x ∈ {0}
+          gp ∈ ESCAPINGADDR
+          c ∈ ESCAPINGADDR
+          m ∈ {{ &__malloc_store_main_l86_1 }}
+          __malloc_store_main_l86_1 ∈ ESCAPINGADDR
+  store_main: x ∈ {0}
+              gp ∈ ESCAPINGADDR
+              c ∈ ESCAPINGADDR
+              m ∈ {{ &__malloc_store_main_l86_1 }}
+              __malloc_store_main_l86_1 ∈ ESCAPINGADDR
+store_main, after heap_alloca.c:103 `return;`:
+  joined: unreachable
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 611 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 260 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 260 points.
+Filtered requests that reject one callstack: 18.
+Requests made: 1131; reported by the trap: 1131, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 174 requests, 159 reads of the legacy store in them, 163 reads outside any request.
+  with -eva-hit-log: 177 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 125 requests
+    statuses of the properties: 18 requests
+    statistics: 28 requests
+    summary: 6 requests
+Statuses of the properties: those of the run without memexec, for 303 properties.
+Alarms: 3, of which 3 not proven, those of the run without memexec.
+Summary: statement coverage 0.9643, function coverage 0.1500, 3 alarms, those of the run without memexec.

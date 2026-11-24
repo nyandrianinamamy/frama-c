@@ -1,0 +1,60 @@
+[kernel] Parsing heap_vla.c (with preprocessing)
+[eva:alarm] heap_vla.c:152: Warning: 
+  out of bounds write. assert \valid(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:153: Warning: 
+  out of bounds read. assert \valid_read(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:152: Warning: 
+  out of bounds write. assert \valid(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:153: Warning: 
+  out of bounds read. assert \valid_read(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:152: Warning: 
+  out of bounds write. assert \valid(a + (int)(n - 1));
+[eva:alarm] heap_vla.c:153: Warning: 
+  out of bounds read. assert \valid_read(a + (int)(n - 1));
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: 0: strong, record Variable [0..63--95], type int [], variable-length array
+  block 0 of __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: owned by sized :: heap_vla.c:226 <- alternate_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: 0: __malloc_sized_l150
+These are the names of the run without memexec.
+Calls:
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: builtin
+  sized :: heap_vla.c:226 <- alternate_main: analysed, cache entry 15
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: builtin
+  sized :: heap_vla.c:226 <- alternate_main: analysed, cache entry 16
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: builtin
+  sized :: heap_vla.c:226 <- alternate_main: analysed, cache entry 17
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: builtin
+  sized :: heap_vla.c:226 <- alternate_main: analysed, cache entry 18
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: builtin
+  sized :: heap_vla.c:226 <- alternate_main: analysed, cache entry 19
+  __fc_vla_alloc :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: builtin
+  __fc_vla_free :: heap_vla.c:150 <- sized :: heap_vla.c:226 <- alternate_main: builtin
+  sized :: heap_vla.c:226 <- alternate_main: analysed, cache entry 20
+  alternate_main: analysed, cache entry 21
+Heap calls, not stored by memexec: alternate_main 1, sized 6.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 794 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 379 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 379 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 1552; reported by the trap: 1552, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 236 requests, 84 reads of the legacy store in them, 74 reads outside any request.
+  with -eva-hit-log: 238 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 194 requests
+    statuses of the properties: 10 requests
+    statistics: 16 requests
+    summary: 18 requests
+Statuses of the properties: those of the run without memexec, for 237 properties.
+Alarms: 2, of which 2 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1053, 2 alarms, those of the run without memexec.

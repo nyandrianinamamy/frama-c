@@ -1,0 +1,34 @@
+[kernel] Parsing heap_vla.c (with preprocessing)
+[eva:alarm] heap_vla.c:150: Warning: 
+  assertion 'alloca_bounds' got status invalid (stopping propagation).
+[eva:alarm] heap_vla.c:150: Warning: 
+  assertion 'alloca_bounds' got status invalid (stopping propagation).
+[eva:alarm] heap_vla.c:150: Warning: 
+  assertion 'alloca_bounds' got status invalid (stopping propagation).
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+These are the names of the run without memexec.
+Calls:
+  Frama_C_interval :: heap_vla.c:173 <- zero_main: specification
+  sized :: heap_vla.c:173 <- zero_main: analysed, cache entry 6
+  sized :: heap_vla.c:174 <- zero_main: hit of cache entry 6
+  zero_main: analysed, cache entry 7
+Hits against the analysed call of their cache entry:
+  sized :: heap_vla.c:174 <- zero_main, hit of cache entry 6, against sized :: heap_vla.c:173 <- zero_main: differs on tmp, at 19 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 774 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 379 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 379 points.
+Filtered requests that reject one callstack: 4.
+Requests made: 1532; reported by the trap: 1532, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 222 requests, 63 reads of the legacy store in them, 44 reads outside any request.
+  with -eva-hit-log: 222 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 192 requests
+    statistics: 14 requests
+    summary: 16 requests
+Statuses of the properties: those of the run without memexec, for 235 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 0.4286, function coverage 0.1053, 0 alarms, those of the run without memexec.

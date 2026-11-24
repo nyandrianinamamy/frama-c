@@ -1,0 +1,59 @@
+[kernel] Parsing heap_alloca.c (with preprocessing)
+[eva:alarm] heap_alloca.c:65: Warning: 
+  accessing left-value that contains escaping addresses. assert ¬\dangling(&b);
+[eva:alarm] heap_alloca.c:65: Warning: 
+  accessing left-value that contains escaping addresses. assert ¬\dangling(&b);
+[eva:alarm] heap_alloca.c:65: Warning: 
+  accessing left-value that contains escaping addresses. assert ¬\dangling(&b);
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of alloca :: heap_alloca.c:57 <- ret :: heap_alloca.c:63 <- escape_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:57 <- ret :: heap_alloca.c:64 <- escape_main: 0: strong, record Variable [0..31--31], type int, alloca
+  block 0 of alloca :: heap_alloca.c:57 <- ret :: heap_alloca.c:63 <- escape_main: owned by ret :: heap_alloca.c:63 <- escape_main
+  block 0 of alloca :: heap_alloca.c:57 <- ret :: heap_alloca.c:64 <- escape_main: owned by ret :: heap_alloca.c:64 <- escape_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on alloca :: heap_alloca.c:57 <- ret :: heap_alloca.c:63 <- escape_main: 0: __alloca_ret_l57
+  names on alloca :: heap_alloca.c:57 <- ret :: heap_alloca.c:64 <- escape_main: 0: __alloca_ret_l57
+These are the names of the run without memexec.
+Calls:
+  alloca :: heap_alloca.c:57 <- ret :: heap_alloca.c:63 <- escape_main: builtin
+  ret :: heap_alloca.c:63 <- escape_main: analysed, cache entry 7
+  alloca :: heap_alloca.c:57 <- ret :: heap_alloca.c:64 <- escape_main: builtin
+  ret :: heap_alloca.c:64 <- escape_main: analysed, cache entry 8
+  escape_main: analysed, cache entry 9
+Heap calls, not stored by memexec: escape_main 1, ret 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+escape_main, start:
+  joined: x ∈ {0}
+          gp ∈ {0}
+  escape_main: x ∈ {0}
+               gp ∈ {0}
+escape_main, before heap_alloca.c:65 `x = *b;` (Escaping):
+  joined: x ∈ {0}
+          gp ∈ {0}
+          a ∈ ESCAPINGADDR
+          b ∈ ESCAPINGADDR
+  escape_main: x ∈ {0}
+               gp ∈ {0}
+               a ∈ ESCAPINGADDR
+               b ∈ ESCAPINGADDR
+escape_main, after heap_alloca.c:66 `return;`:
+  joined: unreachable
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 541 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 260 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 260 points.
+Filtered requests that reject one callstack: 7.
+Requests made: 1061; reported by the trap: 1061, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 138 requests, 44 reads of the legacy store in them, 40 reads outside any request.
+  with -eva-hit-log: 139 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 122 requests
+    statuses of the properties: 6 requests
+    statistics: 7 requests
+    summary: 4 requests
+Statuses of the properties: those of the run without memexec, for 300 properties.
+Alarms: 1, of which 1 not proven, those of the run without memexec.
+Summary: statement coverage 0.8571, function coverage 0.1000, 1 alarm, those of the run without memexec.

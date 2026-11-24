@@ -1,0 +1,87 @@
+[kernel] Parsing heap_alloca_refused.c (with preprocessing)
+[eva:malloc:imprecise] heap_alloca_refused.c:41: Warning: 
+  allocating a single weak variable for ALL dynamic allocations via alloca: __alloc_w_plain_main
+[eva:alarm] heap_alloca_refused.c:42: Warning: 
+  out of bounds write. assert \valid(p);
+[eva:alarm] heap_alloca_refused.c:43: Warning: 
+  accessing uninitialized left-value. assert \initialized(p);
+[eva:alarm] heap_alloca_refused.c:43: Warning: 
+  out of bounds read. assert \valid_read(p);
+[eva:malloc:imprecise] heap_alloca_refused.c:47: Warning: 
+  allocating a single weak variable for ALL dynamic allocations related to variable-length arrays: __alloc_w_plain_main_0
+[eva:alarm] heap_alloca_refused.c:48: Warning: 
+  out of bounds write. assert \valid(a + 0);
+[eva:alarm] heap_alloca_refused.c:49: Warning: 
+  accessing uninitialized left-value. assert \initialized(a + 0);
+[eva:alarm] heap_alloca_refused.c:49: Warning: 
+  out of bounds read. assert \valid_read(a + 0);
+[eva:malloc:imprecise] heap_alloca_refused.c:41: Warning: 
+  allocating a single weak variable for ALL dynamic allocations via alloca: __alloc_w_plain_main_1
+[eva:alarm] heap_alloca_refused.c:42: Warning: 
+  out of bounds write. assert \valid(p);
+[eva:alarm] heap_alloca_refused.c:43: Warning: 
+  accessing uninitialized left-value. assert \initialized(p);
+[eva:alarm] heap_alloca_refused.c:43: Warning: 
+  out of bounds read. assert \valid_read(p);
+[eva:malloc:imprecise] heap_alloca_refused.c:47: Warning: 
+  allocating a single weak variable for ALL dynamic allocations related to variable-length arrays: __alloc_w_plain_main_2
+[eva:alarm] heap_alloca_refused.c:48: Warning: 
+  out of bounds write. assert \valid(a + 0);
+[eva:alarm] heap_alloca_refused.c:49: Warning: 
+  accessing uninitialized left-value. assert \initialized(a + 0);
+[eva:alarm] heap_alloca_refused.c:49: Warning: 
+  out of bounds read. assert \valid_read(a + 0);
+[eva:malloc:imprecise] heap_alloca_refused.c:41: Warning: 
+  allocating a single weak variable for ALL dynamic allocations via alloca: __alloc_w_plain_main_3
+[eva:alarm] heap_alloca_refused.c:42: Warning: 
+  out of bounds write. assert \valid(p);
+[eva:alarm] heap_alloca_refused.c:43: Warning: 
+  accessing uninitialized left-value. assert \initialized(p);
+[eva:alarm] heap_alloca_refused.c:43: Warning: 
+  out of bounds read. assert \valid_read(p);
+[eva:malloc:imprecise] heap_alloca_refused.c:47: Warning: 
+  allocating a single weak variable for ALL dynamic allocations related to variable-length arrays: __alloc_w_plain_main_4
+[eva:alarm] heap_alloca_refused.c:48: Warning: 
+  out of bounds write. assert \valid(a + 0);
+[eva:alarm] heap_alloca_refused.c:49: Warning: 
+  accessing uninitialized left-value. assert \initialized(a + 0);
+[eva:alarm] heap_alloca_refused.c:49: Warning: 
+  out of bounds read. assert \valid_read(a + 0);
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  block weak, record Variable [0..-1--34359738367], type char [], alloca: owned by plain_main
+  block weak, record Variable [0..-1--34359738367], type char [], variable-length array: owned by plain_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+These are the names of the run without memexec.
+Calls:
+  alloca :: heap_alloca_refused.c:41 <- plain :: heap_alloca_refused.c:53 <- plain_main: builtin
+  plain :: heap_alloca_refused.c:53 <- plain_main: analysed, cache entry 11
+  alloca :: heap_alloca_refused.c:41 <- plain :: heap_alloca_refused.c:54 <- plain_main: builtin
+  plain :: heap_alloca_refused.c:54 <- plain_main: analysed, cache entry 12
+  __fc_vla_alloc :: heap_alloca_refused.c:47 <- vplain :: heap_alloca_refused.c:55 <- plain_main: builtin
+  __fc_vla_free :: heap_alloca_refused.c:47 <- vplain :: heap_alloca_refused.c:55 <- plain_main: builtin
+  vplain :: heap_alloca_refused.c:55 <- plain_main: analysed, cache entry 13
+  __fc_vla_alloc :: heap_alloca_refused.c:47 <- vplain :: heap_alloca_refused.c:56 <- plain_main: builtin
+  __fc_vla_free :: heap_alloca_refused.c:47 <- vplain :: heap_alloca_refused.c:56 <- plain_main: builtin
+  vplain :: heap_alloca_refused.c:56 <- plain_main: analysed, cache entry 14
+  plain_main: analysed, cache entry 15
+Heap calls, not stored by memexec: plain 2, plain_main 1, vplain 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 293 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 114 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 114 points.
+Filtered requests that reject one callstack: 26.
+Requests made: 521; reported by the trap: 521, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 111 requests, 139 reads of the legacy store in them, 115 reads outside any request.
+  with -eva-hit-log: 117 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 62 requests
+    statuses of the properties: 30 requests
+    statistics: 17 requests
+    summary: 8 requests
+Statuses of the properties: those of the run without memexec, for 268 properties.
+Alarms: 6, of which 6 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.3000, 6 alarms, those of the run without memexec.

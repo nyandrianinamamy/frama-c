@@ -1,0 +1,99 @@
+[kernel] Parsing heap_vla.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of __fc_vla_alloc :: heap_vla.c:72 <- by_goto :: heap_vla.c:102 <- jump_main: 0: strong, record Variable [0..63--63], type int [2], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:72 <- by_goto :: heap_vla.c:103 <- jump_main: 0: strong, record Variable [0..63--63], type int [2], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:85 <- by_break :: heap_vla.c:104 <- jump_main: 0: strong, record Variable [0..63--63], type int [2], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:85 <- by_break :: heap_vla.c:105 <- jump_main: 0: strong, record Variable [0..63--63], type int [2], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:95 <- by_return :: heap_vla.c:106 <- jump_main: 0: strong, record Variable [0..63--63], type int [2], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:95 <- by_return :: heap_vla.c:107 <- jump_main: 0: strong, record Variable [0..63--63], type int [2], variable-length array
+  block 0 of __fc_vla_alloc :: heap_vla.c:72 <- by_goto :: heap_vla.c:102 <- jump_main: owned by by_goto :: heap_vla.c:102 <- jump_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:72 <- by_goto :: heap_vla.c:103 <- jump_main: owned by by_goto :: heap_vla.c:103 <- jump_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:85 <- by_break :: heap_vla.c:104 <- jump_main: owned by by_break :: heap_vla.c:104 <- jump_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:85 <- by_break :: heap_vla.c:105 <- jump_main: owned by by_break :: heap_vla.c:105 <- jump_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:95 <- by_return :: heap_vla.c:106 <- jump_main: owned by by_return :: heap_vla.c:106 <- jump_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:95 <- by_return :: heap_vla.c:107 <- jump_main: owned by by_return :: heap_vla.c:107 <- jump_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on __fc_vla_alloc :: heap_vla.c:72 <- by_goto :: heap_vla.c:102 <- jump_main: 0: __malloc_by_goto_l72
+  names on __fc_vla_alloc :: heap_vla.c:72 <- by_goto :: heap_vla.c:103 <- jump_main: 0: __malloc_by_goto_l72
+  names on __fc_vla_alloc :: heap_vla.c:85 <- by_break :: heap_vla.c:104 <- jump_main: 0: __malloc_by_break_l85
+  names on __fc_vla_alloc :: heap_vla.c:85 <- by_break :: heap_vla.c:105 <- jump_main: 0: __malloc_by_break_l85
+  names on __fc_vla_alloc :: heap_vla.c:95 <- by_return :: heap_vla.c:106 <- jump_main: 0: __malloc_by_return_l95
+  names on __fc_vla_alloc :: heap_vla.c:95 <- by_return :: heap_vla.c:107 <- jump_main: 0: __malloc_by_return_l95
+These are the names of the run without memexec.
+Calls:
+  __fc_vla_alloc :: heap_vla.c:72 <- by_goto :: heap_vla.c:102 <- jump_main: builtin
+  __fc_vla_free :: heap_vla.c:72 <- by_goto :: heap_vla.c:102 <- jump_main: builtin
+  by_goto :: heap_vla.c:102 <- jump_main: analysed, cache entry 15
+  __fc_vla_alloc :: heap_vla.c:72 <- by_goto :: heap_vla.c:103 <- jump_main: builtin
+  __fc_vla_free :: heap_vla.c:72 <- by_goto :: heap_vla.c:103 <- jump_main: builtin
+  by_goto :: heap_vla.c:103 <- jump_main: analysed, cache entry 16
+  __fc_vla_alloc :: heap_vla.c:85 <- by_break :: heap_vla.c:104 <- jump_main: builtin
+  __fc_vla_free :: heap_vla.c:85 <- by_break :: heap_vla.c:104 <- jump_main: builtin
+  by_break :: heap_vla.c:104 <- jump_main: analysed, cache entry 17
+  __fc_vla_alloc :: heap_vla.c:85 <- by_break :: heap_vla.c:105 <- jump_main: builtin
+  __fc_vla_free :: heap_vla.c:85 <- by_break :: heap_vla.c:105 <- jump_main: builtin
+  by_break :: heap_vla.c:105 <- jump_main: analysed, cache entry 18
+  __fc_vla_alloc :: heap_vla.c:95 <- by_return :: heap_vla.c:106 <- jump_main: builtin
+  __fc_vla_free :: heap_vla.c:95 <- by_return :: heap_vla.c:106 <- jump_main: builtin
+  by_return :: heap_vla.c:106 <- jump_main: analysed, cache entry 19
+  __fc_vla_alloc :: heap_vla.c:95 <- by_return :: heap_vla.c:107 <- jump_main: builtin
+  __fc_vla_free :: heap_vla.c:95 <- by_return :: heap_vla.c:107 <- jump_main: builtin
+  by_return :: heap_vla.c:107 <- jump_main: analysed, cache entry 20
+  jump_main: analysed, cache entry 21
+Heap calls, not stored by memexec: by_break 2, by_goto 2, by_return 2,
+  jump_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+by_goto, start:
+  joined: x ∈ {0; 2}
+          gv ∈ {0}
+          n ∈ {2}
+  by_goto :: heap_vla.c:102 <- jump_main: x ∈ {0}
+                                          gv ∈ {0}
+                                          n ∈ {2}
+  by_goto :: heap_vla.c:103 <- jump_main: x ∈ {2}
+                                          gv ∈ {0}
+                                          n ∈ {2}
+by_goto, before heap_vla.c:79 `;` (out):
+  joined: x ∈ {0; 2}
+          gv ∈ {0}
+          n ∈ {2}
+          r ∈ {2}
+  by_goto :: heap_vla.c:102 <- jump_main: x ∈ {0}
+                                          gv ∈ {0}
+                                          n ∈ {2}
+                                          r ∈ {2}
+  by_goto :: heap_vla.c:103 <- jump_main: x ∈ {2}
+                                          gv ∈ {0}
+                                          n ∈ {2}
+                                          r ∈ {2}
+by_goto, after heap_vla.c:79 `return r;`:
+  joined: x ∈ {0; 2}
+          gv ∈ {0}
+          n ∈ {2}
+          r ∈ {2}
+  by_goto :: heap_vla.c:102 <- jump_main: x ∈ {0}
+                                          gv ∈ {0}
+                                          n ∈ {2}
+                                          r ∈ {2}
+  by_goto :: heap_vla.c:103 <- jump_main: x ∈ {2}
+                                          gv ∈ {0}
+                                          n ∈ {2}
+                                          r ∈ {2}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 909 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 379 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 379 points.
+Filtered requests that reject one callstack: 67.
+Requests made: 1667; reported by the trap: 1667, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 251 requests, 206 reads of the legacy store in them, 249 reads outside any request.
+  with -eva-hit-log: 251 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 194 requests
+    statistics: 41 requests
+    summary: 16 requests
+Statuses of the properties: those of the run without memexec, for 233 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 0.9512, function coverage 0.2105, 0 alarms, those of the run without memexec.

@@ -1,0 +1,48 @@
+[kernel] Parsing heap_alloca.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:166 <- parent :: heap_alloca.c:172 <- parent_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:166 <- parent :: heap_alloca.c:173 <- parent_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:167 <- parent :: heap_alloca.c:172 <- parent_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:167 <- parent :: heap_alloca.c:173 <- parent_main: 0: strong, record Variable [0..31--31], type int, alloca
+  block 0 of alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:166 <- parent :: heap_alloca.c:172 <- parent_main: owned by child :: heap_alloca.c:166 <- parent :: heap_alloca.c:172 <- parent_main
+  block 0 of alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:166 <- parent :: heap_alloca.c:173 <- parent_main: owned by child :: heap_alloca.c:166 <- parent :: heap_alloca.c:173 <- parent_main
+  block 0 of alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:167 <- parent :: heap_alloca.c:172 <- parent_main: owned by child :: heap_alloca.c:167 <- parent :: heap_alloca.c:172 <- parent_main
+  block 0 of alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:167 <- parent :: heap_alloca.c:173 <- parent_main: owned by child :: heap_alloca.c:167 <- parent :: heap_alloca.c:173 <- parent_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:166 <- parent :: heap_alloca.c:172 <- parent_main: 0: __alloca_child_l160
+  names on alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:166 <- parent :: heap_alloca.c:173 <- parent_main: 0: __alloca_child_l160
+  names on alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:167 <- parent :: heap_alloca.c:172 <- parent_main: 0: __alloca_child_l160
+  names on alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:167 <- parent :: heap_alloca.c:173 <- parent_main: 0: __alloca_child_l160
+These are the names of the run without memexec.
+Calls:
+  alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:166 <- parent :: heap_alloca.c:172 <- parent_main: builtin
+  child :: heap_alloca.c:166 <- parent :: heap_alloca.c:172 <- parent_main: analysed, cache entry 15
+  alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:167 <- parent :: heap_alloca.c:172 <- parent_main: builtin
+  child :: heap_alloca.c:167 <- parent :: heap_alloca.c:172 <- parent_main: analysed, cache entry 16
+  parent :: heap_alloca.c:172 <- parent_main: analysed, cache entry 17
+  alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:166 <- parent :: heap_alloca.c:173 <- parent_main: builtin
+  child :: heap_alloca.c:166 <- parent :: heap_alloca.c:173 <- parent_main: analysed, cache entry 18
+  alloca :: heap_alloca.c:160 <- child :: heap_alloca.c:167 <- parent :: heap_alloca.c:173 <- parent_main: builtin
+  child :: heap_alloca.c:167 <- parent :: heap_alloca.c:173 <- parent_main: analysed, cache entry 19
+  parent :: heap_alloca.c:173 <- parent_main: analysed, cache entry 20
+  parent_main: analysed, cache entry 21
+Heap calls, not stored by memexec: child 4, parent 2, parent_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 583 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 260 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 260 points.
+Filtered requests that reject one callstack: 18.
+Requests made: 1103; reported by the trap: 1103, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 136 requests, 63 reads of the legacy store in them, 91 reads outside any request.
+  with -eva-hit-log: 136 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 122 requests
+    statistics: 11 requests
+    summary: 3 requests
+Statuses of the properties: those of the run without memexec, for 298 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1500, 0 alarms, those of the run without memexec.

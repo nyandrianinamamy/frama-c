@@ -1,0 +1,38 @@
+[kernel] Parsing heap_vla.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of __fc_vla_alloc :: heap_vla.c:207 <- vstruct :: heap_vla.c:214 <- struct_main: 0: strong, record Variable [0..127--127], type struct s [2], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:207 <- vstruct :: heap_vla.c:215 <- struct_main: 0: strong, record Variable [0..127--127], type struct s [2], variable-length array
+  block 0 of __fc_vla_alloc :: heap_vla.c:207 <- vstruct :: heap_vla.c:214 <- struct_main: owned by vstruct :: heap_vla.c:214 <- struct_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:207 <- vstruct :: heap_vla.c:215 <- struct_main: owned by vstruct :: heap_vla.c:215 <- struct_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on __fc_vla_alloc :: heap_vla.c:207 <- vstruct :: heap_vla.c:214 <- struct_main: 0: __malloc_vstruct_l207
+  names on __fc_vla_alloc :: heap_vla.c:207 <- vstruct :: heap_vla.c:215 <- struct_main: 0: __malloc_vstruct_l207
+These are the names of the run without memexec.
+Calls:
+  __fc_vla_alloc :: heap_vla.c:207 <- vstruct :: heap_vla.c:214 <- struct_main: builtin
+  __fc_vla_free :: heap_vla.c:207 <- vstruct :: heap_vla.c:214 <- struct_main: builtin
+  vstruct :: heap_vla.c:214 <- struct_main: analysed, cache entry 7
+  __fc_vla_alloc :: heap_vla.c:207 <- vstruct :: heap_vla.c:215 <- struct_main: builtin
+  __fc_vla_free :: heap_vla.c:207 <- vstruct :: heap_vla.c:215 <- struct_main: builtin
+  vstruct :: heap_vla.c:215 <- struct_main: analysed, cache entry 8
+  struct_main: analysed, cache entry 9
+Heap calls, not stored by memexec: struct_main 1, vstruct 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 805 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 379 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 379 points.
+Filtered requests that reject one callstack: 19.
+Requests made: 1563; reported by the trap: 1563, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 220 requests, 61 reads of the legacy store in them, 77 reads outside any request.
+  with -eva-hit-log: 220 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 192 requests
+    statistics: 12 requests
+    summary: 16 requests
+Statuses of the properties: those of the run without memexec, for 235 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1053, 0 alarms, those of the run without memexec.

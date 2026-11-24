@@ -1,0 +1,79 @@
+[kernel] Parsing heap_vla.c (with preprocessing)
+[eva:alarm] heap_vla.c:129: Warning: 
+  out of bounds write. assert \valid(a + (int)(i - 1));
+[eva:alarm] heap_vla.c:130: Warning: 
+  out of bounds read. assert \valid_read(a + (int)(i - 1));
+[eva:alarm] heap_vla.c:129: Warning: 
+  out of bounds write. assert \valid(a + (int)(i - 1));
+[eva:alarm] heap_vla.c:130: Warning: 
+  out of bounds read. assert \valid_read(a + (int)(i - 1));
+[eva:alarm] heap_vla.c:129: Warning: 
+  out of bounds write. assert \valid(a + (int)(i - 1));
+[eva:alarm] heap_vla.c:130: Warning: 
+  out of bounds read. assert \valid_read(a + (int)(i - 1));
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:136 <- loop_main: 0: strong, record Variable [0..63--63], type int [2], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: 0: strong, record Variable [0..63--63], type int [2], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: 0: strong, record Variable [0..31--95], type int [], variable-length array
+  list of __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: 0: strong, record Variable [0..31--95], type int [], variable-length array
+  block 0 of __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:136 <- loop_main: owned by vloop :: heap_vla.c:136 <- loop_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: owned by vloop :: heap_vla.c:137 <- loop_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: owned by grow :: heap_vla.c:138 <- loop_main
+  block 0 of __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: owned by grow :: heap_vla.c:139 <- loop_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:136 <- loop_main: 0: __malloc_vloop_l118
+  names on __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: 0: __malloc_vloop_l118
+  names on __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: 0: __malloc_grow_l128
+  names on __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: 0: __malloc_grow_l128
+These are the names of the run without memexec.
+Calls:
+  __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:136 <- loop_main: builtin
+  __fc_vla_free :: heap_vla.c:118 <- vloop :: heap_vla.c:136 <- loop_main: builtin
+  __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:136 <- loop_main: builtin
+  __fc_vla_free :: heap_vla.c:118 <- vloop :: heap_vla.c:136 <- loop_main: builtin
+  __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:136 <- loop_main: builtin
+  __fc_vla_free :: heap_vla.c:118 <- vloop :: heap_vla.c:136 <- loop_main: builtin
+  vloop :: heap_vla.c:136 <- loop_main: analysed, cache entry 11
+  __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: builtin
+  __fc_vla_free :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: builtin
+  __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: builtin
+  __fc_vla_free :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: builtin
+  __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: builtin
+  __fc_vla_free :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: builtin
+  vloop :: heap_vla.c:137 <- loop_main: analysed, cache entry 12
+  __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: builtin
+  __fc_vla_free :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: builtin
+  __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: builtin
+  __fc_vla_free :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: builtin
+  __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: builtin
+  __fc_vla_free :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: builtin
+  grow :: heap_vla.c:138 <- loop_main: analysed, cache entry 13
+  __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: builtin
+  __fc_vla_free :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: builtin
+  __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: builtin
+  __fc_vla_free :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: builtin
+  __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: builtin
+  __fc_vla_free :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: builtin
+  grow :: heap_vla.c:139 <- loop_main: analysed, cache entry 14
+  loop_main: analysed, cache entry 15
+Heap calls, not stored by memexec: grow 2, loop_main 1, vloop 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 903 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 379 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 379 points.
+Filtered requests that reject one callstack: 66.
+Requests made: 1661; reported by the trap: 1661, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 258 requests, 206 reads of the legacy store in them, 232 reads outside any request.
+  with -eva-hit-log: 260 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 195 requests
+    statuses of the properties: 10 requests
+    statistics: 37 requests
+    summary: 18 requests
+Statuses of the properties: those of the run without memexec, for 236 properties.
+Alarms: 2, of which 2 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1579, 2 alarms, those of the run without memexec.

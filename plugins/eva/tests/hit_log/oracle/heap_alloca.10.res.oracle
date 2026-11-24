@@ -1,0 +1,246 @@
+[kernel] Parsing heap_alloca.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:208 <- rec_main: 0: strong, record Variable [0..31--31], type int, alloca
+  list of alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:209 <- rec_main: 0: strong, record Variable [0..31--31], type int, alloca
+  block 0 of alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: owned by rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main
+  block 0 of alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: owned by rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main
+  block 0 of alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: owned by rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main
+  block 0 of alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: owned by rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main
+  block 0 of alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:208 <- rec_main: owned by rec :: heap_alloca.c:208 <- rec_main
+  block 0 of alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:209 <- rec_main: owned by rec :: heap_alloca.c:209 <- rec_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: 0: __alloca_rec_l201
+  names on alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: 0: __alloca_rec_l201
+  names on alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: 0: __alloca_rec_l201
+  names on alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: 0: __alloca_rec_l201
+  names on alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:208 <- rec_main: 0: __alloca_rec_l201
+  names on alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:209 <- rec_main: 0: __alloca_rec_l201
+These are the names of the run without memexec.
+Calls:
+  alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:208 <- rec_main: builtin
+  alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: builtin
+  alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: builtin
+  rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: analysed, cache entry 15
+  rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: analysed, cache entry 16
+  rec :: heap_alloca.c:208 <- rec_main: analysed, cache entry 17
+  alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:209 <- rec_main: builtin
+  alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: builtin
+  alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: builtin
+  rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: analysed, cache entry 18
+  rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: analysed, cache entry 19
+  rec :: heap_alloca.c:209 <- rec_main: analysed, cache entry 20
+  rec_main: analysed, cache entry 21
+Heap calls, not stored by memexec: rec 6, rec_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+  rec, before heap_alloca.c:201 `int *p = alloca(sizeof(int));`, joined: unavailable
+  rec, before heap_alloca.c:201 `int *p = alloca(sizeof(int));`, filtered: unavailable
+  rec, before heap_alloca.c:201 `int *p = alloca(sizeof(int));`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:201 `int *p = alloca(sizeof(int));`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:201 `int *p = alloca(sizeof(int));`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:201 `int *p = alloca(sizeof(int));`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:201 `int *p = alloca(sizeof(int));`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:201 `int *p = alloca(sizeof(int));`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:201 `int *p = alloca(sizeof(int));`, joined: unavailable
+  rec, after heap_alloca.c:201 `int *p = alloca(sizeof(int));`, filtered: unavailable
+  rec, after heap_alloca.c:201 `int *p = alloca(sizeof(int));`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:201 `int *p = alloca(sizeof(int));`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:201 `int *p = alloca(sizeof(int));`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:201 `int *p = alloca(sizeof(int));`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:201 `int *p = alloca(sizeof(int));`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:201 `int *p = alloca(sizeof(int));`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:202 `*p = n;`, joined: unavailable
+  rec, before heap_alloca.c:202 `*p = n;`, filtered: unavailable
+  rec, before heap_alloca.c:202 `*p = n;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:202 `*p = n;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:202 `*p = n;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:202 `*p = n;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:202 `*p = n;`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:202 `*p = n;`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:202 `*p = n;`, joined: unavailable
+  rec, after heap_alloca.c:202 `*p = n;`, filtered: unavailable
+  rec, after heap_alloca.c:202 `*p = n;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:202 `*p = n;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:202 `*p = n;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:202 `*p = n;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:202 `*p = n;`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:202 `*p = n;`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `if (n > 0)`, joined: unavailable
+  rec, before heap_alloca.c:203 `if (n > 0)`, filtered: unavailable
+  rec, before heap_alloca.c:203 `if (n > 0)`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `if (n > 0)`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `if (n > 0)`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `if (n > 0)`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `if (n > 0)`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `if (n > 0)`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `if (n > 0)`, joined: unavailable
+  rec, after heap_alloca.c:203 `if (n > 0)`, filtered: unavailable
+  rec, after heap_alloca.c:203 `if (n > 0)`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `if (n > 0)`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `if (n > 0)`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `if (n > 0)`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `if (n > 0)`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `if (n > 0)`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `sequence`, joined: unavailable
+  rec, before heap_alloca.c:203 `sequence`, filtered: unavailable
+  rec, before heap_alloca.c:203 `sequence`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `sequence`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `sequence`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `sequence`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `sequence`, joined: unavailable
+  rec, after heap_alloca.c:203 `sequence`, filtered: unavailable
+  rec, after heap_alloca.c:203 `sequence`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `sequence`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `sequence`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `sequence`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `tmp_0 = rec(n - 1);`, joined: unavailable
+  rec, before heap_alloca.c:203 `tmp_0 = rec(n - 1);`, filtered: unavailable
+  rec, before heap_alloca.c:203 `tmp_0 = rec(n - 1);`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `tmp_0 = rec(n - 1);`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `tmp_0 = rec(n - 1);`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `tmp_0 = rec(n - 1);`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `tmp_0 = rec(n - 1);`, joined: unavailable
+  rec, after heap_alloca.c:203 `tmp_0 = rec(n - 1);`, filtered: unavailable
+  rec, after heap_alloca.c:203 `tmp_0 = rec(n - 1);`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `tmp_0 = rec(n - 1);`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `tmp_0 = rec(n - 1);`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `tmp_0 = rec(n - 1);`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `;`, joined: unavailable
+  rec, before heap_alloca.c:203 `;`, filtered: unavailable
+  rec, before heap_alloca.c:203 `;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `;`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `;`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `;`, joined: unavailable
+  rec, after heap_alloca.c:203 `;`, filtered: unavailable
+  rec, after heap_alloca.c:203 `;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `;`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `;`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `block`, joined: unavailable
+  rec, before heap_alloca.c:203 `block`, filtered: unavailable
+  rec, before heap_alloca.c:203 `block`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `block`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `block`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `block`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `block`, joined: unavailable
+  rec, after heap_alloca.c:203 `block`, filtered: unavailable
+  rec, after heap_alloca.c:203 `block`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `block`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `block`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `block`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `__retres = *p + tmp_0;`, joined: unavailable
+  rec, before heap_alloca.c:203 `__retres = *p + tmp_0;`, filtered: unavailable
+  rec, before heap_alloca.c:203 `__retres = *p + tmp_0;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `__retres = *p + tmp_0;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `__retres = *p + tmp_0;`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `__retres = *p + tmp_0;`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `__retres = *p + tmp_0;`, joined: unavailable
+  rec, after heap_alloca.c:203 `__retres = *p + tmp_0;`, filtered: unavailable
+  rec, after heap_alloca.c:203 `__retres = *p + tmp_0;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `__retres = *p + tmp_0;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `__retres = *p + tmp_0;`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `__retres = *p + tmp_0;`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `goto`, joined: unavailable
+  rec, before heap_alloca.c:203 `goto`, filtered: unavailable
+  rec, before heap_alloca.c:203 `goto`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `goto`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `goto`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:203 `goto`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `goto`, joined: unavailable
+  rec, after heap_alloca.c:203 `goto`, filtered: unavailable
+  rec, after heap_alloca.c:203 `goto`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `goto`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `goto`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `goto`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `goto`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:203 `goto`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:204 `__retres = *p;`, joined: unavailable
+  rec, before heap_alloca.c:204 `__retres = *p;`, filtered: unavailable
+  rec, before heap_alloca.c:204 `__retres = *p;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:204 `__retres = *p;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:204 `__retres = *p;`, joined: unavailable
+  rec, after heap_alloca.c:204 `__retres = *p;`, filtered: unavailable
+  rec, after heap_alloca.c:204 `__retres = *p;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:204 `__retres = *p;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:204 `return __retres;`, joined: unavailable
+  rec, before heap_alloca.c:204 `return __retres;`, filtered: unavailable
+  rec, before heap_alloca.c:204 `return __retres;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:204 `return __retres;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:204 `return __retres;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:204 `return __retres;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, before heap_alloca.c:204 `return __retres;`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, before heap_alloca.c:204 `return __retres;`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:204 `return __retres;`, joined: unavailable
+  rec, after heap_alloca.c:204 `return __retres;`, filtered: unavailable
+  rec, after heap_alloca.c:204 `return __retres;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:204 `return __retres;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:204 `return __retres;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:204 `return __retres;`, rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: unavailable
+  rec, after heap_alloca.c:204 `return __retres;`, rec :: heap_alloca.c:208 <- rec_main: unavailable
+  rec, after heap_alloca.c:204 `return __retres;`, rec :: heap_alloca.c:209 <- rec_main: unavailable
+Answers: 491 equal, 0 covering, 0 more precise, 0 omitting, 146 unavailable.
+Callstacks listed: NOT those of the run without memexec at 22 of the 260 points:
+  rec, before heap_alloca.c:201 `int *p = alloca(sizeof(int));`
+  rec, after heap_alloca.c:201 `int *p = alloca(sizeof(int));`
+  rec, before heap_alloca.c:202 `*p = n;`
+  rec, after heap_alloca.c:202 `*p = n;`
+  rec, before heap_alloca.c:203 `if (n > 0)`
+  rec, after heap_alloca.c:203 `if (n > 0)`
+  rec, before heap_alloca.c:203 `sequence`
+  rec, after heap_alloca.c:203 `sequence`
+  rec, before heap_alloca.c:203 `tmp_0 = rec(n - 1);`
+  rec, after heap_alloca.c:203 `tmp_0 = rec(n - 1);`
+  rec, before heap_alloca.c:203 `;`
+  rec, after heap_alloca.c:203 `;`
+  rec, before heap_alloca.c:203 `block`
+  rec, after heap_alloca.c:203 `block`
+  rec, before heap_alloca.c:203 `__retres = *p + tmp_0;`
+  rec, after heap_alloca.c:203 `__retres = *p + tmp_0;`
+  rec, before heap_alloca.c:203 `goto`
+  rec, after heap_alloca.c:203 `goto`
+  rec, before heap_alloca.c:204 `__retres = *p;`
+  rec, after heap_alloca.c:204 `__retres = *p;`
+  rec, before heap_alloca.c:204 `return __retres;`
+  rec, after heap_alloca.c:204 `return __retres;`
+Callstacks listed through the filter: NOT those of the run without memexec at 22 of the 260 points:
+  rec, before heap_alloca.c:201 `int *p = alloca(sizeof(int));`
+  rec, after heap_alloca.c:201 `int *p = alloca(sizeof(int));`
+  rec, before heap_alloca.c:202 `*p = n;`
+  rec, after heap_alloca.c:202 `*p = n;`
+  rec, before heap_alloca.c:203 `if (n > 0)`
+  rec, after heap_alloca.c:203 `if (n > 0)`
+  rec, before heap_alloca.c:203 `sequence`
+  rec, after heap_alloca.c:203 `sequence`
+  rec, before heap_alloca.c:203 `tmp_0 = rec(n - 1);`
+  rec, after heap_alloca.c:203 `tmp_0 = rec(n - 1);`
+  rec, before heap_alloca.c:203 `;`
+  rec, after heap_alloca.c:203 `;`
+  rec, before heap_alloca.c:203 `block`
+  rec, after heap_alloca.c:203 `block`
+  rec, before heap_alloca.c:203 `__retres = *p + tmp_0;`
+  rec, after heap_alloca.c:203 `__retres = *p + tmp_0;`
+  rec, before heap_alloca.c:203 `goto`
+  rec, after heap_alloca.c:203 `goto`
+  rec, before heap_alloca.c:204 `__retres = *p;`
+  rec, after heap_alloca.c:204 `__retres = *p;`
+  rec, before heap_alloca.c:204 `return __retres;`
+  rec, after heap_alloca.c:204 `return __retres;`
+Filtered requests that reject one callstack: 23.
+Requests made: 1157; reported by the trap: 1157, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 138 requests, 97 reads of the legacy store in them, 152 reads outside any request.
+  with -eva-hit-log: 138 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 121 requests
+    statistics: 14 requests
+    summary: 3 requests
+Statuses of the properties: those of the run without memexec, for 298 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1000, 0 alarms, those of the run without memexec.
