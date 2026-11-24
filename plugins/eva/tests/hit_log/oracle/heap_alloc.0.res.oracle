@@ -1,0 +1,174 @@
+[kernel] Parsing heap_alloc.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_alloc.c:33 <- mk :: heap_alloc.c:39 <- cs_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc.c:33 <- mk :: heap_alloc.c:40 <- cs_main: 0: strong, record Variable [0..31--31], type int, malloc
+  block 0 of malloc :: heap_alloc.c:33 <- mk :: heap_alloc.c:39 <- cs_main: owned by mk :: heap_alloc.c:39 <- cs_main
+  block 0 of malloc :: heap_alloc.c:33 <- mk :: heap_alloc.c:40 <- cs_main: owned by mk :: heap_alloc.c:40 <- cs_main
+These are the tables of the run without memexec.
+Calls:
+  malloc :: heap_alloc.c:33 <- mk :: heap_alloc.c:39 <- cs_main: builtin
+  mk :: heap_alloc.c:39 <- cs_main: analysed, cache entry 7
+  malloc :: heap_alloc.c:33 <- mk :: heap_alloc.c:40 <- cs_main: builtin
+  mk :: heap_alloc.c:40 <- cs_main: analysed, cache entry 8
+  cs_main: analysed, cache entry 9
+Heap calls, not stored by memexec: cs_main 1, mk 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+mk, start:
+  joined: v ∈ {1}
+          a ∈ {{ &__malloc_mk_l33_3 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_mk_l33_3 ∈ {1}
+  mk :: heap_alloc.c:39 <- cs_main: v ∈ {1}
+                                    a ∈ UNINITIALIZED
+                                    b ∈ UNINITIALIZED
+                                    last ∈ {0}
+                                    saved ∈ {0}
+                                    rc ∈ {0}
+                                    rs ∈ {0}
+                                    hold ∈ {0}
+  mk :: heap_alloc.c:40 <- cs_main: v ∈ {1}
+                                    a ∈ {{ &__malloc_mk_l33_3 }}
+                                    b ∈ UNINITIALIZED
+                                    last ∈ {0}
+                                    saved ∈ {0}
+                                    rc ∈ {0}
+                                    rs ∈ {0}
+                                    hold ∈ {0}
+                                    __malloc_mk_l33_3 ∈ {1}
+mk, before heap_alloc.c:35 `;` (MK):
+  joined: v ∈ {1}
+          p ∈ {{ &__malloc_mk_l33_3 ; &__malloc_mk_l33_4 }}
+          a ∈ {{ &__malloc_mk_l33_3 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_mk_l33_3 ∈ {1}
+          __malloc_mk_l33_4 ∈ {1}
+  mk :: heap_alloc.c:39 <- cs_main: v ∈ {1}
+                                    p ∈ {{ &__malloc_mk_l33_3 }}
+                                    a ∈ UNINITIALIZED
+                                    b ∈ UNINITIALIZED
+                                    last ∈ {0}
+                                    saved ∈ {0}
+                                    rc ∈ {0}
+                                    rs ∈ {0}
+                                    hold ∈ {0}
+                                    __malloc_mk_l33_3 ∈ {1}
+  mk :: heap_alloc.c:40 <- cs_main: v ∈ {1}
+                                    p ∈ {{ &__malloc_mk_l33_4 }}
+                                    a ∈ {{ &__malloc_mk_l33_3 }}
+                                    b ∈ UNINITIALIZED
+                                    last ∈ {0}
+                                    saved ∈ {0}
+                                    rc ∈ {0}
+                                    rs ∈ {0}
+                                    hold ∈ {0}
+                                    __malloc_mk_l33_3 ∈ {1}
+                                    __malloc_mk_l33_4 ∈ {1}
+mk, after heap_alloc.c:35 `return p;`:
+  joined: v ∈ {1}
+          p ∈ {{ &__malloc_mk_l33_3 ; &__malloc_mk_l33_4 }}
+          a ∈ {{ &__malloc_mk_l33_3 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_mk_l33_3 ∈ {1}
+          __malloc_mk_l33_4 ∈ {1}
+  mk :: heap_alloc.c:39 <- cs_main: v ∈ {1}
+                                    p ∈ {{ &__malloc_mk_l33_3 }}
+                                    a ∈ UNINITIALIZED
+                                    b ∈ UNINITIALIZED
+                                    last ∈ {0}
+                                    saved ∈ {0}
+                                    rc ∈ {0}
+                                    rs ∈ {0}
+                                    hold ∈ {0}
+                                    __malloc_mk_l33_3 ∈ {1}
+  mk :: heap_alloc.c:40 <- cs_main: v ∈ {1}
+                                    p ∈ {{ &__malloc_mk_l33_4 }}
+                                    a ∈ {{ &__malloc_mk_l33_3 }}
+                                    b ∈ UNINITIALIZED
+                                    last ∈ {0}
+                                    saved ∈ {0}
+                                    rc ∈ {0}
+                                    rs ∈ {0}
+                                    hold ∈ {0}
+                                    __malloc_mk_l33_3 ∈ {1}
+                                    __malloc_mk_l33_4 ∈ {1}
+cs_main, start:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+  cs_main: last ∈ {0}
+           saved ∈ {0}
+           rc ∈ {0}
+           rs ∈ {0}
+           hold ∈ {0}
+cs_main, before heap_alloc.c:41 `;` (CS):
+  joined: a ∈ {{ &__malloc_mk_l33_3 }}
+          b ∈ {{ &__malloc_mk_l33_4 }}
+          last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_mk_l33_3 ∈ {1}
+          __malloc_mk_l33_4 ∈ {1}
+  cs_main: a ∈ {{ &__malloc_mk_l33_3 }}
+           b ∈ {{ &__malloc_mk_l33_4 }}
+           last ∈ {0}
+           saved ∈ {0}
+           rc ∈ {0}
+           rs ∈ {0}
+           hold ∈ {0}
+           __malloc_mk_l33_3 ∈ {1}
+           __malloc_mk_l33_4 ∈ {1}
+cs_main, after heap_alloc.c:42 `return;`:
+  joined: a ∈ {{ &__malloc_mk_l33_3 }}
+          b ∈ {{ &__malloc_mk_l33_4 }}
+          last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_mk_l33_3 ∈ {1}
+          __malloc_mk_l33_4 ∈ {1}
+  cs_main: a ∈ {{ &__malloc_mk_l33_3 }}
+           b ∈ {{ &__malloc_mk_l33_4 }}
+           last ∈ {0}
+           saved ∈ {0}
+           rc ∈ {0}
+           rs ∈ {0}
+           hold ∈ {0}
+           __malloc_mk_l33_3 ∈ {1}
+           __malloc_mk_l33_4 ∈ {1}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 701 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 336 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 336 points.
+Filtered requests that reject one callstack: 9.
+Requests made: 1373; reported by the trap: 1373, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 176 requests, 38 reads of the legacy store in them, 48 reads outside any request.
+  with -eva-hit-log: 176 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 160 requests
+    statistics: 8 requests
+    summary: 8 requests
+Statuses of the properties: those of the run without memexec, for 302 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1111, 0 alarms, those of the run without memexec.

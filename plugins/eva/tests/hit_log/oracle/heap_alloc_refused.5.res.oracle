@@ -1,0 +1,55 @@
+[kernel] Parsing heap_alloc_refused.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of my_alloc :: heap_alloc_refused.c:122 <- use_alloc :: heap_alloc_refused.c:128 <- wrap_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of my_alloc :: heap_alloc_refused.c:122 <- use_alloc :: heap_alloc_refused.c:129 <- wrap_main: 0: strong, record Variable [0..31--31], type int, malloc
+  block 0 of my_alloc :: heap_alloc_refused.c:122 <- use_alloc :: heap_alloc_refused.c:128 <- wrap_main: owned by use_alloc :: heap_alloc_refused.c:128 <- wrap_main
+  block 0 of my_alloc :: heap_alloc_refused.c:122 <- use_alloc :: heap_alloc_refused.c:129 <- wrap_main: owned by use_alloc :: heap_alloc_refused.c:129 <- wrap_main
+These are the tables of the run without memexec.
+Calls:
+  malloc :: heap_alloc_refused.c:118 <- my_alloc :: heap_alloc_refused.c:122 <- use_alloc :: heap_alloc_refused.c:128 <- wrap_main: builtin
+  my_alloc :: heap_alloc_refused.c:122 <- use_alloc :: heap_alloc_refused.c:128 <- wrap_main: analysed, cache entry 11
+  use_alloc :: heap_alloc_refused.c:128 <- wrap_main: analysed, cache entry 12
+  malloc :: heap_alloc_refused.c:118 <- my_alloc :: heap_alloc_refused.c:122 <- use_alloc :: heap_alloc_refused.c:129 <- wrap_main: builtin
+  my_alloc :: heap_alloc_refused.c:122 <- use_alloc :: heap_alloc_refused.c:129 <- wrap_main: analysed, cache entry 13
+  use_alloc :: heap_alloc_refused.c:129 <- wrap_main: analysed, cache entry 14
+  wrap_main: analysed, cache entry 15
+Heap calls, not stored by memexec: my_alloc 2, use_alloc 2, wrap_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+wrap_main, start:
+  joined: 
+  wrap_main: 
+wrap_main, before heap_alloc_refused.c:130 `;` (WR):
+  joined: a ∈ {{ &__malloc_use_alloc_l122_3 }}
+          b ∈ {{ &__malloc_use_alloc_l122_4 }}
+          __malloc_use_alloc_l122_3 ∈ {1}
+          __malloc_use_alloc_l122_4 ∈ {1}
+  wrap_main: a ∈ {{ &__malloc_use_alloc_l122_3 }}
+             b ∈ {{ &__malloc_use_alloc_l122_4 }}
+             __malloc_use_alloc_l122_3 ∈ {1}
+             __malloc_use_alloc_l122_4 ∈ {1}
+wrap_main, after heap_alloc_refused.c:131 `return;`:
+  joined: a ∈ {{ &__malloc_use_alloc_l122_3 }}
+          b ∈ {{ &__malloc_use_alloc_l122_4 }}
+          __malloc_use_alloc_l122_3 ∈ {1}
+          __malloc_use_alloc_l122_4 ∈ {1}
+  wrap_main: a ∈ {{ &__malloc_use_alloc_l122_3 }}
+             b ∈ {{ &__malloc_use_alloc_l122_4 }}
+             __malloc_use_alloc_l122_3 ∈ {1}
+             __malloc_use_alloc_l122_4 ∈ {1}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 317 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 141 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 141 points.
+Filtered requests that reject one callstack: 12.
+Requests made: 599; reported by the trap: 599, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 80 requests, 44 reads of the legacy store in them, 57 reads outside any request.
+  with -eva-hit-log: 80 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 69 requests
+    statistics: 9 requests
+    summary: 2 requests
+Statuses of the properties: those of the run without memexec, for 348 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.2000, 0 alarms, those of the run without memexec.

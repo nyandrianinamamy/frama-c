@@ -1,0 +1,98 @@
+[kernel] Parsing heap_alloc_refused.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_alloc_refused.c:42 <- a_stack :: heap_alloc_refused.c:52 <- annot_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc_refused.c:42 <- a_stack :: heap_alloc_refused.c:53 <- annot_main: 0: strong, record Variable [0..31--31], type int, malloc
+  block 0 of malloc :: heap_alloc_refused.c:42 <- a_stack :: heap_alloc_refused.c:52 <- annot_main: owned by a_stack :: heap_alloc_refused.c:52 <- annot_main
+  block 0 of malloc :: heap_alloc_refused.c:42 <- a_stack :: heap_alloc_refused.c:53 <- annot_main: owned by a_stack :: heap_alloc_refused.c:53 <- annot_main
+  block strong, record Variable [0..31--31], type int, malloc: owned by a_fresh :: heap_alloc_refused.c:48 <- annot_main
+  block strong, record Variable [0..31--31], type int, malloc: owned by a_fresh :: heap_alloc_refused.c:49 <- annot_main
+  block weak, record Variable [0..31--31], type int [], malloc: owned by a_weak :: heap_alloc_refused.c:50 <- annot_main
+  block weak, record Variable [0..31--31], type int [], malloc: owned by a_weak :: heap_alloc_refused.c:51 <- annot_main
+These are the tables of the run without memexec.
+Calls:
+  malloc :: heap_alloc_refused.c:28 <- a_fresh :: heap_alloc_refused.c:48 <- annot_main: builtin
+  a_fresh :: heap_alloc_refused.c:48 <- annot_main: analysed, cache entry 15
+  malloc :: heap_alloc_refused.c:28 <- a_fresh :: heap_alloc_refused.c:49 <- annot_main: builtin
+  a_fresh :: heap_alloc_refused.c:49 <- annot_main: analysed, cache entry 16
+  malloc :: heap_alloc_refused.c:35 <- a_weak :: heap_alloc_refused.c:50 <- annot_main: builtin
+  a_weak :: heap_alloc_refused.c:50 <- annot_main: analysed, cache entry 17
+  malloc :: heap_alloc_refused.c:35 <- a_weak :: heap_alloc_refused.c:51 <- annot_main: builtin
+  a_weak :: heap_alloc_refused.c:51 <- annot_main: analysed, cache entry 18
+  malloc :: heap_alloc_refused.c:42 <- a_stack :: heap_alloc_refused.c:52 <- annot_main: builtin
+  a_stack :: heap_alloc_refused.c:52 <- annot_main: analysed, cache entry 19
+  malloc :: heap_alloc_refused.c:42 <- a_stack :: heap_alloc_refused.c:53 <- annot_main: builtin
+  a_stack :: heap_alloc_refused.c:53 <- annot_main: analysed, cache entry 20
+  annot_main: analysed, cache entry 21
+Heap calls, not stored by memexec: a_fresh 2, a_stack 2, a_weak 2,
+  annot_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+annot_main, start:
+  joined: 
+  annot_main: 
+annot_main, before heap_alloc_refused.c:54 `;` (AN):
+  joined: p1 ∈ {{ &__malloc_a_fresh_l28_3 }}
+          p2 ∈ {{ &__malloc_a_fresh_l28_4 }}
+          q1 ∈ {{ &__malloc_w_a_weak_l35_3[0] }}
+          q2 ∈ {{ &__malloc_w_a_weak_l35_4[0] }}
+          r1 ∈ {{ &__malloc_a_stack_l42_3 }}
+          r2 ∈ {{ &__malloc_a_stack_l42_4 }}
+          __malloc_a_fresh_l28_3 ∈ {1}
+          __malloc_a_fresh_l28_4 ∈ {1}
+          __malloc_w_a_weak_l35_3[0] ∈ {1} or UNINITIALIZED
+          __malloc_w_a_weak_l35_4[0] ∈ {1} or UNINITIALIZED
+          __malloc_a_stack_l42_3 ∈ {1}
+          __malloc_a_stack_l42_4 ∈ {1}
+  annot_main: p1 ∈ {{ &__malloc_a_fresh_l28_3 }}
+              p2 ∈ {{ &__malloc_a_fresh_l28_4 }}
+              q1 ∈ {{ &__malloc_w_a_weak_l35_3[0] }}
+              q2 ∈ {{ &__malloc_w_a_weak_l35_4[0] }}
+              r1 ∈ {{ &__malloc_a_stack_l42_3 }}
+              r2 ∈ {{ &__malloc_a_stack_l42_4 }}
+              __malloc_a_fresh_l28_3 ∈ {1}
+              __malloc_a_fresh_l28_4 ∈ {1}
+              __malloc_w_a_weak_l35_3[0] ∈ {1} or UNINITIALIZED
+              __malloc_w_a_weak_l35_4[0] ∈ {1} or UNINITIALIZED
+              __malloc_a_stack_l42_3 ∈ {1}
+              __malloc_a_stack_l42_4 ∈ {1}
+annot_main, after heap_alloc_refused.c:55 `return;`:
+  joined: p1 ∈ {{ &__malloc_a_fresh_l28_3 }}
+          p2 ∈ {{ &__malloc_a_fresh_l28_4 }}
+          q1 ∈ {{ &__malloc_w_a_weak_l35_3[0] }}
+          q2 ∈ {{ &__malloc_w_a_weak_l35_4[0] }}
+          r1 ∈ {{ &__malloc_a_stack_l42_3 }}
+          r2 ∈ {{ &__malloc_a_stack_l42_4 }}
+          __malloc_a_fresh_l28_3 ∈ {1}
+          __malloc_a_fresh_l28_4 ∈ {1}
+          __malloc_w_a_weak_l35_3[0] ∈ {1} or UNINITIALIZED
+          __malloc_w_a_weak_l35_4[0] ∈ {1} or UNINITIALIZED
+          __malloc_a_stack_l42_3 ∈ {1}
+          __malloc_a_stack_l42_4 ∈ {1}
+  annot_main: p1 ∈ {{ &__malloc_a_fresh_l28_3 }}
+              p2 ∈ {{ &__malloc_a_fresh_l28_4 }}
+              q1 ∈ {{ &__malloc_w_a_weak_l35_3[0] }}
+              q2 ∈ {{ &__malloc_w_a_weak_l35_4[0] }}
+              r1 ∈ {{ &__malloc_a_stack_l42_3 }}
+              r2 ∈ {{ &__malloc_a_stack_l42_4 }}
+              __malloc_a_fresh_l28_3 ∈ {1}
+              __malloc_a_fresh_l28_4 ∈ {1}
+              __malloc_w_a_weak_l35_3[0] ∈ {1} or UNINITIALIZED
+              __malloc_w_a_weak_l35_4[0] ∈ {1} or UNINITIALIZED
+              __malloc_a_stack_l42_3 ∈ {1}
+              __malloc_a_stack_l42_4 ∈ {1}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 343 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 141 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 141 points.
+Filtered requests that reject one callstack: 21.
+Requests made: 625; reported by the trap: 625, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 89 requests, 84 reads of the legacy store in them, 104 reads outside any request.
+  with -eva-hit-log: 89 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 70 requests
+    statistics: 17 requests
+    summary: 2 requests
+Statuses of the properties: those of the run without memexec, for 348 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.2667, 0 alarms, those of the run without memexec.

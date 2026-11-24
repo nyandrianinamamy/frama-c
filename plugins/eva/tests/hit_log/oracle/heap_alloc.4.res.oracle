@@ -1,0 +1,161 @@
+[kernel] Parsing heap_alloc.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_alloc.c:105 <- recycle :: heap_alloc.c:111 <- recycle_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc.c:105 <- recycle :: heap_alloc.c:112 <- recycle_main: 0: strong, record Variable [0..31--31], type int, malloc
+  block 0 of malloc :: heap_alloc.c:105 <- recycle :: heap_alloc.c:111 <- recycle_main: owned by recycle :: heap_alloc.c:111 <- recycle_main
+  block 0 of malloc :: heap_alloc.c:105 <- recycle :: heap_alloc.c:112 <- recycle_main: owned by recycle :: heap_alloc.c:112 <- recycle_main
+These are the tables of the run without memexec.
+Calls:
+  free :: heap_alloc.c:104 <- recycle :: heap_alloc.c:111 <- recycle_main: builtin
+  malloc :: heap_alloc.c:105 <- recycle :: heap_alloc.c:111 <- recycle_main: builtin
+  recycle :: heap_alloc.c:111 <- recycle_main: analysed, cache entry 11
+  free :: heap_alloc.c:104 <- recycle :: heap_alloc.c:111 <- recycle_main: builtin
+  malloc :: heap_alloc.c:105 <- recycle :: heap_alloc.c:111 <- recycle_main: builtin
+  recycle :: heap_alloc.c:111 <- recycle_main: analysed, cache entry 12
+  free :: heap_alloc.c:104 <- recycle :: heap_alloc.c:112 <- recycle_main: builtin
+  malloc :: heap_alloc.c:105 <- recycle :: heap_alloc.c:112 <- recycle_main: builtin
+  recycle :: heap_alloc.c:112 <- recycle_main: analysed, cache entry 13
+  free :: heap_alloc.c:104 <- recycle :: heap_alloc.c:112 <- recycle_main: builtin
+  malloc :: heap_alloc.c:105 <- recycle :: heap_alloc.c:112 <- recycle_main: builtin
+  recycle :: heap_alloc.c:112 <- recycle_main: analysed, cache entry 14
+  recycle_main: analysed, cache entry 15
+Heap calls, not stored by memexec: recycle 4, recycle_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+recycle, start:
+  joined: last ∈ {0}
+          saved ∈ {{ NULL ; &__malloc_recycle_l105_4 }}
+          rc ∈
+            {{ NULL ; &__malloc_recycle_l105_3 ; &__malloc_recycle_l105_4 }}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_recycle_l105_3 ∈ {3}
+          __malloc_recycle_l105_4 ∈ {3}
+  recycle :: heap_alloc.c:111 <- recycle_main: last ∈ {0}
+                                               saved ∈ {0}
+                                               rc ∈
+                                                 {{ NULL ;
+                                                    &__malloc_recycle_l105_3 }}
+                                               i ∈ {0; 1}
+                                               rs ∈ {0}
+                                               hold ∈ {0}
+                                               __malloc_recycle_l105_3 ∈ {3}
+  recycle :: heap_alloc.c:112 <- recycle_main: last ∈ {0}
+                                               saved ∈
+                                                    {{ NULL ;
+                                                       &__malloc_recycle_l105_4 }}
+                                               rc ∈
+                                                 {{ &__malloc_recycle_l105_3 ;
+                                                    &__malloc_recycle_l105_4 }}
+                                               i_0 ∈ {0; 1}
+                                               rs ∈ {0}
+                                               hold ∈ {0}
+                                               __malloc_recycle_l105_3 ∈ {3}
+                                               __malloc_recycle_l105_4 ∈ {3}
+recycle, before heap_alloc.c:107 `;` (RC):
+  joined: last ∈ {0}
+          saved ∈ {0} or ESCAPINGADDR
+          rc ∈ {{ &__malloc_recycle_l105_3 ; &__malloc_recycle_l105_4 }}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_recycle_l105_3 ∈ {3}
+          __malloc_recycle_l105_4 ∈ {3}
+  recycle :: heap_alloc.c:111 <- recycle_main: last ∈ {0}
+                                               saved ∈ {0}
+                                               rc ∈
+                                                 {{ &__malloc_recycle_l105_3 }}
+                                               i ∈ {0; 1}
+                                               rs ∈ {0}
+                                               hold ∈ {0}
+                                               __malloc_recycle_l105_3 ∈ {3}
+  recycle :: heap_alloc.c:112 <- recycle_main: last ∈ {0}
+                                               saved ∈ {0} or ESCAPINGADDR
+                                               rc ∈
+                                                 {{ &__malloc_recycle_l105_4 }}
+                                               i_0 ∈ {0; 1}
+                                               rs ∈ {0}
+                                               hold ∈ {0}
+                                               __malloc_recycle_l105_4 ∈ {3}
+recycle, after heap_alloc.c:108 `return;`:
+  joined: last ∈ {0}
+          saved ∈ {0} or ESCAPINGADDR
+          rc ∈ {{ &__malloc_recycle_l105_3 ; &__malloc_recycle_l105_4 }}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_recycle_l105_3 ∈ {3}
+          __malloc_recycle_l105_4 ∈ {3}
+  recycle :: heap_alloc.c:111 <- recycle_main: last ∈ {0}
+                                               saved ∈ {0}
+                                               rc ∈
+                                                 {{ &__malloc_recycle_l105_3 }}
+                                               i ∈ {0; 1}
+                                               rs ∈ {0}
+                                               hold ∈ {0}
+                                               __malloc_recycle_l105_3 ∈ {3}
+  recycle :: heap_alloc.c:112 <- recycle_main: last ∈ {0}
+                                               saved ∈ {0} or ESCAPINGADDR
+                                               rc ∈
+                                                 {{ &__malloc_recycle_l105_4 }}
+                                               i_0 ∈ {0; 1}
+                                               rs ∈ {0}
+                                               hold ∈ {0}
+                                               __malloc_recycle_l105_4 ∈ {3}
+recycle_main, start:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+  recycle_main: last ∈ {0}
+                saved ∈ {0}
+                rc ∈ {0}
+                rs ∈ {0}
+                hold ∈ {0}
+recycle_main, before heap_alloc.c:113 `;` (RM):
+  joined: last ∈ {0}
+          saved ∈ ESCAPINGADDR
+          rc ∈ {{ &__malloc_recycle_l105_4 }}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_recycle_l105_4 ∈ {3}
+  recycle_main: last ∈ {0}
+                saved ∈ ESCAPINGADDR
+                rc ∈ {{ &__malloc_recycle_l105_4 }}
+                rs ∈ {0}
+                hold ∈ {0}
+                __malloc_recycle_l105_4 ∈ {3}
+recycle_main, after heap_alloc.c:114 `return;`:
+  joined: last ∈ {0}
+          saved ∈ ESCAPINGADDR
+          rc ∈ {{ &__malloc_recycle_l105_4 }}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_recycle_l105_4 ∈ {3}
+  recycle_main: last ∈ {0}
+                saved ∈ ESCAPINGADDR
+                rc ∈ {{ &__malloc_recycle_l105_4 }}
+                rs ∈ {0}
+                hold ∈ {0}
+                __malloc_recycle_l105_4 ∈ {3}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 735 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 336 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 336 points.
+Filtered requests that reject one callstack: 11.
+Requests made: 1407; reported by the trap: 1407, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 192 requests, 104 reads of the legacy store in them, 117 reads outside any request.
+  with -eva-hit-log: 192 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 160 requests
+    statistics: 24 requests
+    summary: 8 requests
+Statuses of the properties: those of the run without memexec, for 301 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1111, 0 alarms, those of the run without memexec.

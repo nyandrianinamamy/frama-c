@@ -33,3 +33,10 @@ val freeable: Cvalue.V.t -> Abstract_interp.truth
     value points to an allocated memory block that can be safely released using
     the C function free. Note that \freeable(\null) does not hold, despite NULL
     being a valid argument to the C function free. *)
+
+(** Folds over the lists of the blocks that the policy [by_stack] made, by
+    stack, the first block made first. A stack is the callstack of a call of
+    an allocation builtin, whose innermost call is removed while the two
+    innermost calls are both calls of functions of option
+    [-eva-alloc-functions]. For the tests. *)
+val fold_malloced_by_stack: (Callstack.t -> Base.t list -> 'a -> 'a) -> 'a -> 'a

@@ -38,8 +38,11 @@ Each was broken once, and the test named beside it is its regression.
    on that callstack (`key`, `matching`). A key held by several blocks, a
    callstack that creates a different number of blocks in the two runs, or
    an unmatched block alike to an unmatched block of the other run makes the
-   blocks unresolved. Tests: `alloc_sites`, `alloc_pairwise`,
-   `alloc_unresolved`.
+   blocks unresolved. A block that a hit on a call that allocates creates
+   takes its key from the block of the stored call that the renaming of the
+   hit maps to it (`record_replayed`); `heap_alloc.ml` checks the tables of
+   the allocated blocks apart from the renaming. Tests: `alloc_sites`,
+   `alloc_pairwise`, `alloc_unresolved`, `heap_alloc`.
 2. **Strength is kept.** A weak base summarises several blocks; renaming
    erases the difference (`rename`). Strong in the source and weak in the
    target: only the inclusion of the reference in the answer is tested

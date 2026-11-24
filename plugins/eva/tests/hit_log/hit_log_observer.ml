@@ -838,7 +838,16 @@ let answers (point : point) ~in_reference stacks =
      built-in that created it, which ends with its call statement, and by
      the number of the blocks created before it on this callstack, as with
      -eva-alloc-builtin fresh: its name tells neither the call statement
-     nor the callstack, and a block made weak is renamed;
+     nor the callstack, and a block made weak is renamed. A hit on a call
+     that allocates (#127) creates blocks without a call of the built-in:
+     the renaming of the hit maps each block that the stored call created
+     to the block that the hit created in its place. The block of the hit
+     takes the callstack of the block of the stored call, with the calls
+     below the stored call kept and those above it replaced by the
+     callstack of the hit, and the number of the blocks created before it
+     on this callstack. The key of such a block relies on the renaming that
+     Eva gives: heap_alloc.ml compares the tables of the allocated blocks
+     with those of the run without memexec, without the observer;
    - another created variable, by its name without the suffixes of the
      counter, and by the location of its declaration: a copy of a variable
      of a recursive call has the location of the variable. *)
@@ -894,10 +903,56 @@ let allocations_of run =
     Hashtbl.replace allocations run a;
     a
 
+let record_origin a site base =
+  let n = Option.value ~default:0 (Hashtbl.find_opt a.by_site site) in
+  Base.Hashtbl.replace a.origins base (site, n);
+  Hashtbl.replace a.by_site site (n + 1)
+
+(* The callstack of the call that computed each cache entry of a run. *)
+let entry_callstacks : (string * int, portable) Hashtbl.t = Hashtbl.create 17
+
+(* [Some suffix] if the calls of [site] are [suffix] followed by those of
+   [stack], [suffix] not empty, on the same thread and entry point. *)
+let below ~stack site =
+  let n = List.length site.calls - List.length stack.calls in
+  if site.thread <> stack.thread || site.entry <> stack.entry || n <= 0
+  then None
+  else
+    let suffix = List.filteri (fun i _ -> i < n) site.calls
+    and rest = List.filteri (fun i _ -> i >= n) site.calls in
+    if rest = stack.calls then Some suffix else None
+
+(* The blocks that a hit on the cache entry [id] creates: the blocks of the
+   renaming [subst] that have no origin, each mapped from a block that the
+   stored call created, by its order of creation. *)
+let record_replayed run a callstack id subst =
+  match Hashtbl.find_opt entry_callstacks (run, id) with
+  | None -> ()
+  | Some stack ->
+    let hit = portable callstack in
+    Base.Hptshape.fold
+      (fun base base' acc ->
+         match base', Base.Hashtbl.find_opt a.origins base with
+         | Base.Allocated _, Some (site, _)
+           when not (Base.Hashtbl.mem a.origins base') ->
+           begin match below ~stack site with
+             | Some suffix ->
+               (base', { hit with calls = suffix @ hit.calls }) :: acc
+             | None -> acc
+           end
+         | _ -> acc)
+      subst []
+    |> List.sort (fun (b, _) (b', _) -> Int.compare (Base.id b) (Base.id b'))
+    |> List.iter (fun (base', site) -> record_origin a site base')
+
 let () =
   Cvalue_callbacks.register_call_results_hook
     (fun callstack _kf _state results ->
        match !analysing, results with
+       | Some run, `Body (_, id) ->
+         Hashtbl.replace entry_callstacks (run, id) (portable callstack)
+       | Some run, `Renamed_reuse (id, subst) ->
+         record_replayed run (allocations_of run) callstack id subst
        | Some run, `Builtin (states, _) ->
          let a = allocations_of run in
          let add acc = function
@@ -915,13 +970,7 @@ let () =
          List.fold_left add Base.Hptset.empty states
          |> Base.Hptset.elements
          |> List.sort (fun b b' -> Int.compare (Base.id b) (Base.id b'))
-         |> List.iter
-           (fun base ->
-              let n =
-                Option.value ~default:0 (Hashtbl.find_opt a.by_site site)
-              in
-              Base.Hashtbl.replace a.origins base (site, n);
-              Hashtbl.replace a.by_site site (n + 1))
+         |> List.iter (record_origin a site)
        | _, (`Builtin _ | `Spec _ | `Body _ | `Reuse _ | `Renamed_reuse _) ->
          ())
 

@@ -1,0 +1,166 @@
+[kernel] Parsing heap_alloc.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_alloc.c:144 <- grow :: heap_alloc.c:150 <- resize_main: 0: strong, record Variable [0..31--63], type char [], malloc
+  list of malloc :: heap_alloc.c:144 <- grow :: heap_alloc.c:151 <- resize_main: 0: strong, record Variable [0..31--63], type char [], malloc
+  block 0 of malloc :: heap_alloc.c:144 <- grow :: heap_alloc.c:150 <- resize_main: owned by grow :: heap_alloc.c:150 <- resize_main
+  block 0 of malloc :: heap_alloc.c:144 <- grow :: heap_alloc.c:151 <- resize_main: owned by grow :: heap_alloc.c:151 <- resize_main
+These are the tables of the run without memexec.
+Calls:
+  malloc :: heap_alloc.c:144 <- grow :: heap_alloc.c:150 <- resize_main: builtin
+  grow :: heap_alloc.c:150 <- resize_main: analysed, cache entry 11
+  free :: heap_alloc.c:150 <- resize_main: builtin
+  malloc :: heap_alloc.c:144 <- grow :: heap_alloc.c:150 <- resize_main: builtin
+  grow :: heap_alloc.c:150 <- resize_main: analysed, cache entry 12
+  free :: heap_alloc.c:150 <- resize_main: builtin
+  malloc :: heap_alloc.c:144 <- grow :: heap_alloc.c:151 <- resize_main: builtin
+  grow :: heap_alloc.c:151 <- resize_main: analysed, cache entry 13
+  free :: heap_alloc.c:151 <- resize_main: builtin
+  malloc :: heap_alloc.c:144 <- grow :: heap_alloc.c:151 <- resize_main: builtin
+  grow :: heap_alloc.c:151 <- resize_main: analysed, cache entry 14
+  free :: heap_alloc.c:151 <- resize_main: builtin
+  resize_main: analysed, cache entry 15
+Heap calls, not stored by memexec: grow 4, resize_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+grow, start:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0} or ESCAPINGADDR
+          n ∈ {4; 8}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          hold ∈ {0}
+  grow :: heap_alloc.c:150 <- resize_main: last ∈ {0}
+                                           saved ∈ {0}
+                                           rc ∈ {0}
+                                           rs ∈ {0} or ESCAPINGADDR
+                                           n ∈ {4; 8}
+                                           i ∈ {0; 1}
+                                           hold ∈ {0}
+  grow :: heap_alloc.c:151 <- resize_main: last ∈ {0}
+                                           saved ∈ {0}
+                                           rc ∈ {0}
+                                           rs ∈ ESCAPINGADDR
+                                           n ∈ {4; 8}
+                                           i_0 ∈ {0; 1}
+                                           hold ∈ {0}
+grow, before heap_alloc.c:146 `;` (GR):
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {{ &__malloc_grow_l144_3[0] ; &__malloc_grow_l144_4[0] }}
+          n ∈ {4; 8}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          hold ∈ {0}
+          __malloc_grow_l144_3[0] ∈ {1}
+                              [1..7] ∈ UNINITIALIZED
+          __malloc_grow_l144_4[0] ∈ {1}
+                              [1..7] ∈ UNINITIALIZED
+  grow :: heap_alloc.c:150 <- resize_main: last ∈ {0}
+                                           saved ∈ {0}
+                                           rc ∈ {0}
+                                           rs ∈
+                                             {{ &__malloc_grow_l144_3[0] }}
+                                           n ∈ {4; 8}
+                                           i ∈ {0; 1}
+                                           hold ∈ {0}
+                                           __malloc_grow_l144_3[0] ∈ {1}
+                                                               [1..7] ∈
+                                                               UNINITIALIZED
+  grow :: heap_alloc.c:151 <- resize_main: last ∈ {0}
+                                           saved ∈ {0}
+                                           rc ∈ {0}
+                                           rs ∈
+                                             {{ &__malloc_grow_l144_4[0] }}
+                                           n ∈ {4; 8}
+                                           i_0 ∈ {0; 1}
+                                           hold ∈ {0}
+                                           __malloc_grow_l144_4[0] ∈ {1}
+                                                               [1..7] ∈
+                                                               UNINITIALIZED
+grow, after heap_alloc.c:147 `return;`:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {{ &__malloc_grow_l144_3[0] ; &__malloc_grow_l144_4[0] }}
+          n ∈ {4; 8}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          hold ∈ {0}
+          __malloc_grow_l144_3[0] ∈ {1}
+                              [1..7] ∈ UNINITIALIZED
+          __malloc_grow_l144_4[0] ∈ {1}
+                              [1..7] ∈ UNINITIALIZED
+  grow :: heap_alloc.c:150 <- resize_main: last ∈ {0}
+                                           saved ∈ {0}
+                                           rc ∈ {0}
+                                           rs ∈
+                                             {{ &__malloc_grow_l144_3[0] }}
+                                           n ∈ {4; 8}
+                                           i ∈ {0; 1}
+                                           hold ∈ {0}
+                                           __malloc_grow_l144_3[0] ∈ {1}
+                                                               [1..7] ∈
+                                                               UNINITIALIZED
+  grow :: heap_alloc.c:151 <- resize_main: last ∈ {0}
+                                           saved ∈ {0}
+                                           rc ∈ {0}
+                                           rs ∈
+                                             {{ &__malloc_grow_l144_4[0] }}
+                                           n ∈ {4; 8}
+                                           i_0 ∈ {0; 1}
+                                           hold ∈ {0}
+                                           __malloc_grow_l144_4[0] ∈ {1}
+                                                               [1..7] ∈
+                                                               UNINITIALIZED
+resize_main, start:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+  resize_main: last ∈ {0}
+               saved ∈ {0}
+               rc ∈ {0}
+               rs ∈ {0}
+               hold ∈ {0}
+resize_main, before heap_alloc.c:152 `;` (RZ):
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ ESCAPINGADDR
+          hold ∈ {0}
+  resize_main: last ∈ {0}
+               saved ∈ {0}
+               rc ∈ {0}
+               rs ∈ ESCAPINGADDR
+               hold ∈ {0}
+resize_main, after heap_alloc.c:153 `return;`:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ ESCAPINGADDR
+          hold ∈ {0}
+  resize_main: last ∈ {0}
+               saved ∈ {0}
+               rc ∈ {0}
+               rs ∈ ESCAPINGADDR
+               hold ∈ {0}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 733 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 336 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 336 points.
+Filtered requests that reject one callstack: 9.
+Requests made: 1405; reported by the trap: 1405, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 192 requests, 104 reads of the legacy store in them, 115 reads outside any request.
+  with -eva-hit-log: 192 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 160 requests
+    statistics: 24 requests
+    summary: 8 requests
+Statuses of the properties: those of the run without memexec, for 300 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1111, 0 alarms, those of the run without memexec.

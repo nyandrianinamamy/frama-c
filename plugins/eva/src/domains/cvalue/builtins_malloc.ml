@@ -523,6 +523,8 @@ let alloc_by_stack region prefix sizev state =
   in
   aux 0 all_vars
 
+let fold_malloced_by_stack f init = MallocedByStack.fold f init
+
 let choose_base_allocation () =
   match Eva_annotations.get_allocation (current_call_site ()) with
   | Fresh -> alloc_fresh ~policy:Fresh Strong

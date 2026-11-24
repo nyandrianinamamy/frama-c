@@ -1,0 +1,253 @@
+[kernel] Parsing heap_alloc.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_alloc.c:124 <- branchy :: heap_alloc.c:130 <- branch_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc.c:124 <- branchy :: heap_alloc.c:131 <- branch_main: 0: strong, record Variable [0..31--31], type int, malloc
+  block 0 of malloc :: heap_alloc.c:124 <- branchy :: heap_alloc.c:130 <- branch_main: owned by branchy :: heap_alloc.c:130 <- branch_main
+  block 0 of malloc :: heap_alloc.c:124 <- branchy :: heap_alloc.c:131 <- branch_main: owned by branchy :: heap_alloc.c:131 <- branch_main
+These are the tables of the run without memexec.
+Calls:
+  Frama_C_interval :: heap_alloc.c:130 <- branch_main: specification
+  malloc :: heap_alloc.c:124 <- branchy :: heap_alloc.c:130 <- branch_main: builtin
+  malloc :: heap_alloc.c:124 <- branchy :: heap_alloc.c:130 <- branch_main: builtin
+  branchy :: heap_alloc.c:130 <- branch_main: analysed, cache entry 7
+  Frama_C_interval :: heap_alloc.c:131 <- branch_main: specification
+  malloc :: heap_alloc.c:124 <- branchy :: heap_alloc.c:131 <- branch_main: builtin
+  malloc :: heap_alloc.c:124 <- branchy :: heap_alloc.c:131 <- branch_main: builtin
+  branchy :: heap_alloc.c:131 <- branch_main: analysed, cache entry 8
+  branch_main: analysed, cache entry 9
+Heap calls, not stored by memexec: branch_main 1, branchy 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+branchy, start:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          c ∈ {0; 1}
+          a ∈ {{ &__malloc_branchy_l124_3 }} or UNINITIALIZED
+          tmp ∈ {0; 1}
+          tmp_0 ∈ {{ &__malloc_branchy_l124_3 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          tmp_1 ∈ {0; 1} or UNINITIALIZED
+          tmp_2 ∈ UNINITIALIZED
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_branchy_l124_3 ∈ {1; 2}
+  branchy :: heap_alloc.c:130 <- branch_main: last ∈ {0}
+                                              saved ∈ {0}
+                                              rc ∈ {0}
+                                              c ∈ {0; 1}
+                                              a ∈ UNINITIALIZED
+                                              tmp ∈ {0; 1}
+                                              tmp_0 ∈ UNINITIALIZED
+                                              b ∈ UNINITIALIZED
+                                              tmp_1 ∈ UNINITIALIZED
+                                              tmp_2 ∈ UNINITIALIZED
+                                              rs ∈ {0}
+                                              hold ∈ {0}
+  branchy :: heap_alloc.c:131 <- branch_main: last ∈ {0}
+                                              saved ∈ {0}
+                                              rc ∈ {0}
+                                              c ∈ {0; 1}
+                                              a ∈
+                                               {{ &__malloc_branchy_l124_3 }}
+                                              tmp ∈ {0; 1}
+                                              tmp_0 ∈
+                                                   {{ &__malloc_branchy_l124_3 }}
+                                              b ∈ UNINITIALIZED
+                                              tmp_1 ∈ {0; 1}
+                                              tmp_2 ∈ UNINITIALIZED
+                                              rs ∈ {0}
+                                              hold ∈ {0}
+                                              __malloc_branchy_l124_3
+                                               ∈ {1; 2}
+branchy, before heap_alloc.c:126 `;` (BR):
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          c ∈ {0; 1}
+          x ∈ {1; 2}
+          p ∈ {{ &__malloc_branchy_l124_3 ; &__malloc_branchy_l124_4 }}
+          a ∈ {{ &__malloc_branchy_l124_3 }} or UNINITIALIZED
+          tmp ∈ {0; 1}
+          tmp_0 ∈ {{ &__malloc_branchy_l124_3 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          tmp_1 ∈ {0; 1} or UNINITIALIZED
+          tmp_2 ∈ UNINITIALIZED
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_branchy_l124_3 ∈ {1; 2}
+          __malloc_branchy_l124_4 ∈ {1; 2}
+  branchy :: heap_alloc.c:130 <- branch_main: last ∈ {0}
+                                              saved ∈ {0}
+                                              rc ∈ {0}
+                                              c ∈ {0; 1}
+                                              x ∈ {1; 2}
+                                              p ∈
+                                               {{ &__malloc_branchy_l124_3 }}
+                                              a ∈ UNINITIALIZED
+                                              tmp ∈ {0; 1}
+                                              tmp_0 ∈ UNINITIALIZED
+                                              b ∈ UNINITIALIZED
+                                              tmp_1 ∈ UNINITIALIZED
+                                              tmp_2 ∈ UNINITIALIZED
+                                              rs ∈ {0}
+                                              hold ∈ {0}
+                                              __malloc_branchy_l124_3
+                                               ∈ {1; 2}
+  branchy :: heap_alloc.c:131 <- branch_main: last ∈ {0}
+                                              saved ∈ {0}
+                                              rc ∈ {0}
+                                              c ∈ {0; 1}
+                                              x ∈ {1; 2}
+                                              p ∈
+                                               {{ &__malloc_branchy_l124_4 }}
+                                              a ∈
+                                               {{ &__malloc_branchy_l124_3 }}
+                                              tmp ∈ {0; 1}
+                                              tmp_0 ∈
+                                                   {{ &__malloc_branchy_l124_3 }}
+                                              b ∈ UNINITIALIZED
+                                              tmp_1 ∈ {0; 1}
+                                              tmp_2 ∈ UNINITIALIZED
+                                              rs ∈ {0}
+                                              hold ∈ {0}
+                                              __malloc_branchy_l124_3
+                                               ∈ {1; 2}
+                                              __malloc_branchy_l124_4
+                                               ∈ {1; 2}
+branchy, after heap_alloc.c:126 `return p;`:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          c ∈ {0; 1}
+          x ∈ {1; 2}
+          p ∈ {{ &__malloc_branchy_l124_3 ; &__malloc_branchy_l124_4 }}
+          a ∈ {{ &__malloc_branchy_l124_3 }} or UNINITIALIZED
+          tmp ∈ {0; 1}
+          tmp_0 ∈ {{ &__malloc_branchy_l124_3 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          tmp_1 ∈ {0; 1} or UNINITIALIZED
+          tmp_2 ∈ UNINITIALIZED
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_branchy_l124_3 ∈ {1; 2}
+          __malloc_branchy_l124_4 ∈ {1; 2}
+  branchy :: heap_alloc.c:130 <- branch_main: last ∈ {0}
+                                              saved ∈ {0}
+                                              rc ∈ {0}
+                                              c ∈ {0; 1}
+                                              x ∈ {1; 2}
+                                              p ∈
+                                               {{ &__malloc_branchy_l124_3 }}
+                                              a ∈ UNINITIALIZED
+                                              tmp ∈ {0; 1}
+                                              tmp_0 ∈ UNINITIALIZED
+                                              b ∈ UNINITIALIZED
+                                              tmp_1 ∈ UNINITIALIZED
+                                              tmp_2 ∈ UNINITIALIZED
+                                              rs ∈ {0}
+                                              hold ∈ {0}
+                                              __malloc_branchy_l124_3
+                                               ∈ {1; 2}
+  branchy :: heap_alloc.c:131 <- branch_main: last ∈ {0}
+                                              saved ∈ {0}
+                                              rc ∈ {0}
+                                              c ∈ {0; 1}
+                                              x ∈ {1; 2}
+                                              p ∈
+                                               {{ &__malloc_branchy_l124_4 }}
+                                              a ∈
+                                               {{ &__malloc_branchy_l124_3 }}
+                                              tmp ∈ {0; 1}
+                                              tmp_0 ∈
+                                                   {{ &__malloc_branchy_l124_3 }}
+                                              b ∈ UNINITIALIZED
+                                              tmp_1 ∈ {0; 1}
+                                              tmp_2 ∈ UNINITIALIZED
+                                              rs ∈ {0}
+                                              hold ∈ {0}
+                                              __malloc_branchy_l124_3
+                                               ∈ {1; 2}
+                                              __malloc_branchy_l124_4
+                                               ∈ {1; 2}
+branch_main, start:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+  branch_main: last ∈ {0}
+               saved ∈ {0}
+               rc ∈ {0}
+               rs ∈ {0}
+               hold ∈ {0}
+branch_main, before heap_alloc.c:132 `;` (BM):
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          a ∈ {{ &__malloc_branchy_l124_3 }}
+          tmp ∈ {0; 1}
+          tmp_0 ∈ {{ &__malloc_branchy_l124_3 }}
+          b ∈ {{ &__malloc_branchy_l124_4 }}
+          tmp_1 ∈ {0; 1}
+          tmp_2 ∈ {{ &__malloc_branchy_l124_4 }}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_branchy_l124_3 ∈ {1; 2}
+          __malloc_branchy_l124_4 ∈ {1; 2}
+  branch_main: last ∈ {0}
+               saved ∈ {0}
+               rc ∈ {0}
+               a ∈ {{ &__malloc_branchy_l124_3 }}
+               tmp ∈ {0; 1}
+               tmp_0 ∈ {{ &__malloc_branchy_l124_3 }}
+               b ∈ {{ &__malloc_branchy_l124_4 }}
+               tmp_1 ∈ {0; 1}
+               tmp_2 ∈ {{ &__malloc_branchy_l124_4 }}
+               rs ∈ {0}
+               hold ∈ {0}
+               __malloc_branchy_l124_3 ∈ {1; 2}
+               __malloc_branchy_l124_4 ∈ {1; 2}
+branch_main, after heap_alloc.c:133 `return;`:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          a ∈ {{ &__malloc_branchy_l124_3 }}
+          tmp ∈ {0; 1}
+          tmp_0 ∈ {{ &__malloc_branchy_l124_3 }}
+          b ∈ {{ &__malloc_branchy_l124_4 }}
+          tmp_1 ∈ {0; 1}
+          tmp_2 ∈ {{ &__malloc_branchy_l124_4 }}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_branchy_l124_3 ∈ {1; 2}
+          __malloc_branchy_l124_4 ∈ {1; 2}
+  branch_main: last ∈ {0}
+               saved ∈ {0}
+               rc ∈ {0}
+               a ∈ {{ &__malloc_branchy_l124_3 }}
+               tmp ∈ {0; 1}
+               tmp_0 ∈ {{ &__malloc_branchy_l124_3 }}
+               b ∈ {{ &__malloc_branchy_l124_4 }}
+               tmp_1 ∈ {0; 1}
+               tmp_2 ∈ {{ &__malloc_branchy_l124_4 }}
+               rs ∈ {0}
+               hold ∈ {0}
+               __malloc_branchy_l124_3 ∈ {1; 2}
+               __malloc_branchy_l124_4 ∈ {1; 2}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 729 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 336 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 336 points.
+Filtered requests that reject one callstack: 15.
+Requests made: 1401; reported by the trap: 1401, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 187 requests, 87 reads of the legacy store in them, 101 reads outside any request.
+  with -eva-hit-log: 187 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 160 requests
+    statistics: 19 requests
+    summary: 8 requests
+Statuses of the properties: those of the run without memexec, for 300 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1111, 0 alarms, those of the run without memexec.

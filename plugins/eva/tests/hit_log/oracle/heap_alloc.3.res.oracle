@@ -1,0 +1,183 @@
+[kernel] Parsing heap_alloc.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_alloc.c:85 <- keep_one :: heap_alloc.c:91 <- cand_main: 0: weak, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc.c:85 <- keep_one :: heap_alloc.c:92 <- cand_main: 0: weak, record Variable [0..31--31], type int, malloc
+  block 0 of malloc :: heap_alloc.c:85 <- keep_one :: heap_alloc.c:91 <- cand_main: owned by keep_one :: heap_alloc.c:91 <- cand_main
+  block 0 of malloc :: heap_alloc.c:85 <- keep_one :: heap_alloc.c:92 <- cand_main: owned by keep_one :: heap_alloc.c:92 <- cand_main
+These are the tables of the run without memexec.
+Calls:
+  malloc :: heap_alloc.c:85 <- keep_one :: heap_alloc.c:91 <- cand_main: builtin
+  keep_one :: heap_alloc.c:91 <- cand_main: analysed, cache entry 11
+  malloc :: heap_alloc.c:85 <- keep_one :: heap_alloc.c:91 <- cand_main: builtin
+  keep_one :: heap_alloc.c:91 <- cand_main: analysed, cache entry 12
+  malloc :: heap_alloc.c:85 <- keep_one :: heap_alloc.c:92 <- cand_main: builtin
+  keep_one :: heap_alloc.c:92 <- cand_main: analysed, cache entry 13
+  malloc :: heap_alloc.c:85 <- keep_one :: heap_alloc.c:92 <- cand_main: builtin
+  keep_one :: heap_alloc.c:92 <- cand_main: analysed, cache entry 14
+  cand_main: analysed, cache entry 15
+Heap calls, not stored by memexec: cand_main 1, keep_one 4.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+keep_one, start:
+  joined: last ∈
+              {{ NULL ; &__malloc_w_keep_one_l85_3 ;
+                 &__malloc_w_keep_one_l85_4 }}
+          saved ∈
+               {{ NULL ; &__malloc_w_keep_one_l85_3 ;
+                  &__malloc_w_keep_one_l85_4 }}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_w_keep_one_l85_3 ∈ {1} or UNINITIALIZED
+          __malloc_w_keep_one_l85_4 ∈ {1}
+  keep_one :: heap_alloc.c:91 <- cand_main: last ∈
+                                                {{ NULL ;
+                                                   &__malloc_w_keep_one_l85_3 }}
+                                            saved ∈ {0}
+                                            i ∈ {0; 1}
+                                            rc ∈ {0}
+                                            rs ∈ {0}
+                                            hold ∈ {0}
+                                            __malloc_w_keep_one_l85_3 ∈ {1}
+  keep_one :: heap_alloc.c:92 <- cand_main: last ∈
+                                                {{ &__malloc_w_keep_one_l85_3 ;
+                                                   &__malloc_w_keep_one_l85_4 }}
+                                            saved ∈
+                                                 {{ &__malloc_w_keep_one_l85_3 ;
+                                                    &__malloc_w_keep_one_l85_4 }}
+                                            i_0 ∈ {0; 1}
+                                            rc ∈ {0}
+                                            rs ∈ {0}
+                                            hold ∈ {0}
+                                            __malloc_w_keep_one_l85_3
+                                             ∈ {1} or UNINITIALIZED
+                                            __malloc_w_keep_one_l85_4 ∈ {1}
+keep_one, before heap_alloc.c:87 `;` (KO):
+  joined: last ∈
+              {{ &__malloc_w_keep_one_l85_3 ; &__malloc_w_keep_one_l85_4 }}
+          saved ∈
+               {{ NULL ; &__malloc_w_keep_one_l85_3 ;
+                  &__malloc_w_keep_one_l85_4 }}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_w_keep_one_l85_3 ∈ {1} or UNINITIALIZED
+          __malloc_w_keep_one_l85_4 ∈ {1} or UNINITIALIZED
+  keep_one :: heap_alloc.c:91 <- cand_main: last ∈
+                                                {{ &__malloc_w_keep_one_l85_3 }}
+                                            saved ∈ {0}
+                                            i ∈ {0; 1}
+                                            rc ∈ {0}
+                                            rs ∈ {0}
+                                            hold ∈ {0}
+                                            __malloc_w_keep_one_l85_3
+                                             ∈ {1} or UNINITIALIZED
+  keep_one :: heap_alloc.c:92 <- cand_main: last ∈
+                                                {{ &__malloc_w_keep_one_l85_4 }}
+                                            saved ∈
+                                                 {{ &__malloc_w_keep_one_l85_3 ;
+                                                    &__malloc_w_keep_one_l85_4 }}
+                                            i_0 ∈ {0; 1}
+                                            rc ∈ {0}
+                                            rs ∈ {0}
+                                            hold ∈ {0}
+                                            __malloc_w_keep_one_l85_3
+                                             ∈ {1} or UNINITIALIZED
+                                            __malloc_w_keep_one_l85_4
+                                             ∈ {1} or UNINITIALIZED
+keep_one, after heap_alloc.c:88 `return;`:
+  joined: last ∈
+              {{ &__malloc_w_keep_one_l85_3 ; &__malloc_w_keep_one_l85_4 }}
+          saved ∈
+               {{ NULL ; &__malloc_w_keep_one_l85_3 ;
+                  &__malloc_w_keep_one_l85_4 }}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_w_keep_one_l85_3 ∈ {1} or UNINITIALIZED
+          __malloc_w_keep_one_l85_4 ∈ {1} or UNINITIALIZED
+  keep_one :: heap_alloc.c:91 <- cand_main: last ∈
+                                                {{ &__malloc_w_keep_one_l85_3 }}
+                                            saved ∈ {0}
+                                            i ∈ {0; 1}
+                                            rc ∈ {0}
+                                            rs ∈ {0}
+                                            hold ∈ {0}
+                                            __malloc_w_keep_one_l85_3
+                                             ∈ {1} or UNINITIALIZED
+  keep_one :: heap_alloc.c:92 <- cand_main: last ∈
+                                                {{ &__malloc_w_keep_one_l85_4 }}
+                                            saved ∈
+                                                 {{ &__malloc_w_keep_one_l85_3 ;
+                                                    &__malloc_w_keep_one_l85_4 }}
+                                            i_0 ∈ {0; 1}
+                                            rc ∈ {0}
+                                            rs ∈ {0}
+                                            hold ∈ {0}
+                                            __malloc_w_keep_one_l85_3
+                                             ∈ {1} or UNINITIALIZED
+                                            __malloc_w_keep_one_l85_4
+                                             ∈ {1} or UNINITIALIZED
+cand_main, start:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+  cand_main: last ∈ {0}
+             saved ∈ {0}
+             rc ∈ {0}
+             rs ∈ {0}
+             hold ∈ {0}
+cand_main, before heap_alloc.c:93 `;` (CM):
+  joined: last ∈ {{ &__malloc_w_keep_one_l85_4 }}
+          saved ∈ {{ &__malloc_w_keep_one_l85_4 }}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_w_keep_one_l85_3 ∈ {1} or UNINITIALIZED
+          __malloc_w_keep_one_l85_4 ∈ {1} or UNINITIALIZED
+  cand_main: last ∈ {{ &__malloc_w_keep_one_l85_4 }}
+             saved ∈ {{ &__malloc_w_keep_one_l85_4 }}
+             rc ∈ {0}
+             rs ∈ {0}
+             hold ∈ {0}
+             __malloc_w_keep_one_l85_3 ∈ {1} or UNINITIALIZED
+             __malloc_w_keep_one_l85_4 ∈ {1} or UNINITIALIZED
+cand_main, after heap_alloc.c:94 `return;`:
+  joined: last ∈ {{ &__malloc_w_keep_one_l85_4 }}
+          saved ∈ {{ &__malloc_w_keep_one_l85_4 }}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          __malloc_w_keep_one_l85_3 ∈ {1} or UNINITIALIZED
+          __malloc_w_keep_one_l85_4 ∈ {1} or UNINITIALIZED
+  cand_main: last ∈ {{ &__malloc_w_keep_one_l85_4 }}
+             saved ∈ {{ &__malloc_w_keep_one_l85_4 }}
+             rc ∈ {0}
+             rs ∈ {0}
+             hold ∈ {0}
+             __malloc_w_keep_one_l85_3 ∈ {1} or UNINITIALIZED
+             __malloc_w_keep_one_l85_4 ∈ {1} or UNINITIALIZED
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 729 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 336 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 336 points.
+Filtered requests that reject one callstack: 9.
+Requests made: 1401; reported by the trap: 1401, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 190 requests, 94 reads of the legacy store in them, 104 reads outside any request.
+  with -eva-hit-log: 190 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 160 requests
+    statistics: 22 requests
+    summary: 8 requests
+Statuses of the properties: those of the run without memexec, for 302 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1111, 0 alarms, those of the run without memexec.

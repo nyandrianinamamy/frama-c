@@ -1,0 +1,51 @@
+[kernel] Parsing heap_alloc_refused.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  block strong, record Variable [0..31--31], type int, malloc: owned by mk :: heap_alloc_refused.c:66 <- mk_main
+  block strong, record Variable [0..31--31], type int, malloc: owned by mk :: heap_alloc_refused.c:67 <- mk_main
+These are the tables of the run without memexec.
+Calls:
+  malloc :: heap_alloc_refused.c:60 <- mk :: heap_alloc_refused.c:66 <- mk_main: builtin
+  mk :: heap_alloc_refused.c:66 <- mk_main: analysed, cache entry 7
+  malloc :: heap_alloc_refused.c:60 <- mk :: heap_alloc_refused.c:67 <- mk_main: builtin
+  mk :: heap_alloc_refused.c:67 <- mk_main: analysed, cache entry 8
+  mk_main: analysed, cache entry 9
+Heap calls, not stored by memexec: mk 2, mk_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+mk_main, start:
+  joined: 
+  mk_main: 
+mk_main, before heap_alloc_refused.c:68 `;` (MK):
+  joined: a ∈ {{ &__malloc_mk_l60_3 }}
+          b ∈ {{ &__malloc_mk_l60_4 }}
+          __malloc_mk_l60_3 ∈ {1}
+          __malloc_mk_l60_4 ∈ {1}
+  mk_main: a ∈ {{ &__malloc_mk_l60_3 }}
+           b ∈ {{ &__malloc_mk_l60_4 }}
+           __malloc_mk_l60_3 ∈ {1}
+           __malloc_mk_l60_4 ∈ {1}
+mk_main, after heap_alloc_refused.c:69 `return;`:
+  joined: a ∈ {{ &__malloc_mk_l60_3 }}
+          b ∈ {{ &__malloc_mk_l60_4 }}
+          __malloc_mk_l60_3 ∈ {1}
+          __malloc_mk_l60_4 ∈ {1}
+  mk_main: a ∈ {{ &__malloc_mk_l60_3 }}
+           b ∈ {{ &__malloc_mk_l60_4 }}
+           __malloc_mk_l60_3 ∈ {1}
+           __malloc_mk_l60_4 ∈ {1}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 307 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 141 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 141 points.
+Filtered requests that reject one callstack: 7.
+Requests made: 589; reported by the trap: 589, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 77 requests, 33 reads of the legacy store in them, 42 reads outside any request.
+  with -eva-hit-log: 77 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 68 requests
+    statistics: 7 requests
+    summary: 2 requests
+Statuses of the properties: those of the run without memexec, for 348 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1333, 0 alarms, those of the run without memexec.

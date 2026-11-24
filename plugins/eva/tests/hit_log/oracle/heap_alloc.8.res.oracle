@@ -1,0 +1,312 @@
+[kernel] Parsing heap_alloc.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_alloc.c:180 <- inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:191 <- nested_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc.c:180 <- inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:192 <- nested_main: 0: strong, record Variable [0..31--31], type int, malloc
+  block 0 of malloc :: heap_alloc.c:180 <- inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:191 <- nested_main: owned by inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:191 <- nested_main
+  block 0 of malloc :: heap_alloc.c:180 <- inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:192 <- nested_main: owned by inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:192 <- nested_main
+These are the tables of the run without memexec.
+Calls:
+  malloc :: heap_alloc.c:180 <- inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:191 <- nested_main: builtin
+  inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:191 <- nested_main: analysed, cache entry 11
+  outer_alloc :: heap_alloc.c:191 <- nested_main: analysed, cache entry 12
+  malloc :: heap_alloc.c:180 <- inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:192 <- nested_main: builtin
+  inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:192 <- nested_main: analysed, cache entry 13
+  outer_alloc :: heap_alloc.c:192 <- nested_main: analysed, cache entry 14
+  nested_main: analysed, cache entry 15
+Heap calls, not stored by memexec: inner_alloc 2, nested_main 1,
+  outer_alloc 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+inner_alloc, start:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          v ∈ {5}
+          v ∈ {5}
+          p ∈ UNINITIALIZED
+          a ∈ {{ &__malloc_inner_alloc_l180_3 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          __malloc_inner_alloc_l180_3 ∈ {5}
+  inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:191 <- nested_main: 
+  last ∈ {0}
+  saved ∈ {0}
+  rc ∈ {0}
+  rs ∈ {0}
+  hold ∈ {0}
+  v ∈ {5}
+  v ∈ {5}
+  p ∈ UNINITIALIZED
+  a ∈ UNINITIALIZED
+  b ∈ UNINITIALIZED
+  inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:192 <- nested_main: 
+  last ∈ {0}
+  saved ∈ {0}
+  rc ∈ {0}
+  rs ∈ {0}
+  hold ∈ {0}
+  v ∈ {5}
+  v ∈ {5}
+  p ∈ UNINITIALIZED
+  a ∈ {{ &__malloc_inner_alloc_l180_3 }}
+  b ∈ UNINITIALIZED
+  __malloc_inner_alloc_l180_3 ∈ {5}
+inner_alloc, before heap_alloc.c:182 `;` (IA):
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          v ∈ {5}
+          p ∈
+           {{ &__malloc_inner_alloc_l180_3 ; &__malloc_inner_alloc_l180_4 }}
+          v ∈ {5}
+          p ∈ UNINITIALIZED
+          a ∈ {{ &__malloc_inner_alloc_l180_3 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          __malloc_inner_alloc_l180_3 ∈ {5}
+          __malloc_inner_alloc_l180_4 ∈ {5}
+  inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:191 <- nested_main: 
+  last ∈ {0}
+  saved ∈ {0}
+  rc ∈ {0}
+  rs ∈ {0}
+  hold ∈ {0}
+  v ∈ {5}
+  p ∈ {{ &__malloc_inner_alloc_l180_3 }}
+  v ∈ {5}
+  p ∈ UNINITIALIZED
+  a ∈ UNINITIALIZED
+  b ∈ UNINITIALIZED
+  __malloc_inner_alloc_l180_3 ∈ {5}
+  inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:192 <- nested_main: 
+  last ∈ {0}
+  saved ∈ {0}
+  rc ∈ {0}
+  rs ∈ {0}
+  hold ∈ {0}
+  v ∈ {5}
+  p ∈ {{ &__malloc_inner_alloc_l180_4 }}
+  v ∈ {5}
+  p ∈ UNINITIALIZED
+  a ∈ {{ &__malloc_inner_alloc_l180_3 }}
+  b ∈ UNINITIALIZED
+  __malloc_inner_alloc_l180_3 ∈ {5}
+  __malloc_inner_alloc_l180_4 ∈ {5}
+inner_alloc, after heap_alloc.c:182 `return p;`:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          v ∈ {5}
+          p ∈
+           {{ &__malloc_inner_alloc_l180_3 ; &__malloc_inner_alloc_l180_4 }}
+          v ∈ {5}
+          p ∈ UNINITIALIZED
+          a ∈ {{ &__malloc_inner_alloc_l180_3 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          __malloc_inner_alloc_l180_3 ∈ {5}
+          __malloc_inner_alloc_l180_4 ∈ {5}
+  inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:191 <- nested_main: 
+  last ∈ {0}
+  saved ∈ {0}
+  rc ∈ {0}
+  rs ∈ {0}
+  hold ∈ {0}
+  v ∈ {5}
+  p ∈ {{ &__malloc_inner_alloc_l180_3 }}
+  v ∈ {5}
+  p ∈ UNINITIALIZED
+  a ∈ UNINITIALIZED
+  b ∈ UNINITIALIZED
+  __malloc_inner_alloc_l180_3 ∈ {5}
+  inner_alloc :: heap_alloc.c:186 <- outer_alloc :: heap_alloc.c:192 <- nested_main: 
+  last ∈ {0}
+  saved ∈ {0}
+  rc ∈ {0}
+  rs ∈ {0}
+  hold ∈ {0}
+  v ∈ {5}
+  p ∈ {{ &__malloc_inner_alloc_l180_4 }}
+  v ∈ {5}
+  p ∈ UNINITIALIZED
+  a ∈ {{ &__malloc_inner_alloc_l180_3 }}
+  b ∈ UNINITIALIZED
+  __malloc_inner_alloc_l180_3 ∈ {5}
+  __malloc_inner_alloc_l180_4 ∈ {5}
+outer_alloc, start:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          v ∈ {5}
+          a ∈ {{ &__malloc_inner_alloc_l180_3 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          __malloc_inner_alloc_l180_3 ∈ {5}
+  outer_alloc :: heap_alloc.c:191 <- nested_main: last ∈ {0}
+                                                  saved ∈ {0}
+                                                  rc ∈ {0}
+                                                  rs ∈ {0}
+                                                  hold ∈ {0}
+                                                  v ∈ {5}
+                                                  a ∈ UNINITIALIZED
+                                                  b ∈ UNINITIALIZED
+  outer_alloc :: heap_alloc.c:192 <- nested_main: last ∈ {0}
+                                                  saved ∈ {0}
+                                                  rc ∈ {0}
+                                                  rs ∈ {0}
+                                                  hold ∈ {0}
+                                                  v ∈ {5}
+                                                  a ∈
+                                                   {{ &__malloc_inner_alloc_l180_3 }}
+                                                  b ∈ UNINITIALIZED
+                                                  __malloc_inner_alloc_l180_3
+                                                   ∈ {5}
+outer_alloc, before heap_alloc.c:187 `;` (OA):
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          v ∈ {5}
+          p ∈
+           {{ &__malloc_inner_alloc_l180_3 ; &__malloc_inner_alloc_l180_4 }}
+          a ∈ {{ &__malloc_inner_alloc_l180_3 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          __malloc_inner_alloc_l180_3 ∈ {5}
+          __malloc_inner_alloc_l180_4 ∈ {5}
+  outer_alloc :: heap_alloc.c:191 <- nested_main: last ∈ {0}
+                                                  saved ∈ {0}
+                                                  rc ∈ {0}
+                                                  rs ∈ {0}
+                                                  hold ∈ {0}
+                                                  v ∈ {5}
+                                                  p ∈
+                                                   {{ &__malloc_inner_alloc_l180_3 }}
+                                                  a ∈ UNINITIALIZED
+                                                  b ∈ UNINITIALIZED
+                                                  __malloc_inner_alloc_l180_3
+                                                   ∈ {5}
+  outer_alloc :: heap_alloc.c:192 <- nested_main: last ∈ {0}
+                                                  saved ∈ {0}
+                                                  rc ∈ {0}
+                                                  rs ∈ {0}
+                                                  hold ∈ {0}
+                                                  v ∈ {5}
+                                                  p ∈
+                                                   {{ &__malloc_inner_alloc_l180_4 }}
+                                                  a ∈
+                                                   {{ &__malloc_inner_alloc_l180_3 }}
+                                                  b ∈ UNINITIALIZED
+                                                  __malloc_inner_alloc_l180_3
+                                                   ∈ {5}
+                                                  __malloc_inner_alloc_l180_4
+                                                   ∈ {5}
+outer_alloc, after heap_alloc.c:187 `return p;`:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          v ∈ {5}
+          p ∈
+           {{ &__malloc_inner_alloc_l180_3 ; &__malloc_inner_alloc_l180_4 }}
+          a ∈ {{ &__malloc_inner_alloc_l180_3 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          __malloc_inner_alloc_l180_3 ∈ {5}
+          __malloc_inner_alloc_l180_4 ∈ {5}
+  outer_alloc :: heap_alloc.c:191 <- nested_main: last ∈ {0}
+                                                  saved ∈ {0}
+                                                  rc ∈ {0}
+                                                  rs ∈ {0}
+                                                  hold ∈ {0}
+                                                  v ∈ {5}
+                                                  p ∈
+                                                   {{ &__malloc_inner_alloc_l180_3 }}
+                                                  a ∈ UNINITIALIZED
+                                                  b ∈ UNINITIALIZED
+                                                  __malloc_inner_alloc_l180_3
+                                                   ∈ {5}
+  outer_alloc :: heap_alloc.c:192 <- nested_main: last ∈ {0}
+                                                  saved ∈ {0}
+                                                  rc ∈ {0}
+                                                  rs ∈ {0}
+                                                  hold ∈ {0}
+                                                  v ∈ {5}
+                                                  p ∈
+                                                   {{ &__malloc_inner_alloc_l180_4 }}
+                                                  a ∈
+                                                   {{ &__malloc_inner_alloc_l180_3 }}
+                                                  b ∈ UNINITIALIZED
+                                                  __malloc_inner_alloc_l180_3
+                                                   ∈ {5}
+                                                  __malloc_inner_alloc_l180_4
+                                                   ∈ {5}
+nested_main, start:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+  nested_main: last ∈ {0}
+               saved ∈ {0}
+               rc ∈ {0}
+               rs ∈ {0}
+               hold ∈ {0}
+nested_main, before heap_alloc.c:193 `;` (NM):
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          a ∈ {{ &__malloc_inner_alloc_l180_3 }}
+          b ∈ {{ &__malloc_inner_alloc_l180_4 }}
+          __malloc_inner_alloc_l180_3 ∈ {5}
+          __malloc_inner_alloc_l180_4 ∈ {5}
+  nested_main: last ∈ {0}
+               saved ∈ {0}
+               rc ∈ {0}
+               rs ∈ {0}
+               hold ∈ {0}
+               a ∈ {{ &__malloc_inner_alloc_l180_3 }}
+               b ∈ {{ &__malloc_inner_alloc_l180_4 }}
+               __malloc_inner_alloc_l180_3 ∈ {5}
+               __malloc_inner_alloc_l180_4 ∈ {5}
+nested_main, after heap_alloc.c:194 `return;`:
+  joined: last ∈ {0}
+          saved ∈ {0}
+          rc ∈ {0}
+          rs ∈ {0}
+          hold ∈ {0}
+          a ∈ {{ &__malloc_inner_alloc_l180_3 }}
+          b ∈ {{ &__malloc_inner_alloc_l180_4 }}
+          __malloc_inner_alloc_l180_3 ∈ {5}
+          __malloc_inner_alloc_l180_4 ∈ {5}
+  nested_main: last ∈ {0}
+               saved ∈ {0}
+               rc ∈ {0}
+               rs ∈ {0}
+               hold ∈ {0}
+               a ∈ {{ &__malloc_inner_alloc_l180_3 }}
+               b ∈ {{ &__malloc_inner_alloc_l180_4 }}
+               __malloc_inner_alloc_l180_3 ∈ {5}
+               __malloc_inner_alloc_l180_4 ∈ {5}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 715 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 336 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 336 points.
+Filtered requests that reject one callstack: 16.
+Requests made: 1387; reported by the trap: 1387, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 180 requests, 54 reads of the legacy store in them, 69 reads outside any request.
+  with -eva-hit-log: 180 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 161 requests
+    statistics: 11 requests
+    summary: 8 requests
+Statuses of the properties: those of the run without memexec, for 302 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1667, 0 alarms, those of the run without memexec.

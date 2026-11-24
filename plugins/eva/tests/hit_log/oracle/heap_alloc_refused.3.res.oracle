@@ -1,0 +1,77 @@
+[kernel] Parsing heap_alloc_refused.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of calloc :: heap_alloc_refused.c:73 <- c_alloc :: heap_alloc_refused.c:84 <- other_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of calloc :: heap_alloc_refused.c:73 <- c_alloc :: heap_alloc_refused.c:85 <- other_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of realloc :: heap_alloc_refused.c:78 <- r_alloc :: heap_alloc_refused.c:86 <- other_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of realloc :: heap_alloc_refused.c:78 <- r_alloc :: heap_alloc_refused.c:87 <- other_main: 0: strong, record Variable [0..31--31], type int, malloc
+  block 0 of calloc :: heap_alloc_refused.c:73 <- c_alloc :: heap_alloc_refused.c:84 <- other_main: owned by c_alloc :: heap_alloc_refused.c:84 <- other_main
+  block 0 of calloc :: heap_alloc_refused.c:73 <- c_alloc :: heap_alloc_refused.c:85 <- other_main: owned by c_alloc :: heap_alloc_refused.c:85 <- other_main
+  block 0 of realloc :: heap_alloc_refused.c:78 <- r_alloc :: heap_alloc_refused.c:86 <- other_main: owned by r_alloc :: heap_alloc_refused.c:86 <- other_main
+  block 0 of realloc :: heap_alloc_refused.c:78 <- r_alloc :: heap_alloc_refused.c:87 <- other_main: owned by r_alloc :: heap_alloc_refused.c:87 <- other_main
+These are the tables of the run without memexec.
+Calls:
+  calloc :: heap_alloc_refused.c:73 <- c_alloc :: heap_alloc_refused.c:84 <- other_main: builtin
+  c_alloc :: heap_alloc_refused.c:84 <- other_main: analysed, cache entry 11
+  calloc :: heap_alloc_refused.c:73 <- c_alloc :: heap_alloc_refused.c:85 <- other_main: builtin
+  c_alloc :: heap_alloc_refused.c:85 <- other_main: analysed, cache entry 12
+  realloc :: heap_alloc_refused.c:78 <- r_alloc :: heap_alloc_refused.c:86 <- other_main: builtin
+  r_alloc :: heap_alloc_refused.c:86 <- other_main: analysed, cache entry 13
+  realloc :: heap_alloc_refused.c:78 <- r_alloc :: heap_alloc_refused.c:87 <- other_main: builtin
+  r_alloc :: heap_alloc_refused.c:87 <- other_main: analysed, cache entry 14
+  other_main: analysed, cache entry 15
+Heap calls, not stored by memexec: c_alloc 2, other_main 1, r_alloc 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+other_main, start:
+  joined: 
+  other_main: 
+other_main, before heap_alloc_refused.c:88 `;` (OT):
+  joined: a ∈ {{ &__calloc_c_alloc_l73_3 }}
+          b ∈ {{ &__calloc_c_alloc_l73_4 }}
+          c ∈ {{ &__realloc_r_alloc_l78_3 }}
+          d ∈ {{ &__realloc_r_alloc_l78_4 }}
+          __calloc_c_alloc_l73_3 ∈ {0}
+          __calloc_c_alloc_l73_4 ∈ {0}
+          __realloc_r_alloc_l78_3 ∈ {1}
+          __realloc_r_alloc_l78_4 ∈ {1}
+  other_main: a ∈ {{ &__calloc_c_alloc_l73_3 }}
+              b ∈ {{ &__calloc_c_alloc_l73_4 }}
+              c ∈ {{ &__realloc_r_alloc_l78_3 }}
+              d ∈ {{ &__realloc_r_alloc_l78_4 }}
+              __calloc_c_alloc_l73_3 ∈ {0}
+              __calloc_c_alloc_l73_4 ∈ {0}
+              __realloc_r_alloc_l78_3 ∈ {1}
+              __realloc_r_alloc_l78_4 ∈ {1}
+other_main, after heap_alloc_refused.c:89 `return;`:
+  joined: a ∈ {{ &__calloc_c_alloc_l73_3 }}
+          b ∈ {{ &__calloc_c_alloc_l73_4 }}
+          c ∈ {{ &__realloc_r_alloc_l78_3 }}
+          d ∈ {{ &__realloc_r_alloc_l78_4 }}
+          __calloc_c_alloc_l73_3 ∈ {0}
+          __calloc_c_alloc_l73_4 ∈ {0}
+          __realloc_r_alloc_l78_3 ∈ {1}
+          __realloc_r_alloc_l78_4 ∈ {1}
+  other_main: a ∈ {{ &__calloc_c_alloc_l73_3 }}
+              b ∈ {{ &__calloc_c_alloc_l73_4 }}
+              c ∈ {{ &__realloc_r_alloc_l78_3 }}
+              d ∈ {{ &__realloc_r_alloc_l78_4 }}
+              __calloc_c_alloc_l73_3 ∈ {0}
+              __calloc_c_alloc_l73_4 ∈ {0}
+              __realloc_r_alloc_l78_3 ∈ {1}
+              __realloc_r_alloc_l78_4 ∈ {1}
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 321 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 141 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 141 points.
+Filtered requests that reject one callstack: 12.
+Requests made: 603; reported by the trap: 603, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 82 requests, 53 reads of the legacy store in them, 68 reads outside any request.
+  with -eva-hit-log: 82 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 69 requests
+    statistics: 11 requests
+    summary: 2 requests
+Statuses of the properties: those of the run without memexec, for 347 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.2000, 0 alarms, those of the run without memexec.
