@@ -1,0 +1,51 @@
+[kernel] Parsing heap_hit_limits.c (with preprocessing)
+[eva:alarm] heap_hit_limits.c:74: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&kept);
+[eva:alarm] heap_hit_limits.c:74: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&kept);
+[eva:alarm] heap_hit_limits.c:74: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&kept);
+[eva:alarm] heap_hit_limits.c:76: Warning: 
+  accessing left-value that contains escaping addresses.
+  assert ¬\dangling(&kept);
+Calls:
+  malloc :: heap_hit_limits.c:67 <- split_main: builtin
+  free :: heap_hit_limits.c:62 <- srel :: heap_hit_limits.c:69 <- split_main: builtin
+  srel :: heap_hit_limits.c:69 <- split_main: analysed, cache entry 7
+  malloc :: heap_hit_limits.c:70 <- split_main: builtin
+  malloc :: heap_hit_limits.c:70 <- split_main: builtin
+  srel :: heap_hit_limits.c:73 <- split_main: hit of cache entry 7
+  split_main: analysed, cache entry 8
+Heap calls, not stored by memexec: split_main 1.
+Heap calls stored by memexec: srel 1.
+Heap calls whose answers come from full states: split_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  split_main 1.
+Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  srel :: heap_hit_limits.c:73 <- split_main, hit of cache entry 7, against srel :: heap_hit_limits.c:69 <- split_main: differs on __malloc_split_main_l67_1, __malloc_split_main_l70_1, kept, p, scur, at 11 points.
+Initial state: equal.
+Differences with the run without memexec:
+  split_main, before heap_hit_limits.c:76 `sseen = *kept;`, joined: covers
+  split_main, before heap_hit_limits.c:76 `sseen = *kept;`, filtered: covers
+  split_main, before heap_hit_limits.c:76 `sseen = *kept;`, split_main: covers
+Answers: 221 equal, 3 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 89 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 89 points.
+Filtered requests that reject one callstack: 11.
+Requests made: 402; reported by the trap: 402, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 69 requests, 82 reads of the legacy store in them, 85 reads outside any request.
+  with -eva-hit-log: 77 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 46 requests
+    statuses of the properties: 10 requests
+    statistics: 16 requests
+    summary: 5 requests
+Statuses of the properties that differ from the run without memexec:
+  heap_hit_limits.c:76: Assertion 'Eva,dangling_pointer' ("heap_hit_limits.c", line 76): assert Eva: dangling_pointer: ¬\dangling(&kept);: Unknown against absent: less optimistic
+Alarms that differ from the run without memexec:
+  added: heap_hit_limits.c:76: Unspecified(kept): Unknown
+Summary: statement coverage 1.0000, function coverage 0.2857, 2 alarms, against statement coverage 1.0000, function coverage 0.2857, 1 alarm without memexec.
