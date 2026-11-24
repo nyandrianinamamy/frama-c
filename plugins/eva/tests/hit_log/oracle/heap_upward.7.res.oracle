@@ -1,77 +1,82 @@
 [kernel] Parsing heap_upward.c (with preprocessing)
 Calls:
-  malloc :: heap_upward.c:159 <- frames_main: builtin
-  free :: heap_upward.c:149 <- frel :: heap_upward.c:160 <- frames_main: builtin
-  frel :: heap_upward.c:160 <- frames_main: analysed, cache entry 23
-  malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main: builtin
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main: hit of cache entry 23
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main: analysed, cache entry 24
-  fgrand :: heap_upward.c:161 <- frames_main: analysed, cache entry 25
-  malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main: builtin
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main: hit of cache entry 24
-  fgrand :: heap_upward.c:162 <- frames_main: analysed, cache entry 26
-  fgrand :: heap_upward.c:163 <- frames_main: hit of cache entry 26
+  malloc :: heap_upward.c:166 <- frames_main: builtin
+  free :: heap_upward.c:156 <- frel :: heap_upward.c:167 <- frames_main: builtin
+  frel :: heap_upward.c:167 <- frames_main: analysed, cache entry 23
+  malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main: builtin
+  frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:168 <- frames_main: hit of cache entry 23
+  fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:168 <- frames_main: analysed, cache entry 24
+  fgrand :: heap_upward.c:168 <- frames_main: analysed, cache entry 25
+  malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:169 <- frames_main: builtin
+  fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:169 <- frames_main: hit of cache entry 24
+  fgrand :: heap_upward.c:169 <- frames_main: analysed, cache entry 26
+  fgrand :: heap_upward.c:170 <- frames_main: hit of cache entry 26
   frames_main: analysed, cache entry 27
 Heap calls, not stored by memexec: none.
 Heap calls stored by memexec: fgrand 2, fparent 1, frames_main 1, frel 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls below a hit:
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main
+  fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:170 <- frames_main
+  frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:169 <- frames_main
+  frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:170 <- frames_main
 frel, start:
   joined: cur ∈
-             {{ &__malloc_frames_main_l159_1 ; &__malloc_fgrand_l152_5 ;
-                &__malloc_fgrand_l152_6 ; &__malloc_fgrand_l152_7 }}
+             {{ &__malloc_frames_main_l166_1 ; &__malloc_fgrand_l159_5 ;
+                &__malloc_fgrand_l159_6 ; &__malloc_fgrand_l159_7 }}
           keep ∈ {0}
           slot ∈ {0}
           mode ∈ {0}
           pk ∈
-            {{ &__malloc_fgrand_l152_5 ; &__malloc_fgrand_l152_6 ;
-               &__malloc_fgrand_l152_7 }}
+            {{ &__malloc_fgrand_l159_5 ; &__malloc_fgrand_l159_6 ;
+               &__malloc_fgrand_l159_7 }}
           k ∈ {0; 1}
           gk ∈
-            {{ &__malloc_fgrand_l152_5 ; &__malloc_fgrand_l152_6 ;
-               &__malloc_fgrand_l152_7 }}
-          __malloc_frames_main_l159_1 ∈ {1}
-          __malloc_fgrand_l152_5 ∈ {1}
-          __malloc_fgrand_l152_6 ∈ {1}
-          __malloc_fgrand_l152_7 ∈ {1}
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main: 
-  cur ∈ {{ &__malloc_fgrand_l152_5 }}
+            {{ &__malloc_fgrand_l159_5 ; &__malloc_fgrand_l159_6 ;
+               &__malloc_fgrand_l159_7 }}
+          gb ∈ {0}
+          __malloc_frames_main_l166_1 ∈ {1}
+          __malloc_fgrand_l159_5 ∈ {1}
+          __malloc_fgrand_l159_6 ∈ {1}
+          __malloc_fgrand_l159_7 ∈ {1}
+  frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:168 <- frames_main: 
+  cur ∈ {{ &__malloc_fgrand_l159_5 }}
   keep ∈ {0}
   slot ∈ {0}
   mode ∈ {0}
-  pk ∈ {{ &__malloc_fgrand_l152_5 }}
+  pk ∈ {{ &__malloc_fgrand_l159_5 }}
   k ∈ {0}
-  gk ∈ {{ &__malloc_fgrand_l152_5 }}
-  __malloc_fgrand_l152_5 ∈ {1}
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main: 
-  cur ∈ {{ &__malloc_fgrand_l152_6 }}
+  gk ∈ {{ &__malloc_fgrand_l159_5 }}
+  gb ∈ {0}
+  __malloc_fgrand_l159_5 ∈ {1}
+  frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:169 <- frames_main: 
+  cur ∈ {{ &__malloc_fgrand_l159_6 }}
   keep ∈ {0}
   slot ∈ {0}
   mode ∈ {0}
-  pk ∈ {{ &__malloc_fgrand_l152_6 }}
+  pk ∈ {{ &__malloc_fgrand_l159_6 }}
   k ∈ {1}
-  gk ∈ {{ &__malloc_fgrand_l152_6 }}
-  __malloc_fgrand_l152_6 ∈ {1}
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main: 
-  cur ∈ {{ &__malloc_fgrand_l152_7 }}
+  gk ∈ {{ &__malloc_fgrand_l159_6 }}
+  gb ∈ {0}
+  __malloc_fgrand_l159_6 ∈ {1}
+  frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:170 <- frames_main: 
+  cur ∈ {{ &__malloc_fgrand_l159_7 }}
   keep ∈ {0}
   slot ∈ {0}
   mode ∈ {0}
-  pk ∈ {{ &__malloc_fgrand_l152_7 }}
+  pk ∈ {{ &__malloc_fgrand_l159_7 }}
   k ∈ {1}
-  gk ∈ {{ &__malloc_fgrand_l152_7 }}
-  __malloc_fgrand_l152_7 ∈ {1}
-  frel :: heap_upward.c:160 <- frames_main: cur ∈
-                                               {{ &__malloc_frames_main_l159_1 }}
+  gk ∈ {{ &__malloc_fgrand_l159_7 }}
+  gb ∈ {0}
+  __malloc_fgrand_l159_7 ∈ {1}
+  frel :: heap_upward.c:167 <- frames_main: cur ∈
+                                               {{ &__malloc_frames_main_l166_1 }}
                                             keep ∈ {0}
                                             slot ∈ {0}
                                             mode ∈ {0}
-                                            __malloc_frames_main_l159_1 ∈ {1}
-frel, before heap_upward.c:149 `;` (E):
+                                            gb ∈ {0}
+                                            __malloc_frames_main_l166_1 ∈ {1}
+frel, before heap_upward.c:156 `;` (E):
   joined: cur ∈ ESCAPINGADDR
           keep ∈ {0}
           slot ∈ {0}
@@ -79,7 +84,8 @@ frel, before heap_upward.c:149 `;` (E):
           pk ∈ ESCAPINGADDR
           k ∈ {0; 1}
           gk ∈ ESCAPINGADDR
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main: 
+          gb ∈ {0}
+  frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:168 <- frames_main: 
   cur ∈ ESCAPINGADDR
   keep ∈ {0}
   slot ∈ {0}
@@ -87,7 +93,8 @@ frel, before heap_upward.c:149 `;` (E):
   pk ∈ ESCAPINGADDR
   k ∈ {0}
   gk ∈ ESCAPINGADDR
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main: 
+  gb ∈ {0}
+  frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:169 <- frames_main: 
   cur ∈ ESCAPINGADDR
   keep ∈ {0}
   slot ∈ {0}
@@ -95,7 +102,8 @@ frel, before heap_upward.c:149 `;` (E):
   pk ∈ ESCAPINGADDR
   k ∈ {1}
   gk ∈ ESCAPINGADDR
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main: 
+  gb ∈ {0}
+  frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:170 <- frames_main: 
   cur ∈ ESCAPINGADDR
   keep ∈ {0}
   slot ∈ {0}
@@ -103,11 +111,13 @@ frel, before heap_upward.c:149 `;` (E):
   pk ∈ ESCAPINGADDR
   k ∈ {1}
   gk ∈ ESCAPINGADDR
-  frel :: heap_upward.c:160 <- frames_main: cur ∈ ESCAPINGADDR
+  gb ∈ {0}
+  frel :: heap_upward.c:167 <- frames_main: cur ∈ ESCAPINGADDR
                                             keep ∈ {0}
                                             slot ∈ {0}
                                             mode ∈ {0}
-frel, after heap_upward.c:149 `return;`:
+                                            gb ∈ {0}
+frel, after heap_upward.c:156 `return;`:
   joined: cur ∈ ESCAPINGADDR
           keep ∈ {0}
           slot ∈ {0}
@@ -115,7 +125,8 @@ frel, after heap_upward.c:149 `return;`:
           pk ∈ ESCAPINGADDR
           k ∈ {0; 1}
           gk ∈ ESCAPINGADDR
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main: 
+          gb ∈ {0}
+  frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:168 <- frames_main: 
   cur ∈ ESCAPINGADDR
   keep ∈ {0}
   slot ∈ {0}
@@ -123,7 +134,8 @@ frel, after heap_upward.c:149 `return;`:
   pk ∈ ESCAPINGADDR
   k ∈ {0}
   gk ∈ ESCAPINGADDR
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main: 
+  gb ∈ {0}
+  frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:169 <- frames_main: 
   cur ∈ ESCAPINGADDR
   keep ∈ {0}
   slot ∈ {0}
@@ -131,7 +143,8 @@ frel, after heap_upward.c:149 `return;`:
   pk ∈ ESCAPINGADDR
   k ∈ {1}
   gk ∈ ESCAPINGADDR
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main: 
+  gb ∈ {0}
+  frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:170 <- frames_main: 
   cur ∈ ESCAPINGADDR
   keep ∈ {0}
   slot ∈ {0}
@@ -139,49 +152,55 @@ frel, after heap_upward.c:149 `return;`:
   pk ∈ ESCAPINGADDR
   k ∈ {1}
   gk ∈ ESCAPINGADDR
-  frel :: heap_upward.c:160 <- frames_main: cur ∈ ESCAPINGADDR
+  gb ∈ {0}
+  frel :: heap_upward.c:167 <- frames_main: cur ∈ ESCAPINGADDR
                                             keep ∈ {0}
                                             slot ∈ {0}
                                             mode ∈ {0}
+                                            gb ∈ {0}
 fparent, start:
   joined: cur ∈
-             {{ &__malloc_fgrand_l152_5 ; &__malloc_fgrand_l152_6 ;
-                &__malloc_fgrand_l152_7 }}
+             {{ &__malloc_fgrand_l159_5 ; &__malloc_fgrand_l159_6 ;
+                &__malloc_fgrand_l159_7 }}
           keep ∈ {0}
           slot ∈ {0}
           mode ∈ {0}
           k ∈ {0; 1}
           gk ∈
-            {{ &__malloc_fgrand_l152_5 ; &__malloc_fgrand_l152_6 ;
-               &__malloc_fgrand_l152_7 }}
-          __malloc_fgrand_l152_5 ∈ {1}
-          __malloc_fgrand_l152_6 ∈ {1}
-          __malloc_fgrand_l152_7 ∈ {1}
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main: 
-  cur ∈ {{ &__malloc_fgrand_l152_5 }}
+            {{ &__malloc_fgrand_l159_5 ; &__malloc_fgrand_l159_6 ;
+               &__malloc_fgrand_l159_7 }}
+          gb ∈ {0}
+          __malloc_fgrand_l159_5 ∈ {1}
+          __malloc_fgrand_l159_6 ∈ {1}
+          __malloc_fgrand_l159_7 ∈ {1}
+  fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:168 <- frames_main: 
+  cur ∈ {{ &__malloc_fgrand_l159_5 }}
   keep ∈ {0}
   slot ∈ {0}
   mode ∈ {0}
   k ∈ {0}
-  gk ∈ {{ &__malloc_fgrand_l152_5 }}
-  __malloc_fgrand_l152_5 ∈ {1}
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main: 
-  cur ∈ {{ &__malloc_fgrand_l152_6 }}
+  gk ∈ {{ &__malloc_fgrand_l159_5 }}
+  gb ∈ {0}
+  __malloc_fgrand_l159_5 ∈ {1}
+  fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:169 <- frames_main: 
+  cur ∈ {{ &__malloc_fgrand_l159_6 }}
   keep ∈ {0}
   slot ∈ {0}
   mode ∈ {0}
   k ∈ {1}
-  gk ∈ {{ &__malloc_fgrand_l152_6 }}
-  __malloc_fgrand_l152_6 ∈ {1}
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main: 
-  cur ∈ {{ &__malloc_fgrand_l152_7 }}
+  gk ∈ {{ &__malloc_fgrand_l159_6 }}
+  gb ∈ {0}
+  __malloc_fgrand_l159_6 ∈ {1}
+  fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:170 <- frames_main: 
+  cur ∈ {{ &__malloc_fgrand_l159_7 }}
   keep ∈ {0}
   slot ∈ {0}
   mode ∈ {0}
   k ∈ {1}
-  gk ∈ {{ &__malloc_fgrand_l152_7 }}
-  __malloc_fgrand_l152_7 ∈ {1}
-fparent, before heap_upward.c:150 `;` (FP):
+  gk ∈ {{ &__malloc_fgrand_l159_7 }}
+  gb ∈ {0}
+  __malloc_fgrand_l159_7 ∈ {1}
+fparent, before heap_upward.c:157 `;` (FP):
   joined: cur ∈ ESCAPINGADDR
           keep ∈ {0}
           slot ∈ {0}
@@ -189,7 +208,8 @@ fparent, before heap_upward.c:150 `;` (FP):
           pk ∈ ESCAPINGADDR
           k ∈ {0; 1}
           gk ∈ ESCAPINGADDR
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main: 
+          gb ∈ {0}
+  fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:168 <- frames_main: 
   cur ∈ ESCAPINGADDR
   keep ∈ {0}
   slot ∈ {0}
@@ -197,7 +217,8 @@ fparent, before heap_upward.c:150 `;` (FP):
   pk ∈ ESCAPINGADDR
   k ∈ {0}
   gk ∈ ESCAPINGADDR
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main: 
+  gb ∈ {0}
+  fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:169 <- frames_main: 
   cur ∈ ESCAPINGADDR
   keep ∈ {0}
   slot ∈ {0}
@@ -205,7 +226,8 @@ fparent, before heap_upward.c:150 `;` (FP):
   pk ∈ ESCAPINGADDR
   k ∈ {1}
   gk ∈ ESCAPINGADDR
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main: 
+  gb ∈ {0}
+  fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:170 <- frames_main: 
   cur ∈ ESCAPINGADDR
   keep ∈ {0}
   slot ∈ {0}
@@ -213,7 +235,8 @@ fparent, before heap_upward.c:150 `;` (FP):
   pk ∈ ESCAPINGADDR
   k ∈ {1}
   gk ∈ ESCAPINGADDR
-fparent, after heap_upward.c:150 `return;`:
+  gb ∈ {0}
+fparent, after heap_upward.c:157 `return;`:
   joined: cur ∈ ESCAPINGADDR
           keep ∈ {0}
           slot ∈ {0}
@@ -221,7 +244,8 @@ fparent, after heap_upward.c:150 `return;`:
           pk ∈ ESCAPINGADDR
           k ∈ {0; 1}
           gk ∈ ESCAPINGADDR
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main: 
+          gb ∈ {0}
+  fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:168 <- frames_main: 
   cur ∈ ESCAPINGADDR
   keep ∈ {0}
   slot ∈ {0}
@@ -229,7 +253,8 @@ fparent, after heap_upward.c:150 `return;`:
   pk ∈ ESCAPINGADDR
   k ∈ {0}
   gk ∈ ESCAPINGADDR
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main: 
+  gb ∈ {0}
+  fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:169 <- frames_main: 
   cur ∈ ESCAPINGADDR
   keep ∈ {0}
   slot ∈ {0}
@@ -237,7 +262,8 @@ fparent, after heap_upward.c:150 `return;`:
   pk ∈ ESCAPINGADDR
   k ∈ {1}
   gk ∈ ESCAPINGADDR
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main: 
+  gb ∈ {0}
+  fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:170 <- frames_main: 
   cur ∈ ESCAPINGADDR
   keep ∈ {0}
   slot ∈ {0}
@@ -245,177 +271,203 @@ fparent, after heap_upward.c:150 `return;`:
   pk ∈ ESCAPINGADDR
   k ∈ {1}
   gk ∈ ESCAPINGADDR
+  gb ∈ {0}
 fgrand, start:
   joined: cur ∈ ESCAPINGADDR
           keep ∈ {0}
           slot ∈ {0}
           mode ∈ {0}
           k ∈ {0; 1}
-  fgrand :: heap_upward.c:161 <- frames_main: cur ∈ ESCAPINGADDR
+          gb ∈ {0}
+  fgrand :: heap_upward.c:168 <- frames_main: cur ∈ ESCAPINGADDR
                                               keep ∈ {0}
                                               slot ∈ {0}
                                               mode ∈ {0}
                                               k ∈ {0}
-  fgrand :: heap_upward.c:162 <- frames_main: cur ∈ ESCAPINGADDR
+                                              gb ∈ {0}
+  fgrand :: heap_upward.c:169 <- frames_main: cur ∈ ESCAPINGADDR
                                               keep ∈ {0}
                                               slot ∈ {0}
                                               mode ∈ {0}
                                               k ∈ {1}
-  fgrand :: heap_upward.c:163 <- frames_main: cur ∈ ESCAPINGADDR
+                                              gb ∈ {0}
+  fgrand :: heap_upward.c:170 <- frames_main: cur ∈ ESCAPINGADDR
                                               keep ∈ {0}
                                               slot ∈ {0}
                                               mode ∈ {0}
                                               k ∈ {1}
-fgrand, before heap_upward.c:155 `;` (FG):
+                                              gb ∈ {0}
+fgrand, before heap_upward.c:162 `;` (FG):
   joined: cur ∈ ESCAPINGADDR
           keep ∈ {0}
           slot ∈ {0}
           mode ∈ {0}
           k ∈ {0; 1}
           gk ∈ ESCAPINGADDR
-  fgrand :: heap_upward.c:161 <- frames_main: cur ∈ ESCAPINGADDR
+          gb ∈ {0}
+  fgrand :: heap_upward.c:168 <- frames_main: cur ∈ ESCAPINGADDR
                                               keep ∈ {0}
                                               slot ∈ {0}
                                               mode ∈ {0}
                                               k ∈ {0}
                                               gk ∈ ESCAPINGADDR
-  fgrand :: heap_upward.c:162 <- frames_main: cur ∈ ESCAPINGADDR
+                                              gb ∈ {0}
+  fgrand :: heap_upward.c:169 <- frames_main: cur ∈ ESCAPINGADDR
                                               keep ∈ {0}
                                               slot ∈ {0}
                                               mode ∈ {0}
                                               k ∈ {1}
                                               gk ∈ ESCAPINGADDR
-  fgrand :: heap_upward.c:163 <- frames_main: cur ∈ ESCAPINGADDR
+                                              gb ∈ {0}
+  fgrand :: heap_upward.c:170 <- frames_main: cur ∈ ESCAPINGADDR
                                               keep ∈ {0}
                                               slot ∈ {0}
                                               mode ∈ {0}
                                               k ∈ {1}
                                               gk ∈ ESCAPINGADDR
-fgrand, after heap_upward.c:156 `return;`:
+                                              gb ∈ {0}
+fgrand, after heap_upward.c:163 `return;`:
   joined: cur ∈ ESCAPINGADDR
           keep ∈ {0}
           slot ∈ {0}
           mode ∈ {0}
           k ∈ {0; 1}
           gk ∈ ESCAPINGADDR
-  fgrand :: heap_upward.c:161 <- frames_main: cur ∈ ESCAPINGADDR
+          gb ∈ {0}
+  fgrand :: heap_upward.c:168 <- frames_main: cur ∈ ESCAPINGADDR
                                               keep ∈ {0}
                                               slot ∈ {0}
                                               mode ∈ {0}
                                               k ∈ {0}
                                               gk ∈ ESCAPINGADDR
-  fgrand :: heap_upward.c:162 <- frames_main: cur ∈ ESCAPINGADDR
+                                              gb ∈ {0}
+  fgrand :: heap_upward.c:169 <- frames_main: cur ∈ ESCAPINGADDR
                                               keep ∈ {0}
                                               slot ∈ {0}
                                               mode ∈ {0}
                                               k ∈ {1}
                                               gk ∈ ESCAPINGADDR
-  fgrand :: heap_upward.c:163 <- frames_main: cur ∈ ESCAPINGADDR
+                                              gb ∈ {0}
+  fgrand :: heap_upward.c:170 <- frames_main: cur ∈ ESCAPINGADDR
                                               keep ∈ {0}
                                               slot ∈ {0}
                                               mode ∈ {0}
                                               k ∈ {1}
                                               gk ∈ ESCAPINGADDR
+                                              gb ∈ {0}
 frames_main, start:
   joined: cur ∈ {0}
           keep ∈ {0}
           slot ∈ {0}
           mode ∈ {0}
+          gb ∈ {0}
   frames_main: cur ∈ {0}
                keep ∈ {0}
                slot ∈ {0}
                mode ∈ {0}
-frames_main, before heap_upward.c:164 `;` (Z):
+               gb ∈ {0}
+frames_main, before heap_upward.c:171 `;` (Z):
   joined: cur ∈ ESCAPINGADDR
           keep ∈ {0}
           slot ∈ {0}
           mode ∈ {0}
+          gb ∈ {0}
   frames_main: cur ∈ ESCAPINGADDR
                keep ∈ {0}
                slot ∈ {0}
                mode ∈ {0}
-frames_main, after heap_upward.c:165 `return;`:
+               gb ∈ {0}
+frames_main, after heap_upward.c:172 `return;`:
   joined: cur ∈ ESCAPINGADDR
           keep ∈ {0}
           slot ∈ {0}
           mode ∈ {0}
+          gb ∈ {0}
   frames_main: cur ∈ ESCAPINGADDR
                keep ∈ {0}
                slot ∈ {0}
                mode ∈ {0}
+               gb ∈ {0}
 Hits against the analysed call of their cache entry:
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main, hit of cache entry 23, against frel :: heap_upward.c:160 <- frames_main: differs on __malloc_fgrand_l152_5, __malloc_frames_main_l159_1, cur, gk, k, pk, at 7 points.
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main, hit of cache entry 24, against fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main: differs on __malloc_fgrand_l152_5, __malloc_fgrand_l152_6, cur, gk, k, pk, at 9 points.
-  fgrand :: heap_upward.c:163 <- frames_main, hit of cache entry 26, against fgrand :: heap_upward.c:162 <- frames_main: differs on __malloc_fgrand_l152_6, __malloc_fgrand_l152_7, cur, gk, at 13 points.
+  frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:168 <- frames_main, hit of cache entry 23, against frel :: heap_upward.c:167 <- frames_main: differs on __malloc_fgrand_l159_5, __malloc_frames_main_l166_1, cur, gk, k, pk, at 7 points.
+  fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:169 <- frames_main, hit of cache entry 24, against fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:168 <- frames_main: differs on __malloc_fgrand_l159_5, __malloc_fgrand_l159_6, cur, gk, k, pk, at 9 points.
+  fgrand :: heap_upward.c:170 <- frames_main, hit of cache entry 26, against fgrand :: heap_upward.c:169 <- frames_main: differs on __malloc_fgrand_l159_6, __malloc_fgrand_l159_7, cur, gk, at 13 points.
 Initial state: equal.
 Differences with the run without memexec:
-Answers: 753 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
-Callstacks listed: those of the run without memexec at each of the 320 points.
-Callstacks listed through the filter: those of the run without memexec at each of the 320 points.
+Answers: 933 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 410 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 410 points.
 Filtered requests that reject one callstack: 29.
-Requests made: 1393; reported by the trap: 1393, each once with its description; reads of the legacy store: 0.
+Requests made: 1753; reported by the trap: 1753, each once with its description; reads of the legacy store: 0.
 Passes after the iteration:
-  with memexec, without recording: 179 requests, 118 reads of the legacy store in them, 167 reads outside any request.
-  with -eva-hit-log: 179 requests, 0 reads of the legacy store in them, 0 reads outside any request.
-    unreachable statements: 150 requests
+  with memexec, without recording: 224 requests, 118 reads of the legacy store in them, 167 reads outside any request.
+  with -eva-hit-log: 224 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 192 requests
     statistics: 21 requests
-    summary: 8 requests
+    summary: 11 requests
   requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
-Statuses of the properties: those of the run without memexec, for 301 properties.
+Statuses of the properties: those of the run without memexec, for 307 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
-Summary: statement coverage 1.0000, function coverage 0.1538, 0 alarms, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1250, 0 alarms, those of the run without memexec.
 Calls of the functions of the test:
-frel :: heap_upward.c:160 <- frames_main, analysed:
+frel :: heap_upward.c:167 <- frames_main, analysed:
+  inputs: cur{[0..31]}
   outputs: cur{[0..31]}
   outputs on return: cur{[0..31]}
   sure outputs: cur{[0..31]}
   heap effects:
-    heap_upward.c:149, in free: removal of block 0 of malloc :: heap_upward.c:159 <- frames_main
-    heap_upward.c:149, in free: sweep of block 0 of malloc :: heap_upward.c:159 <- frames_main, exact
-  stored by memexec, key: block 0 of malloc :: heap_upward.c:159 <- frames_main, cur
+    heap_upward.c:156, in free: removal of block 0 of malloc :: heap_upward.c:166 <- frames_main
+    heap_upward.c:156, in free: sweep of block 0 of malloc :: heap_upward.c:166 <- frames_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:166 <- frames_main, cur
   created: none
-  before E: covers block 0 of malloc :: heap_upward.c:159 <- frames_main; does not bind block 0 of malloc :: heap_upward.c:159 <- frames_main; swept on every path: block 0 of malloc :: heap_upward.c:159 <- frames_main; on some path only: none
-frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main, hit:
+  before E: covers block 0 of malloc :: heap_upward.c:166 <- frames_main; does not bind block 0 of malloc :: heap_upward.c:166 <- frames_main; swept on every path: block 0 of malloc :: heap_upward.c:166 <- frames_main; on some path only: none
+frel :: heap_upward.c:157 <- fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:168 <- frames_main, hit:
+  inputs: cur{[0..31]}
   outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
-fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main, analysed:
+fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:168 <- frames_main, analysed:
+  inputs: cur{[0..31]}
   outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   heap effects:
-    heap_upward.c:150, in frel: removal of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main
-    heap_upward.c:150, in frel: sweep of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main, exact
-  stored by memexec, key: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main, cur, gk, pk
+    heap_upward.c:157, in frel: removal of block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main
+    heap_upward.c:157, in frel: sweep of block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main, cur, gk, pk
   created: none
-  before FP: covers block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main; does not bind block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main; swept on every path: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main; on some path only: none
-fgrand :: heap_upward.c:161 <- frames_main, analysed:
-  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
-  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
-  sure outputs: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
+  before FP: covers block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main; does not bind block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main; swept on every path: block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main; on some path only: none
+fgrand :: heap_upward.c:168 <- frames_main, analysed:
+  inputs: __fc_heap_status{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
   heap effects:
-    heap_upward.c:152, in malloc: allocation of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main, suffix malloc :: heap_upward.c:152, rank 0, created
-    heap_upward.c:154, in fparent: removal of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main
-    heap_upward.c:154, in fparent: sweep of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main, exact
+    heap_upward.c:159, in malloc: allocation of block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main, suffix malloc :: heap_upward.c:159, rank 0, created
+    heap_upward.c:161, in fparent: removal of block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main
+    heap_upward.c:161, in fparent: sweep of block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main, exact
   stored by memexec, key: __fc_heap_status, cur, errno, gk
-  created: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main
-  before FG: covers block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main; does not bind block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main; swept on every path: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main; on some path only: none
-fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main, hit:
+  created: block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main
+  before FG: covers block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main; does not bind block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main; swept on every path: block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:168 <- frames_main; on some path only: none
+fparent :: heap_upward.c:161 <- fgrand :: heap_upward.c:169 <- frames_main, hit:
+  inputs: cur{[0..31]}
   outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
-fgrand :: heap_upward.c:162 <- frames_main, analysed:
-  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
-  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
-  sure outputs: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
+fgrand :: heap_upward.c:169 <- frames_main, analysed:
+  inputs: __fc_heap_status{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:169 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:169 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:169 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
   heap effects:
-    heap_upward.c:152, in malloc: allocation of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main, suffix malloc :: heap_upward.c:152, rank 0, created
-    heap_upward.c:154, in fparent: removal of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main
-    heap_upward.c:154, in fparent: sweep of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main, exact
+    heap_upward.c:159, in malloc: allocation of block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:169 <- frames_main, suffix malloc :: heap_upward.c:159, rank 0, created
+    heap_upward.c:161, in fparent: removal of block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:169 <- frames_main
+    heap_upward.c:161, in fparent: sweep of block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:169 <- frames_main, exact
   stored by memexec, key: __fc_heap_status, cur, errno, gk
-  created: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main
-  before FG: covers block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main; does not bind block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main; swept on every path: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main; on some path only: none
-fgrand :: heap_upward.c:163 <- frames_main, hit:
-  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:163 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
-  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:163 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
-  sure outputs: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:163 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
+  created: block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:169 <- frames_main
+  before FG: covers block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:169 <- frames_main; does not bind block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:169 <- frames_main; swept on every path: block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:169 <- frames_main; on some path only: none
+fgrand :: heap_upward.c:170 <- frames_main, hit:
+  inputs: __fc_heap_status{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:170 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:170 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:159 <- fgrand :: heap_upward.c:170 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}

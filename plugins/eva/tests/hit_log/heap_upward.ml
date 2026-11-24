@@ -2,9 +2,10 @@
    that makes it (#128).
 
    In the analysis with -eva-hit-log, it records each call of a function
-   defined in the test whose name does not end with _main, with the outputs
-   that the inout plugin gives for it: the over-approximated outputs, those
-   on the paths that return, and the sure outputs. For such a call analysed by its body, it also records the
+   defined in the test whose name does not end with _main, with the inputs
+   and outputs that the inout plugin gives for it: the over-approximated
+   inputs, the over-approximated outputs, those on the paths that return,
+   and the sure outputs. For such a call analysed by its body, it also records the
    heap effects that the call received, in the order of their emission,
    and, if memexec stores it, its key and the blocks it creates, as memexec
    gives them to its store hooks.
@@ -25,7 +26,8 @@ type call = {
   callstack: Eva.Callstack.t;
   kind: string;
   id: int option;
-  outputs: (Memory_zone.t * Memory_zone.t * Memory_zone.t) option;
+  outputs: (Memory_zone.t * Memory_zone.t * Memory_zone.t * Memory_zone.t)
+      option;
   mutable effects: Eva__Hit_log.effects option;
   mutable stored: (Base.Hptset.t * Base.t list) option;
 }
@@ -54,7 +56,8 @@ let () =
     (fun inout ->
        if Eva__Hit_log.enabled () then
          last_inout :=
-           Some (inout.Inout_type.over_outputs,
+           Some (inout.Inout_type.over_inputs,
+                 inout.Inout_type.over_outputs,
                  inout.Inout_type.over_outputs_if_termination,
                  inout.Inout_type.under_outputs_if_termination))
 
@@ -254,10 +257,12 @@ let print names call =
   Format.printf "%a, %s:@." pp_callstack call.callstack call.kind;
   begin match call.outputs with
     | None -> Format.printf "  no outputs from the inout plugin@."
-    | Some (outputs, returning, sure) ->
+    | Some (inputs, outputs, returning, sure) ->
       Format.printf
-        "  outputs: %a@.  outputs on return: %a@.  sure outputs: %a@."
-        (pp_zone names) outputs (pp_zone names) returning (pp_zone names) sure
+        "  inputs: %a@.  outputs: %a@.  outputs on return: %a@.  \
+         sure outputs: %a@."
+        (pp_zone names) inputs (pp_zone names) outputs
+        (pp_zone names) returning (pp_zone names) sure
   end;
   match call.id with
   | Some id ->

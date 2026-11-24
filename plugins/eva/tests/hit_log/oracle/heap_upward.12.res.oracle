@@ -1,295 +1,322 @@
 [kernel] Parsing heap_upward.c (with preprocessing)
-[eva:alarm] heap_upward.c:198: Warning: 
+[eva:alarm] heap_upward.c:205: Warning: 
   accessing left-value that contains escaping addresses.
   assert ¬\dangling(&cur);
-[eva:alarm] heap_upward.c:198: Warning: 
+[eva:alarm] heap_upward.c:205: Warning: 
   accessing left-value that contains escaping addresses.
   assert ¬\dangling(&cur);
-[eva:alarm] heap_upward.c:198: Warning: 
+[eva:alarm] heap_upward.c:205: Warning: 
   accessing left-value that contains escaping addresses.
   assert ¬\dangling(&cur);
 Calls:
-  Frama_C_interval :: heap_upward.c:202 <- stop_main: specification
-  malloc :: heap_upward.c:207 <- stop_main: builtin
-  free :: heap_upward.c:198 <- child_stop :: heap_upward.c:199 <- parent_stop :: heap_upward.c:209 <- stop_main: builtin
-  child_stop :: heap_upward.c:199 <- parent_stop :: heap_upward.c:209 <- stop_main: analysed, cache entry 11
-  parent_stop :: heap_upward.c:209 <- stop_main: analysed, cache entry 12
-  malloc :: heap_upward.c:210 <- stop_main: builtin
-  parent_stop :: heap_upward.c:212 <- stop_main: hit of cache entry 12
+  Frama_C_interval :: heap_upward.c:209 <- stop_main: specification
+  malloc :: heap_upward.c:214 <- stop_main: builtin
+  free :: heap_upward.c:205 <- child_stop :: heap_upward.c:206 <- parent_stop :: heap_upward.c:216 <- stop_main: builtin
+  child_stop :: heap_upward.c:206 <- parent_stop :: heap_upward.c:216 <- stop_main: analysed, cache entry 11
+  parent_stop :: heap_upward.c:216 <- stop_main: analysed, cache entry 12
+  malloc :: heap_upward.c:217 <- stop_main: builtin
+  parent_stop :: heap_upward.c:219 <- stop_main: hit of cache entry 12
   stop_main: analysed, cache entry 13
 Heap calls, not stored by memexec: none.
 Heap calls stored by memexec: child_stop 1, parent_stop 1, stop_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls below a hit:
-  child_stop :: heap_upward.c:199 <- parent_stop :: heap_upward.c:212 <- stop_main
+  child_stop :: heap_upward.c:206 <- parent_stop :: heap_upward.c:219 <- stop_main
 child_stop, start:
-  joined: cur ∈ {{ &__malloc_stop_main_l207_1 ; &__malloc_stop_main_l210_1 }}
+  joined: cur ∈ {{ &__malloc_stop_main_l214_1 ; &__malloc_stop_main_l217_1 }}
           keep ∈
-              {{ &__malloc_stop_main_l207_1 ; &__malloc_stop_main_l210_1 }}
+              {{ &__malloc_stop_main_l214_1 ; &__malloc_stop_main_l217_1 }}
           slot ∈ {0}
           mode ∈ {0}
           k ∈ {0; 1}
           k ∈ {0; 1}
           k ∈ {0; 1}
-          __malloc_stop_main_l207_1 ∈ {6}
-          __malloc_stop_main_l210_1 ∈ {6}
-  child_stop :: heap_upward.c:199 <- parent_stop :: heap_upward.c:209 <- stop_main: 
-  cur ∈ {{ &__malloc_stop_main_l207_1 }}
-  keep ∈ {{ &__malloc_stop_main_l207_1 }}
+          gb ∈ {0}
+          __malloc_stop_main_l214_1 ∈ {6}
+          __malloc_stop_main_l217_1 ∈ {6}
+  child_stop :: heap_upward.c:206 <- parent_stop :: heap_upward.c:216 <- stop_main: 
+  cur ∈ {{ &__malloc_stop_main_l214_1 }}
+  keep ∈ {{ &__malloc_stop_main_l214_1 }}
   slot ∈ {0}
   mode ∈ {0}
   k ∈ {0; 1}
   k ∈ {0; 1}
   k ∈ {0; 1}
-  __malloc_stop_main_l207_1 ∈ {6}
-  child_stop :: heap_upward.c:199 <- parent_stop :: heap_upward.c:212 <- stop_main: 
-  cur ∈ {{ &__malloc_stop_main_l210_1 }}
-  keep ∈ {{ &__malloc_stop_main_l210_1 }}
+  gb ∈ {0}
+  __malloc_stop_main_l214_1 ∈ {6}
+  child_stop :: heap_upward.c:206 <- parent_stop :: heap_upward.c:219 <- stop_main: 
+  cur ∈ {{ &__malloc_stop_main_l217_1 }}
+  keep ∈ {{ &__malloc_stop_main_l217_1 }}
   slot ∈ {0}
   mode ∈ {0}
   k ∈ {0; 1}
   k ∈ {0; 1}
   k ∈ {0; 1}
-  __malloc_stop_main_l207_1 ∈ {6}
-  __malloc_stop_main_l210_1 ∈ {6}
-child_stop, before heap_upward.c:198 `;` (S):
-  joined: cur ∈ {{ &__malloc_stop_main_l207_1 ; &__malloc_stop_main_l210_1 }}
+  gb ∈ {0}
+  __malloc_stop_main_l214_1 ∈ {6}
+  __malloc_stop_main_l217_1 ∈ {6}
+child_stop, before heap_upward.c:205 `;` (S):
+  joined: cur ∈ {{ &__malloc_stop_main_l214_1 ; &__malloc_stop_main_l217_1 }}
           keep ∈
-              {{ &__malloc_stop_main_l207_1 ; &__malloc_stop_main_l210_1 }}
-          slot ∈ {0}
-          mode ∈ {0}
-          k ∈ {0}
-          k ∈ {0; 1}
-          k ∈ {0; 1}
-          __malloc_stop_main_l207_1 ∈ {6}
-          __malloc_stop_main_l210_1 ∈ {6}
-  child_stop :: heap_upward.c:199 <- parent_stop :: heap_upward.c:209 <- stop_main: 
-  cur ∈ {{ &__malloc_stop_main_l207_1 }}
-  keep ∈ {{ &__malloc_stop_main_l207_1 }}
-  slot ∈ {0}
-  mode ∈ {0}
-  k ∈ {0}
-  k ∈ {0; 1}
-  k ∈ {0; 1}
-  __malloc_stop_main_l207_1 ∈ {6}
-  child_stop :: heap_upward.c:199 <- parent_stop :: heap_upward.c:212 <- stop_main: 
-  cur ∈ {{ &__malloc_stop_main_l210_1 }}
-  keep ∈ {{ &__malloc_stop_main_l210_1 }}
-  slot ∈ {0}
-  mode ∈ {0}
-  k ∈ {0}
-  k ∈ {0; 1}
-  k ∈ {0; 1}
-  __malloc_stop_main_l207_1 ∈ {6}
-  __malloc_stop_main_l210_1 ∈ {6}
-child_stop, after heap_upward.c:198 `return;`:
-  joined: cur ∈ {{ &__malloc_stop_main_l207_1 ; &__malloc_stop_main_l210_1 }}
-          keep ∈
-              {{ &__malloc_stop_main_l207_1 ; &__malloc_stop_main_l210_1 }}
+              {{ &__malloc_stop_main_l214_1 ; &__malloc_stop_main_l217_1 }}
           slot ∈ {0}
           mode ∈ {0}
           k ∈ {0}
           k ∈ {0; 1}
           k ∈ {0; 1}
-          __malloc_stop_main_l207_1 ∈ {6}
-          __malloc_stop_main_l210_1 ∈ {6}
-  child_stop :: heap_upward.c:199 <- parent_stop :: heap_upward.c:209 <- stop_main: 
-  cur ∈ {{ &__malloc_stop_main_l207_1 }}
-  keep ∈ {{ &__malloc_stop_main_l207_1 }}
+          gb ∈ {0}
+          __malloc_stop_main_l214_1 ∈ {6}
+          __malloc_stop_main_l217_1 ∈ {6}
+  child_stop :: heap_upward.c:206 <- parent_stop :: heap_upward.c:216 <- stop_main: 
+  cur ∈ {{ &__malloc_stop_main_l214_1 }}
+  keep ∈ {{ &__malloc_stop_main_l214_1 }}
   slot ∈ {0}
   mode ∈ {0}
   k ∈ {0}
   k ∈ {0; 1}
   k ∈ {0; 1}
-  __malloc_stop_main_l207_1 ∈ {6}
-  child_stop :: heap_upward.c:199 <- parent_stop :: heap_upward.c:212 <- stop_main: 
-  cur ∈ {{ &__malloc_stop_main_l210_1 }}
-  keep ∈ {{ &__malloc_stop_main_l210_1 }}
+  gb ∈ {0}
+  __malloc_stop_main_l214_1 ∈ {6}
+  child_stop :: heap_upward.c:206 <- parent_stop :: heap_upward.c:219 <- stop_main: 
+  cur ∈ {{ &__malloc_stop_main_l217_1 }}
+  keep ∈ {{ &__malloc_stop_main_l217_1 }}
   slot ∈ {0}
   mode ∈ {0}
   k ∈ {0}
   k ∈ {0; 1}
   k ∈ {0; 1}
-  __malloc_stop_main_l207_1 ∈ {6}
-  __malloc_stop_main_l210_1 ∈ {6}
+  gb ∈ {0}
+  __malloc_stop_main_l214_1 ∈ {6}
+  __malloc_stop_main_l217_1 ∈ {6}
+child_stop, after heap_upward.c:205 `return;`:
+  joined: cur ∈ {{ &__malloc_stop_main_l214_1 ; &__malloc_stop_main_l217_1 }}
+          keep ∈
+              {{ &__malloc_stop_main_l214_1 ; &__malloc_stop_main_l217_1 }}
+          slot ∈ {0}
+          mode ∈ {0}
+          k ∈ {0}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+          gb ∈ {0}
+          __malloc_stop_main_l214_1 ∈ {6}
+          __malloc_stop_main_l217_1 ∈ {6}
+  child_stop :: heap_upward.c:206 <- parent_stop :: heap_upward.c:216 <- stop_main: 
+  cur ∈ {{ &__malloc_stop_main_l214_1 }}
+  keep ∈ {{ &__malloc_stop_main_l214_1 }}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {0}
+  k ∈ {0; 1}
+  k ∈ {0; 1}
+  gb ∈ {0}
+  __malloc_stop_main_l214_1 ∈ {6}
+  child_stop :: heap_upward.c:206 <- parent_stop :: heap_upward.c:219 <- stop_main: 
+  cur ∈ {{ &__malloc_stop_main_l217_1 }}
+  keep ∈ {{ &__malloc_stop_main_l217_1 }}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {0}
+  k ∈ {0; 1}
+  k ∈ {0; 1}
+  gb ∈ {0}
+  __malloc_stop_main_l214_1 ∈ {6}
+  __malloc_stop_main_l217_1 ∈ {6}
 parent_stop, start:
-  joined: cur ∈ {{ &__malloc_stop_main_l207_1 ; &__malloc_stop_main_l210_1 }}
+  joined: cur ∈ {{ &__malloc_stop_main_l214_1 ; &__malloc_stop_main_l217_1 }}
           keep ∈
-              {{ &__malloc_stop_main_l207_1 ; &__malloc_stop_main_l210_1 }}
+              {{ &__malloc_stop_main_l214_1 ; &__malloc_stop_main_l217_1 }}
           slot ∈ {0}
           mode ∈ {0}
           k ∈ {0; 1}
           k ∈ {0; 1}
-          __malloc_stop_main_l207_1 ∈ {6}
-          __malloc_stop_main_l210_1 ∈ {6}
-  parent_stop :: heap_upward.c:209 <- stop_main: cur ∈
-                                                    {{ &__malloc_stop_main_l207_1 }}
+          gb ∈ {0}
+          __malloc_stop_main_l214_1 ∈ {6}
+          __malloc_stop_main_l217_1 ∈ {6}
+  parent_stop :: heap_upward.c:216 <- stop_main: cur ∈
+                                                    {{ &__malloc_stop_main_l214_1 }}
                                                  keep ∈
-                                                     {{ &__malloc_stop_main_l207_1 }}
+                                                     {{ &__malloc_stop_main_l214_1 }}
                                                  slot ∈ {0}
                                                  mode ∈ {0}
                                                  k ∈ {0; 1}
                                                  k ∈ {0; 1}
-                                                 __malloc_stop_main_l207_1
+                                                 gb ∈ {0}
+                                                 __malloc_stop_main_l214_1
                                                   ∈ {6}
-  parent_stop :: heap_upward.c:212 <- stop_main: cur ∈
-                                                    {{ &__malloc_stop_main_l210_1 }}
+  parent_stop :: heap_upward.c:219 <- stop_main: cur ∈
+                                                    {{ &__malloc_stop_main_l217_1 }}
                                                  keep ∈
-                                                     {{ &__malloc_stop_main_l210_1 }}
+                                                     {{ &__malloc_stop_main_l217_1 }}
                                                  slot ∈ {0}
                                                  mode ∈ {0}
                                                  k ∈ {0; 1}
                                                  k ∈ {0; 1}
-                                                 __malloc_stop_main_l207_1
+                                                 gb ∈ {0}
+                                                 __malloc_stop_main_l214_1
                                                   ∈ {6}
-                                                 __malloc_stop_main_l210_1
+                                                 __malloc_stop_main_l217_1
                                                   ∈ {6}
-parent_stop, before heap_upward.c:199 `;` (T):
-  joined: cur ∈ {{ &__malloc_stop_main_l207_1 ; &__malloc_stop_main_l210_1 }}
+parent_stop, before heap_upward.c:206 `;` (T):
+  joined: cur ∈ {{ &__malloc_stop_main_l214_1 ; &__malloc_stop_main_l217_1 }}
           keep ∈
-              {{ &__malloc_stop_main_l207_1 ; &__malloc_stop_main_l210_1 }}
+              {{ &__malloc_stop_main_l214_1 ; &__malloc_stop_main_l217_1 }}
           slot ∈ {0}
           mode ∈ {0}
           k ∈ {0; 1}
           k ∈ {0; 1}
-          __malloc_stop_main_l207_1 ∈ {6}
-          __malloc_stop_main_l210_1 ∈ {6}
-  parent_stop :: heap_upward.c:209 <- stop_main: cur ∈
-                                                    {{ &__malloc_stop_main_l207_1 }}
+          gb ∈ {0}
+          __malloc_stop_main_l214_1 ∈ {6}
+          __malloc_stop_main_l217_1 ∈ {6}
+  parent_stop :: heap_upward.c:216 <- stop_main: cur ∈
+                                                    {{ &__malloc_stop_main_l214_1 }}
                                                  keep ∈
-                                                     {{ &__malloc_stop_main_l207_1 }}
+                                                     {{ &__malloc_stop_main_l214_1 }}
                                                  slot ∈ {0}
                                                  mode ∈ {0}
                                                  k ∈ {0; 1}
                                                  k ∈ {0; 1}
-                                                 __malloc_stop_main_l207_1
+                                                 gb ∈ {0}
+                                                 __malloc_stop_main_l214_1
                                                   ∈ {6}
-  parent_stop :: heap_upward.c:212 <- stop_main: cur ∈
-                                                    {{ &__malloc_stop_main_l210_1 }}
+  parent_stop :: heap_upward.c:219 <- stop_main: cur ∈
+                                                    {{ &__malloc_stop_main_l217_1 }}
                                                  keep ∈
-                                                     {{ &__malloc_stop_main_l210_1 }}
+                                                     {{ &__malloc_stop_main_l217_1 }}
                                                  slot ∈ {0}
                                                  mode ∈ {0}
                                                  k ∈ {0; 1}
                                                  k ∈ {0; 1}
-                                                 __malloc_stop_main_l207_1
+                                                 gb ∈ {0}
+                                                 __malloc_stop_main_l214_1
                                                   ∈ {6}
-                                                 __malloc_stop_main_l210_1
+                                                 __malloc_stop_main_l217_1
                                                   ∈ {6}
-parent_stop, after heap_upward.c:199 `return;`:
-  joined: cur ∈ {{ &__malloc_stop_main_l207_1 ; &__malloc_stop_main_l210_1 }}
+parent_stop, after heap_upward.c:206 `return;`:
+  joined: cur ∈ {{ &__malloc_stop_main_l214_1 ; &__malloc_stop_main_l217_1 }}
           keep ∈
-              {{ &__malloc_stop_main_l207_1 ; &__malloc_stop_main_l210_1 }}
+              {{ &__malloc_stop_main_l214_1 ; &__malloc_stop_main_l217_1 }}
           slot ∈ {0}
           mode ∈ {0}
           k ∈ {0; 1}
           k ∈ {0; 1}
-          __malloc_stop_main_l207_1 ∈ {6}
-          __malloc_stop_main_l210_1 ∈ {6}
-  parent_stop :: heap_upward.c:209 <- stop_main: cur ∈
-                                                    {{ &__malloc_stop_main_l207_1 }}
+          gb ∈ {0}
+          __malloc_stop_main_l214_1 ∈ {6}
+          __malloc_stop_main_l217_1 ∈ {6}
+  parent_stop :: heap_upward.c:216 <- stop_main: cur ∈
+                                                    {{ &__malloc_stop_main_l214_1 }}
                                                  keep ∈
-                                                     {{ &__malloc_stop_main_l207_1 }}
+                                                     {{ &__malloc_stop_main_l214_1 }}
                                                  slot ∈ {0}
                                                  mode ∈ {0}
                                                  k ∈ {0; 1}
                                                  k ∈ {0; 1}
-                                                 __malloc_stop_main_l207_1
+                                                 gb ∈ {0}
+                                                 __malloc_stop_main_l214_1
                                                   ∈ {6}
-  parent_stop :: heap_upward.c:212 <- stop_main: cur ∈
-                                                    {{ &__malloc_stop_main_l210_1 }}
+  parent_stop :: heap_upward.c:219 <- stop_main: cur ∈
+                                                    {{ &__malloc_stop_main_l217_1 }}
                                                  keep ∈
-                                                     {{ &__malloc_stop_main_l210_1 }}
+                                                     {{ &__malloc_stop_main_l217_1 }}
                                                  slot ∈ {0}
                                                  mode ∈ {0}
                                                  k ∈ {0; 1}
                                                  k ∈ {0; 1}
-                                                 __malloc_stop_main_l207_1
+                                                 gb ∈ {0}
+                                                 __malloc_stop_main_l214_1
                                                   ∈ {6}
-                                                 __malloc_stop_main_l210_1
+                                                 __malloc_stop_main_l217_1
                                                   ∈ {6}
 stop_main, start:
   joined: cur ∈ {0}
           keep ∈ {0}
           slot ∈ {0}
           mode ∈ {0}
+          gb ∈ {0}
   stop_main: cur ∈ {0}
              keep ∈ {0}
              slot ∈ {0}
              mode ∈ {0}
-stop_main, before heap_upward.c:213 `;` (Z):
-  joined: cur ∈ {{ &__malloc_stop_main_l210_1 }}
-          keep ∈ {{ &__malloc_stop_main_l210_1 }}
+             gb ∈ {0}
+stop_main, before heap_upward.c:220 `;` (Z):
+  joined: cur ∈ {{ &__malloc_stop_main_l217_1 }}
+          keep ∈ {{ &__malloc_stop_main_l217_1 }}
           slot ∈ {0}
           mode ∈ {0}
           k ∈ {0; 1}
-          __malloc_stop_main_l207_1 ∈ {6}
-          __malloc_stop_main_l210_1 ∈ {6}
-  stop_main: cur ∈ {{ &__malloc_stop_main_l210_1 }}
-             keep ∈ {{ &__malloc_stop_main_l210_1 }}
+          gb ∈ {0}
+          __malloc_stop_main_l214_1 ∈ {6}
+          __malloc_stop_main_l217_1 ∈ {6}
+  stop_main: cur ∈ {{ &__malloc_stop_main_l217_1 }}
+             keep ∈ {{ &__malloc_stop_main_l217_1 }}
              slot ∈ {0}
              mode ∈ {0}
              k ∈ {0; 1}
-             __malloc_stop_main_l207_1 ∈ {6}
-             __malloc_stop_main_l210_1 ∈ {6}
-stop_main, after heap_upward.c:214 `return;`:
-  joined: cur ∈ {{ &__malloc_stop_main_l210_1 }}
-          keep ∈ {{ &__malloc_stop_main_l210_1 }}
+             gb ∈ {0}
+             __malloc_stop_main_l214_1 ∈ {6}
+             __malloc_stop_main_l217_1 ∈ {6}
+stop_main, after heap_upward.c:221 `return;`:
+  joined: cur ∈ {{ &__malloc_stop_main_l217_1 }}
+          keep ∈ {{ &__malloc_stop_main_l217_1 }}
           slot ∈ {0}
           mode ∈ {0}
           k ∈ {0; 1}
-          __malloc_stop_main_l207_1 ∈ {6}
-          __malloc_stop_main_l210_1 ∈ {6}
-  stop_main: cur ∈ {{ &__malloc_stop_main_l210_1 }}
-             keep ∈ {{ &__malloc_stop_main_l210_1 }}
+          gb ∈ {0}
+          __malloc_stop_main_l214_1 ∈ {6}
+          __malloc_stop_main_l217_1 ∈ {6}
+  stop_main: cur ∈ {{ &__malloc_stop_main_l217_1 }}
+             keep ∈ {{ &__malloc_stop_main_l217_1 }}
              slot ∈ {0}
              mode ∈ {0}
              k ∈ {0; 1}
-             __malloc_stop_main_l207_1 ∈ {6}
-             __malloc_stop_main_l210_1 ∈ {6}
+             gb ∈ {0}
+             __malloc_stop_main_l214_1 ∈ {6}
+             __malloc_stop_main_l217_1 ∈ {6}
 Hits against the analysed call of their cache entry:
-  parent_stop :: heap_upward.c:212 <- stop_main, hit of cache entry 12, against parent_stop :: heap_upward.c:209 <- stop_main: differs on __malloc_stop_main_l210_1, cur, keep, at 7 points.
+  parent_stop :: heap_upward.c:219 <- stop_main, hit of cache entry 12, against parent_stop :: heap_upward.c:216 <- stop_main: differs on __malloc_stop_main_l217_1, cur, keep, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
-Answers: 699 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
-Callstacks listed: those of the run without memexec at each of the 320 points.
-Callstacks listed through the filter: those of the run without memexec at each of the 320 points.
+Answers: 879 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 410 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 410 points.
 Filtered requests that reject one callstack: 17.
-Requests made: 1339; reported by the trap: 1339, each once with its description; reads of the legacy store: 0.
+Requests made: 1699; reported by the trap: 1699, each once with its description; reads of the legacy store: 0.
 Passes after the iteration:
-  with memexec, without recording: 185 requests, 103 reads of the legacy store in them, 108 reads outside any request.
-  with -eva-hit-log: 187 requests, 0 reads of the legacy store in them, 0 reads outside any request.
-    unreachable statements: 150 requests
+  with memexec, without recording: 230 requests, 103 reads of the legacy store in them, 108 reads outside any request.
+  with -eva-hit-log: 232 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 192 requests
     statuses of the properties: 9 requests
     statistics: 19 requests
-    summary: 9 requests
+    summary: 12 requests
   requests of the passes on a callstack below a hit, with -eva-hit-log: 2.
-Statuses of the properties: those of the run without memexec, for 302 properties.
+Statuses of the properties: those of the run without memexec, for 308 properties.
 Alarms: 1, of which 1 not proven, those of the run without memexec.
-Summary: statement coverage 1.0000, function coverage 0.1154, 1 alarm, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0938, 1 alarm, those of the run without memexec.
 Calls of the functions of the test:
-child_stop :: heap_upward.c:199 <- parent_stop :: heap_upward.c:209 <- stop_main, analysed:
+child_stop :: heap_upward.c:206 <- parent_stop :: heap_upward.c:216 <- stop_main, analysed:
+  inputs: cur{[0..31]}; k{[0..31]}
   outputs: cur{[0..31]}; keep{[0..31]}; k{[0..31]}
   outputs on return: cur{[0..31]}; keep{[0..31]}; k{[0..31]}
   sure outputs: none
   heap effects:
-    heap_upward.c:198, in free: removal of block 0 of malloc :: heap_upward.c:207 <- stop_main
-    heap_upward.c:198, in free: sweep of block 0 of malloc :: heap_upward.c:207 <- stop_main, exact
-  stored by memexec, key: block 0 of malloc :: heap_upward.c:207 <- stop_main, cur, k, keep
+    heap_upward.c:205, in free: removal of block 0 of malloc :: heap_upward.c:214 <- stop_main
+    heap_upward.c:205, in free: sweep of block 0 of malloc :: heap_upward.c:214 <- stop_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:214 <- stop_main, cur, k, keep
   created: none
   before S: covers none; does not bind none; swept on every path: none; on some path only: none
-parent_stop :: heap_upward.c:209 <- stop_main, analysed:
+parent_stop :: heap_upward.c:216 <- stop_main, analysed:
+  inputs: cur{[0..31]}; k{[0..31]}
   outputs: cur{[0..31]}; keep{[0..31]}
   outputs on return: cur{[0..31]}; keep{[0..31]}
   sure outputs: none
   heap effects:
-    heap_upward.c:199, in child_stop: removal of block 0 of malloc :: heap_upward.c:207 <- stop_main
-    heap_upward.c:199, in child_stop: sweep of block 0 of malloc :: heap_upward.c:207 <- stop_main, exact
-  stored by memexec, key: block 0 of malloc :: heap_upward.c:207 <- stop_main, cur, k, keep
+    heap_upward.c:206, in child_stop: removal of block 0 of malloc :: heap_upward.c:214 <- stop_main
+    heap_upward.c:206, in child_stop: sweep of block 0 of malloc :: heap_upward.c:214 <- stop_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:214 <- stop_main, cur, k, keep
   created: none
-  before T: covers block 0 of malloc :: heap_upward.c:207 <- stop_main; does not bind none; swept on every path: none; on some path only: none
-parent_stop :: heap_upward.c:212 <- stop_main, hit:
+  before T: covers block 0 of malloc :: heap_upward.c:214 <- stop_main; does not bind none; swept on every path: none; on some path only: none
+parent_stop :: heap_upward.c:219 <- stop_main, hit:
+  inputs: cur{[0..31]}; k{[0..31]}
   outputs: cur{[0..31]}; keep{[0..31]}
   outputs on return: cur{[0..31]}; keep{[0..31]}
   sure outputs: none

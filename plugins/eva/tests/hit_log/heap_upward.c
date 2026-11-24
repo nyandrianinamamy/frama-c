@@ -13,6 +13,12 @@
    STDOPT: +"-main pair_main"
    STDOPT: +"-eva-no-alloc-returns-null -main stop_main -cpp-extra-args=-DWARM"
    STDOPT: +"-eva-no-alloc-returns-null -main stop_main"
+   STDOPT: +"-eva-no-alloc-returns-null -main grow_main -eva-slevel 20 -cpp-extra-args=-DWARM"
+   STDOPT: +"-eva-no-alloc-returns-null -main grow_main -eva-slevel 20"
+   STDOPT: +"-eva-no-alloc-returns-null -main cond_main -cpp-extra-args=-DWARM"
+   STDOPT: +"-eva-no-alloc-returns-null -main cond_main"
+   STDOPT: +"-eva-no-alloc-returns-null -main cond_main -eva-slevel 10 -cpp-extra-args=-DWARM"
+   STDOPT: +"-eva-no-alloc-returns-null -main cond_main -eva-slevel 10"
 */
 
 /* #128: a hit on the entry of a heap call passes the heap effects of the
@@ -21,8 +27,9 @@
    call whose child was analysed, and can itself be a hit.
    Each run is compared by the observer with the run without memexec. The
    device heap_upward.ml prints, for each call of a function of this file
-   whose name does not end with _main, the outputs that the inout plugin
-   gives for it, and for each of these calls analysed by its body, its heap
+   whose name does not end with _main, the inputs and outputs that the
+   inout plugin gives for it, and for each of these calls analysed by its
+   body, its heap
    effects, whether memexec stores it and its key, and the blocks that its
    entry covers before its labelled statements. Allocated blocks are named by
    their stack and rank, so that the runs with and without WARM, whose
@@ -210,5 +217,55 @@ void stop_main(void) {
   cur = malloc(sizeof(int)); *cur = 6;
   keep = cur;
   parent_stop(k);
+  Z: ;
+}
+
+/* Runs 13 and 14: a validity mutation passed up. Each call of child_grow
+   allocates a block of n bytes with malloc; parent_grow calls it and frees
+   the block. In a loop, the first call of child_grow on a stack creates the
+   block, the second one reuses it, absent from the state, and resizes it:
+   an allocation that reuses a block, then the validity mutation of the
+   resize. With WARM, the loop of grow_main on child_grow computes these two
+   entries. In the first loop on parent_grow, the first call of child_grow
+   is analysed, as gb holds there an escaping address where it held null in
+   the loop of grow_main; the second one is a hit, through which the second
+   call of parent_grow receives the reuse and the resize. Without WARM,
+   child_grow is analysed there. The second loop on parent_grow, at another
+   call site, is made of hits with WARM; without WARM, its first call is
+   analysed, as gb was null at the first call of parent_grow. */
+char *gb;
+void child_grow(int n) { gb = malloc(n); *gb = 1; G2: ; }
+void parent_grow(int n) { child_grow(n); free(gb); PG: ; }
+
+void grow_main(void) {
+#ifdef WARM
+  for (int i = 0; i < 2; i++) { child_grow(4 * (i + 1)); free(gb); }
+#endif
+  for (int i = 0; i < 2; i++) parent_grow(4 * (i + 1));
+  for (int i = 0; i < 2; i++) parent_grow(4 * (i + 1));
+  Z: ;
+}
+
+/* Runs 15 to 18: a free on some path only. child_cond frees the block of
+   cur when c is not zero: its exit sweeps the block on some path only, and
+   keep, outside its key with WARM, is joined with escaping addresses on a
+   hit, written on some path and not surely. Runs 17 and 18 keep the states
+   of c apart: the exit where c is zero binds the block, the other does not,
+   and the sweep map of the entry applies to both, see heap_hit_limits.c. */
+void child_cond(int c) { if (c) free(cur); CC: ; }
+void parent_cond(int c) { child_cond(c); PC: ; }
+
+void cond_main(void) {
+  int c = Frama_C_interval(0, 1);
+#ifdef WARM
+  cur = malloc(sizeof(int)); *cur = 8;
+  child_cond(c);
+#endif
+  cur = malloc(sizeof(int)); *cur = 8;
+  keep = cur;
+  parent_cond(c);
+  cur = malloc(sizeof(int)); *cur = 8;
+  keep = cur;
+  parent_cond(c);
   Z: ;
 }

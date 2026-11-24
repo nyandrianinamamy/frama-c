@@ -1,0 +1,361 @@
+[kernel] Parsing heap_upward.c (with preprocessing)
+Calls:
+  malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main: builtin
+  child_grow :: heap_upward.c:242 <- grow_main: analysed, cache entry 23
+  free :: heap_upward.c:242 <- grow_main: builtin
+  malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main: builtin
+  child_grow :: heap_upward.c:242 <- grow_main: analysed, cache entry 24
+  free :: heap_upward.c:242 <- grow_main: builtin
+  malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main: builtin
+  child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main: analysed, cache entry 25
+  free :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main: builtin
+  parent_grow :: heap_upward.c:244 <- grow_main: analysed, cache entry 26
+  child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main: hit of cache entry 24
+  free :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main: builtin
+  parent_grow :: heap_upward.c:244 <- grow_main: analysed, cache entry 27
+  parent_grow :: heap_upward.c:245 <- grow_main: hit of cache entry 26
+  parent_grow :: heap_upward.c:245 <- grow_main: hit of cache entry 27
+  grow_main: analysed, cache entry 28
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: child_grow 3, grow_main 1, parent_grow 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:245 <- grow_main
+child_grow, start:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          gb ∈ {0} or ESCAPINGADDR
+          n ∈ {4; 8}
+          n ∈ {4; 8}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          i_1 ∈ {0; 1}
+  child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  gb ∈ ESCAPINGADDR
+  n ∈ {4; 8}
+  n ∈ {4; 8}
+  i_0 ∈ {0; 1}
+  child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:245 <- grow_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  gb ∈ ESCAPINGADDR
+  n ∈ {4; 8}
+  n ∈ {4; 8}
+  i_1 ∈ {0; 1}
+  child_grow :: heap_upward.c:242 <- grow_main: cur ∈ {0}
+                                                keep ∈ {0}
+                                                slot ∈ {0}
+                                                mode ∈ {0}
+                                                gb ∈ {0} or ESCAPINGADDR
+                                                n ∈ {4; 8}
+                                                i ∈ {0; 1}
+child_grow, before heap_upward.c:237 `;` (G2):
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          gb ∈
+            {{ &__malloc_child_grow_l237_5[0] ;
+               &__malloc_child_grow_l237_6[0] ;
+               &__malloc_child_grow_l237_7[0] }}
+          n ∈ {4; 8}
+          n ∈ {4; 8}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          i_1 ∈ {0; 1}
+          __malloc_child_grow_l237_5[0] ∈ {1}
+                                    [1..7] ∈ UNINITIALIZED
+          __malloc_child_grow_l237_6[0] ∈ {1}
+                                    [1..7] ∈ UNINITIALIZED
+          __malloc_child_grow_l237_7[0] ∈ {1}
+                                    [1..7] ∈ UNINITIALIZED
+  child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  gb ∈ {{ &__malloc_child_grow_l237_6[0] }}
+  n ∈ {4; 8}
+  n ∈ {4; 8}
+  i_0 ∈ {0; 1}
+  __malloc_child_grow_l237_6[0] ∈ {1}
+                            [1..7] ∈ UNINITIALIZED
+  child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:245 <- grow_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  gb ∈ {{ &__malloc_child_grow_l237_7[0] }}
+  n ∈ {4; 8}
+  n ∈ {4; 8}
+  i_1 ∈ {0; 1}
+  __malloc_child_grow_l237_7[0] ∈ {1}
+                            [1..7] ∈ UNINITIALIZED
+  child_grow :: heap_upward.c:242 <- grow_main: cur ∈ {0}
+                                                keep ∈ {0}
+                                                slot ∈ {0}
+                                                mode ∈ {0}
+                                                gb ∈
+                                                  {{ &__malloc_child_grow_l237_5[0] }}
+                                                n ∈ {4; 8}
+                                                i ∈ {0; 1}
+                                                __malloc_child_grow_l237_5
+                                                [0] ∈ {1}
+                                                [1..7] ∈ UNINITIALIZED
+child_grow, after heap_upward.c:237 `return;`:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          gb ∈
+            {{ &__malloc_child_grow_l237_5[0] ;
+               &__malloc_child_grow_l237_6[0] ;
+               &__malloc_child_grow_l237_7[0] }}
+          n ∈ {4; 8}
+          n ∈ {4; 8}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          i_1 ∈ {0; 1}
+          __malloc_child_grow_l237_5[0] ∈ {1}
+                                    [1..7] ∈ UNINITIALIZED
+          __malloc_child_grow_l237_6[0] ∈ {1}
+                                    [1..7] ∈ UNINITIALIZED
+          __malloc_child_grow_l237_7[0] ∈ {1}
+                                    [1..7] ∈ UNINITIALIZED
+  child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  gb ∈ {{ &__malloc_child_grow_l237_6[0] }}
+  n ∈ {4; 8}
+  n ∈ {4; 8}
+  i_0 ∈ {0; 1}
+  __malloc_child_grow_l237_6[0] ∈ {1}
+                            [1..7] ∈ UNINITIALIZED
+  child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:245 <- grow_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  gb ∈ {{ &__malloc_child_grow_l237_7[0] }}
+  n ∈ {4; 8}
+  n ∈ {4; 8}
+  i_1 ∈ {0; 1}
+  __malloc_child_grow_l237_7[0] ∈ {1}
+                            [1..7] ∈ UNINITIALIZED
+  child_grow :: heap_upward.c:242 <- grow_main: cur ∈ {0}
+                                                keep ∈ {0}
+                                                slot ∈ {0}
+                                                mode ∈ {0}
+                                                gb ∈
+                                                  {{ &__malloc_child_grow_l237_5[0] }}
+                                                n ∈ {4; 8}
+                                                i ∈ {0; 1}
+                                                __malloc_child_grow_l237_5
+                                                [0] ∈ {1}
+                                                [1..7] ∈ UNINITIALIZED
+parent_grow, start:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          gb ∈ ESCAPINGADDR
+          n ∈ {4; 8}
+          i_0 ∈ {0; 1}
+          i_1 ∈ {0; 1}
+  parent_grow :: heap_upward.c:244 <- grow_main: cur ∈ {0}
+                                                 keep ∈ {0}
+                                                 slot ∈ {0}
+                                                 mode ∈ {0}
+                                                 gb ∈ ESCAPINGADDR
+                                                 n ∈ {4; 8}
+                                                 i_0 ∈ {0; 1}
+  parent_grow :: heap_upward.c:245 <- grow_main: cur ∈ {0}
+                                                 keep ∈ {0}
+                                                 slot ∈ {0}
+                                                 mode ∈ {0}
+                                                 gb ∈ ESCAPINGADDR
+                                                 n ∈ {4; 8}
+                                                 i_1 ∈ {0; 1}
+parent_grow, before heap_upward.c:238 `;` (PG):
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          gb ∈ ESCAPINGADDR
+          n ∈ {4; 8}
+          i_0 ∈ {0; 1}
+          i_1 ∈ {0; 1}
+  parent_grow :: heap_upward.c:244 <- grow_main: cur ∈ {0}
+                                                 keep ∈ {0}
+                                                 slot ∈ {0}
+                                                 mode ∈ {0}
+                                                 gb ∈ ESCAPINGADDR
+                                                 n ∈ {4; 8}
+                                                 i_0 ∈ {0; 1}
+  parent_grow :: heap_upward.c:245 <- grow_main: cur ∈ {0}
+                                                 keep ∈ {0}
+                                                 slot ∈ {0}
+                                                 mode ∈ {0}
+                                                 gb ∈ ESCAPINGADDR
+                                                 n ∈ {4; 8}
+                                                 i_1 ∈ {0; 1}
+parent_grow, after heap_upward.c:238 `return;`:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          gb ∈ ESCAPINGADDR
+          n ∈ {4; 8}
+          i_0 ∈ {0; 1}
+          i_1 ∈ {0; 1}
+  parent_grow :: heap_upward.c:244 <- grow_main: cur ∈ {0}
+                                                 keep ∈ {0}
+                                                 slot ∈ {0}
+                                                 mode ∈ {0}
+                                                 gb ∈ ESCAPINGADDR
+                                                 n ∈ {4; 8}
+                                                 i_0 ∈ {0; 1}
+  parent_grow :: heap_upward.c:245 <- grow_main: cur ∈ {0}
+                                                 keep ∈ {0}
+                                                 slot ∈ {0}
+                                                 mode ∈ {0}
+                                                 gb ∈ ESCAPINGADDR
+                                                 n ∈ {4; 8}
+                                                 i_1 ∈ {0; 1}
+grow_main, start:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          gb ∈ {0}
+  grow_main: cur ∈ {0}
+             keep ∈ {0}
+             slot ∈ {0}
+             mode ∈ {0}
+             gb ∈ {0}
+grow_main, before heap_upward.c:246 `;` (Z):
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          gb ∈ ESCAPINGADDR
+  grow_main: cur ∈ {0}
+             keep ∈ {0}
+             slot ∈ {0}
+             mode ∈ {0}
+             gb ∈ ESCAPINGADDR
+grow_main, after heap_upward.c:247 `return;`:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          gb ∈ ESCAPINGADDR
+  grow_main: cur ∈ {0}
+             keep ∈ {0}
+             slot ∈ {0}
+             mode ∈ {0}
+             gb ∈ ESCAPINGADDR
+Hits against the analysed call of their cache entry:
+  child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main, hit of cache entry 24, against child_grow :: heap_upward.c:242 <- grow_main: differs on __malloc_child_grow_l237_5, __malloc_child_grow_l237_6, gb, i, i_0, n, at 9 points.
+  parent_grow :: heap_upward.c:245 <- grow_main, hit of cache entry 26, against parent_grow :: heap_upward.c:244 <- grow_main: differs on __malloc_child_grow_l237_6, __malloc_child_grow_l237_7, gb, i_0, i_1, at 9 points.
+  parent_grow :: heap_upward.c:245 <- grow_main, hit of cache entry 27, against parent_grow :: heap_upward.c:244 <- grow_main: differs on __malloc_child_grow_l237_6, __malloc_child_grow_l237_7, gb, i_0, i_1, at 9 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 994 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 448 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 448 points.
+Filtered requests that reject one callstack: 18.
+Requests made: 1890; reported by the trap: 1890, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 255 requests, 149 reads of the legacy store in them, 173 reads outside any request.
+  with -eva-hit-log: 255 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 210 requests
+    statistics: 33 requests
+    summary: 12 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
+Statuses of the properties: those of the run without memexec, for 308 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0938, 0 alarms, those of the run without memexec.
+Calls of the functions of the test:
+child_grow :: heap_upward.c:242 <- grow_main, analysed:
+  inputs: __fc_heap_status{[0..31]}; n{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  heap effects:
+    heap_upward.c:237, in malloc: allocation of block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main, suffix malloc :: heap_upward.c:237, rank 0, created
+  stored by memexec, key: __fc_heap_status, errno, gb, n
+  created: block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main
+  before G2: covers block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main; does not bind none; swept on every path: none; on some path only: none
+child_grow :: heap_upward.c:242 <- grow_main, analysed:
+  inputs: __fc_heap_status{[0..31]}; n{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  heap effects:
+    heap_upward.c:237, in malloc: allocation of block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main, suffix malloc :: heap_upward.c:237, rank 0, reused
+    heap_upward.c:237, in malloc: validity mutation of block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main, record, type
+  stored by memexec, key: __fc_heap_status, block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main, errno, gb, n
+  created: none
+  before G2: covers block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:242 <- grow_main; does not bind none; swept on every path: none; on some path only: none
+child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main, analysed:
+  inputs: __fc_heap_status{[0..31]}; n{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  heap effects:
+    heap_upward.c:237, in malloc: allocation of block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main, suffix malloc :: heap_upward.c:237, rank 0, created
+  stored by memexec, key: __fc_heap_status, errno, gb, n
+  created: block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main
+  before G2: covers block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main; does not bind none; swept on every path: none; on some path only: none
+parent_grow :: heap_upward.c:244 <- grow_main, analysed:
+  inputs: __fc_heap_status{[0..31]}; n{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  heap effects:
+    heap_upward.c:238, in child_grow: allocation of block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main, suffix malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238, rank 0, created
+    heap_upward.c:238, in free: removal of block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main
+    heap_upward.c:238, in free: sweep of block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main, exact
+  stored by memexec, key: __fc_heap_status, errno, gb, n
+  created: block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main
+  before PG: covers block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main; does not bind block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main; swept on every path: block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main; on some path only: none
+child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main, hit:
+  inputs: __fc_heap_status{[0..31]}; n{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+parent_grow :: heap_upward.c:244 <- grow_main, analysed:
+  inputs: __fc_heap_status{[0..31]}; n{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  heap effects:
+    heap_upward.c:238, in child_grow: allocation of block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main, suffix malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238, rank 0, reused
+    heap_upward.c:238, in child_grow: validity mutation of block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main, record, type
+    heap_upward.c:238, in free: removal of block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main
+    heap_upward.c:238, in free: sweep of block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main, exact
+  stored by memexec, key: __fc_heap_status, block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main, errno, gb, n
+  created: none
+  before PG: covers block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main; does not bind block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main; swept on every path: block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:244 <- grow_main; on some path only: none
+parent_grow :: heap_upward.c:245 <- grow_main, hit:
+  inputs: __fc_heap_status{[0..31]}; n{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:245 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:245 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:245 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+parent_grow :: heap_upward.c:245 <- grow_main, hit:
+  inputs: __fc_heap_status{[0..31]}; n{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:245 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:245 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:237 <- child_grow :: heap_upward.c:238 <- parent_grow :: heap_upward.c:245 <- grow_main{[0..7]}; errno{[0..31]}; gb{[0..31]}

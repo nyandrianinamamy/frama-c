@@ -1,24 +1,24 @@
 [kernel] Parsing heap_upward.c (with preprocessing)
-[eva:alarm] heap_upward.c:47: Warning: out of bounds write. assert \valid(p);
-[eva:alarm] heap_upward.c:47: Warning: out of bounds write. assert \valid(p);
-[eva:alarm] heap_upward.c:47: Warning: out of bounds write. assert \valid(p);
+[eva:alarm] heap_upward.c:54: Warning: out of bounds write. assert \valid(p);
+[eva:alarm] heap_upward.c:54: Warning: out of bounds write. assert \valid(p);
+[eva:alarm] heap_upward.c:54: Warning: out of bounds write. assert \valid(p);
 Calls:
-  malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:120 <- pair_main: builtin
-  child_mk :: heap_upward.c:120 <- pair_main: analysed, cache entry 19
-  free :: heap_upward.c:116 <- drop :: heap_upward.c:121 <- pair_main: builtin
-  drop :: heap_upward.c:121 <- pair_main: analysed, cache entry 20
-  child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main: hit of cache entry 19
-  drop :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main: hit of cache entry 20
-  pair :: heap_upward.c:122 <- pair_main: analysed, cache entry 21
-  pair :: heap_upward.c:123 <- pair_main: hit of cache entry 21
+  malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:127 <- pair_main: builtin
+  child_mk :: heap_upward.c:127 <- pair_main: analysed, cache entry 19
+  free :: heap_upward.c:123 <- drop :: heap_upward.c:128 <- pair_main: builtin
+  drop :: heap_upward.c:128 <- pair_main: analysed, cache entry 20
+  child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main: hit of cache entry 19
+  drop :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main: hit of cache entry 20
+  pair :: heap_upward.c:129 <- pair_main: analysed, cache entry 21
+  pair :: heap_upward.c:130 <- pair_main: hit of cache entry 21
   pair_main: analysed, cache entry 22
 Heap calls, not stored by memexec: none.
 Heap calls stored by memexec: child_mk 1, drop 1, pair 1, pair_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls below a hit:
-  child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main
-  drop :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main
+  child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:130 <- pair_main
+  drop :: heap_upward.c:124 <- pair :: heap_upward.c:130 <- pair_main
 child_mk, start:
   joined: cur ∈ {0}
           keep ∈ {0}
@@ -26,315 +26,360 @@ child_mk, start:
           mode ∈ {0}
           v ∈ {4}
           v ∈ {4}
-  child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main: 
+          gb ∈ {0}
+  child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main: 
   cur ∈ {0}
   keep ∈ {0}
   slot ∈ ESCAPINGADDR
   mode ∈ {0}
   v ∈ {4}
   v ∈ {4}
-  child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main: 
+  gb ∈ {0}
+  child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:130 <- pair_main: 
   cur ∈ {0}
   keep ∈ {0}
   slot ∈ ESCAPINGADDR
   mode ∈ {0}
   v ∈ {4}
   v ∈ {4}
-  child_mk :: heap_upward.c:120 <- pair_main: cur ∈ {0}
+  gb ∈ {0}
+  child_mk :: heap_upward.c:127 <- pair_main: cur ∈ {0}
                                               keep ∈ {0}
                                               slot ∈ {0}
                                               mode ∈ {0}
                                               v ∈ {4}
-child_mk, before heap_upward.c:47 `;` (K):
+                                              gb ∈ {0}
+child_mk, before heap_upward.c:54 `;` (K):
   joined: cur ∈ {0}
           keep ∈ {0}
           slot ∈ {0} or ESCAPINGADDR
           mode ∈ {0}
           v ∈ {4}
           p ∈
-           {{ &__malloc_child_mk_l47_5 ; &__malloc_child_mk_l47_6 ;
-              &__malloc_child_mk_l47_7 }}
+           {{ &__malloc_child_mk_l54_5 ; &__malloc_child_mk_l54_6 ;
+              &__malloc_child_mk_l54_7 }}
           v ∈ {4}
-          __malloc_child_mk_l47_5 ∈ {4}
-          __malloc_child_mk_l47_6 ∈ {4}
-          __malloc_child_mk_l47_7 ∈ {4}
-  child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main: 
+          gb ∈ {0}
+          __malloc_child_mk_l54_5 ∈ {4}
+          __malloc_child_mk_l54_6 ∈ {4}
+          __malloc_child_mk_l54_7 ∈ {4}
+  child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main: 
   cur ∈ {0}
   keep ∈ {0}
   slot ∈ ESCAPINGADDR
   mode ∈ {0}
   v ∈ {4}
-  p ∈ {{ &__malloc_child_mk_l47_6 }}
+  p ∈ {{ &__malloc_child_mk_l54_6 }}
   v ∈ {4}
-  __malloc_child_mk_l47_6 ∈ {4}
-  child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main: 
+  gb ∈ {0}
+  __malloc_child_mk_l54_6 ∈ {4}
+  child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:130 <- pair_main: 
   cur ∈ {0}
   keep ∈ {0}
   slot ∈ ESCAPINGADDR
   mode ∈ {0}
   v ∈ {4}
-  p ∈ {{ &__malloc_child_mk_l47_7 }}
+  p ∈ {{ &__malloc_child_mk_l54_7 }}
   v ∈ {4}
-  __malloc_child_mk_l47_7 ∈ {4}
-  child_mk :: heap_upward.c:120 <- pair_main: cur ∈ {0}
+  gb ∈ {0}
+  __malloc_child_mk_l54_7 ∈ {4}
+  child_mk :: heap_upward.c:127 <- pair_main: cur ∈ {0}
                                               keep ∈ {0}
                                               slot ∈ {0}
                                               mode ∈ {0}
                                               v ∈ {4}
                                               p ∈
-                                               {{ &__malloc_child_mk_l47_5 }}
-                                              __malloc_child_mk_l47_5 ∈ {4}
-child_mk, after heap_upward.c:47 `return p;`:
+                                               {{ &__malloc_child_mk_l54_5 }}
+                                              gb ∈ {0}
+                                              __malloc_child_mk_l54_5 ∈ {4}
+child_mk, after heap_upward.c:54 `return p;`:
   joined: cur ∈ {0}
           keep ∈ {0}
           slot ∈ {0} or ESCAPINGADDR
           mode ∈ {0}
           v ∈ {4}
           p ∈
-           {{ &__malloc_child_mk_l47_5 ; &__malloc_child_mk_l47_6 ;
-              &__malloc_child_mk_l47_7 }}
+           {{ &__malloc_child_mk_l54_5 ; &__malloc_child_mk_l54_6 ;
+              &__malloc_child_mk_l54_7 }}
           v ∈ {4}
-          __malloc_child_mk_l47_5 ∈ {4}
-          __malloc_child_mk_l47_6 ∈ {4}
-          __malloc_child_mk_l47_7 ∈ {4}
-  child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main: 
+          gb ∈ {0}
+          __malloc_child_mk_l54_5 ∈ {4}
+          __malloc_child_mk_l54_6 ∈ {4}
+          __malloc_child_mk_l54_7 ∈ {4}
+  child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main: 
   cur ∈ {0}
   keep ∈ {0}
   slot ∈ ESCAPINGADDR
   mode ∈ {0}
   v ∈ {4}
-  p ∈ {{ &__malloc_child_mk_l47_6 }}
+  p ∈ {{ &__malloc_child_mk_l54_6 }}
   v ∈ {4}
-  __malloc_child_mk_l47_6 ∈ {4}
-  child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main: 
+  gb ∈ {0}
+  __malloc_child_mk_l54_6 ∈ {4}
+  child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:130 <- pair_main: 
   cur ∈ {0}
   keep ∈ {0}
   slot ∈ ESCAPINGADDR
   mode ∈ {0}
   v ∈ {4}
-  p ∈ {{ &__malloc_child_mk_l47_7 }}
+  p ∈ {{ &__malloc_child_mk_l54_7 }}
   v ∈ {4}
-  __malloc_child_mk_l47_7 ∈ {4}
-  child_mk :: heap_upward.c:120 <- pair_main: cur ∈ {0}
+  gb ∈ {0}
+  __malloc_child_mk_l54_7 ∈ {4}
+  child_mk :: heap_upward.c:127 <- pair_main: cur ∈ {0}
                                               keep ∈ {0}
                                               slot ∈ {0}
                                               mode ∈ {0}
                                               v ∈ {4}
                                               p ∈
-                                               {{ &__malloc_child_mk_l47_5 }}
-                                              __malloc_child_mk_l47_5 ∈ {4}
+                                               {{ &__malloc_child_mk_l54_5 }}
+                                              gb ∈ {0}
+                                              __malloc_child_mk_l54_5 ∈ {4}
 drop, start:
   joined: cur ∈ {0}
           keep ∈ {0}
           slot ∈
-              {{ &__malloc_child_mk_l47_5 ; &__malloc_child_mk_l47_6 ;
-                 &__malloc_child_mk_l47_7 }}
+              {{ &__malloc_child_mk_l54_5 ; &__malloc_child_mk_l54_6 ;
+                 &__malloc_child_mk_l54_7 }}
           mode ∈ {0}
           v ∈ {4}
-          __malloc_child_mk_l47_5 ∈ {4}
-          __malloc_child_mk_l47_6 ∈ {4}
-          __malloc_child_mk_l47_7 ∈ {4}
-  drop :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main: 
+          gb ∈ {0}
+          __malloc_child_mk_l54_5 ∈ {4}
+          __malloc_child_mk_l54_6 ∈ {4}
+          __malloc_child_mk_l54_7 ∈ {4}
+  drop :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main: 
   cur ∈ {0}
   keep ∈ {0}
-  slot ∈ {{ &__malloc_child_mk_l47_6 }}
+  slot ∈ {{ &__malloc_child_mk_l54_6 }}
   mode ∈ {0}
   v ∈ {4}
-  __malloc_child_mk_l47_6 ∈ {4}
-  drop :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main: 
+  gb ∈ {0}
+  __malloc_child_mk_l54_6 ∈ {4}
+  drop :: heap_upward.c:124 <- pair :: heap_upward.c:130 <- pair_main: 
   cur ∈ {0}
   keep ∈ {0}
-  slot ∈ {{ &__malloc_child_mk_l47_7 }}
+  slot ∈ {{ &__malloc_child_mk_l54_7 }}
   mode ∈ {0}
   v ∈ {4}
-  __malloc_child_mk_l47_7 ∈ {4}
-  drop :: heap_upward.c:121 <- pair_main: cur ∈ {0}
+  gb ∈ {0}
+  __malloc_child_mk_l54_7 ∈ {4}
+  drop :: heap_upward.c:128 <- pair_main: cur ∈ {0}
                                           keep ∈ {0}
                                           slot ∈
-                                              {{ &__malloc_child_mk_l47_5 }}
+                                              {{ &__malloc_child_mk_l54_5 }}
                                           mode ∈ {0}
-                                          __malloc_child_mk_l47_5 ∈ {4}
-drop, before heap_upward.c:116 `;` (D):
+                                          gb ∈ {0}
+                                          __malloc_child_mk_l54_5 ∈ {4}
+drop, before heap_upward.c:123 `;` (D):
   joined: cur ∈ {0}
           keep ∈ {0}
           slot ∈ ESCAPINGADDR
           mode ∈ {0}
           v ∈ {4}
-  drop :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main: 
+          gb ∈ {0}
+  drop :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main: 
   cur ∈ {0}
   keep ∈ {0}
   slot ∈ ESCAPINGADDR
   mode ∈ {0}
   v ∈ {4}
-  drop :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main: 
+  gb ∈ {0}
+  drop :: heap_upward.c:124 <- pair :: heap_upward.c:130 <- pair_main: 
   cur ∈ {0}
   keep ∈ {0}
   slot ∈ ESCAPINGADDR
   mode ∈ {0}
   v ∈ {4}
-  drop :: heap_upward.c:121 <- pair_main: cur ∈ {0}
+  gb ∈ {0}
+  drop :: heap_upward.c:128 <- pair_main: cur ∈ {0}
                                           keep ∈ {0}
                                           slot ∈ ESCAPINGADDR
                                           mode ∈ {0}
-drop, after heap_upward.c:116 `return;`:
+                                          gb ∈ {0}
+drop, after heap_upward.c:123 `return;`:
   joined: cur ∈ {0}
           keep ∈ {0}
           slot ∈ ESCAPINGADDR
           mode ∈ {0}
           v ∈ {4}
-  drop :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main: 
+          gb ∈ {0}
+  drop :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main: 
   cur ∈ {0}
   keep ∈ {0}
   slot ∈ ESCAPINGADDR
   mode ∈ {0}
   v ∈ {4}
-  drop :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main: 
+  gb ∈ {0}
+  drop :: heap_upward.c:124 <- pair :: heap_upward.c:130 <- pair_main: 
   cur ∈ {0}
   keep ∈ {0}
   slot ∈ ESCAPINGADDR
   mode ∈ {0}
   v ∈ {4}
-  drop :: heap_upward.c:121 <- pair_main: cur ∈ {0}
+  gb ∈ {0}
+  drop :: heap_upward.c:128 <- pair_main: cur ∈ {0}
                                           keep ∈ {0}
                                           slot ∈ ESCAPINGADDR
                                           mode ∈ {0}
+                                          gb ∈ {0}
 pair, start:
   joined: cur ∈ {0}
           keep ∈ {0}
           slot ∈ ESCAPINGADDR
           mode ∈ {0}
           v ∈ {4}
-  pair :: heap_upward.c:122 <- pair_main: cur ∈ {0}
+          gb ∈ {0}
+  pair :: heap_upward.c:129 <- pair_main: cur ∈ {0}
                                           keep ∈ {0}
                                           slot ∈ ESCAPINGADDR
                                           mode ∈ {0}
                                           v ∈ {4}
-  pair :: heap_upward.c:123 <- pair_main: cur ∈ {0}
+                                          gb ∈ {0}
+  pair :: heap_upward.c:130 <- pair_main: cur ∈ {0}
                                           keep ∈ {0}
                                           slot ∈ ESCAPINGADDR
                                           mode ∈ {0}
                                           v ∈ {4}
-pair, before heap_upward.c:117 `;` (Y):
+                                          gb ∈ {0}
+pair, before heap_upward.c:124 `;` (Y):
   joined: cur ∈ {0}
           keep ∈ {0}
           slot ∈ ESCAPINGADDR
           mode ∈ {0}
           v ∈ {4}
-  pair :: heap_upward.c:122 <- pair_main: cur ∈ {0}
+          gb ∈ {0}
+  pair :: heap_upward.c:129 <- pair_main: cur ∈ {0}
                                           keep ∈ {0}
                                           slot ∈ ESCAPINGADDR
                                           mode ∈ {0}
                                           v ∈ {4}
-  pair :: heap_upward.c:123 <- pair_main: cur ∈ {0}
+                                          gb ∈ {0}
+  pair :: heap_upward.c:130 <- pair_main: cur ∈ {0}
                                           keep ∈ {0}
                                           slot ∈ ESCAPINGADDR
                                           mode ∈ {0}
                                           v ∈ {4}
-pair, after heap_upward.c:117 `return;`:
+                                          gb ∈ {0}
+pair, after heap_upward.c:124 `return;`:
   joined: cur ∈ {0}
           keep ∈ {0}
           slot ∈ ESCAPINGADDR
           mode ∈ {0}
           v ∈ {4}
-  pair :: heap_upward.c:122 <- pair_main: cur ∈ {0}
+          gb ∈ {0}
+  pair :: heap_upward.c:129 <- pair_main: cur ∈ {0}
                                           keep ∈ {0}
                                           slot ∈ ESCAPINGADDR
                                           mode ∈ {0}
                                           v ∈ {4}
-  pair :: heap_upward.c:123 <- pair_main: cur ∈ {0}
+                                          gb ∈ {0}
+  pair :: heap_upward.c:130 <- pair_main: cur ∈ {0}
                                           keep ∈ {0}
                                           slot ∈ ESCAPINGADDR
                                           mode ∈ {0}
                                           v ∈ {4}
+                                          gb ∈ {0}
 pair_main, start:
   joined: cur ∈ {0}
           keep ∈ {0}
           slot ∈ {0}
           mode ∈ {0}
+          gb ∈ {0}
   pair_main: cur ∈ {0}
              keep ∈ {0}
              slot ∈ {0}
              mode ∈ {0}
-pair_main, before heap_upward.c:124 `;` (Z):
+             gb ∈ {0}
+pair_main, before heap_upward.c:131 `;` (Z):
   joined: cur ∈ {0}
           keep ∈ {0}
           slot ∈ ESCAPINGADDR
           mode ∈ {0}
+          gb ∈ {0}
   pair_main: cur ∈ {0}
              keep ∈ {0}
              slot ∈ ESCAPINGADDR
              mode ∈ {0}
-pair_main, after heap_upward.c:125 `return;`:
+             gb ∈ {0}
+pair_main, after heap_upward.c:132 `return;`:
   joined: cur ∈ {0}
           keep ∈ {0}
           slot ∈ ESCAPINGADDR
           mode ∈ {0}
+          gb ∈ {0}
   pair_main: cur ∈ {0}
              keep ∈ {0}
              slot ∈ ESCAPINGADDR
              mode ∈ {0}
+             gb ∈ {0}
 Hits against the analysed call of their cache entry:
-  child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main, hit of cache entry 19, against child_mk :: heap_upward.c:120 <- pair_main: differs on __malloc_child_mk_l47_5, __malloc_child_mk_l47_6, p, slot, v, at 9 points.
-  drop :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main, hit of cache entry 20, against drop :: heap_upward.c:121 <- pair_main: differs on __malloc_child_mk_l47_5, __malloc_child_mk_l47_6, slot, v, at 7 points.
-  pair :: heap_upward.c:123 <- pair_main, hit of cache entry 21, against pair :: heap_upward.c:122 <- pair_main: differs on __malloc_child_mk_l47_6, __malloc_child_mk_l47_7, slot, at 9 points.
+  child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main, hit of cache entry 19, against child_mk :: heap_upward.c:127 <- pair_main: differs on __malloc_child_mk_l54_5, __malloc_child_mk_l54_6, p, slot, v, at 9 points.
+  drop :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main, hit of cache entry 20, against drop :: heap_upward.c:128 <- pair_main: differs on __malloc_child_mk_l54_5, __malloc_child_mk_l54_6, slot, v, at 7 points.
+  pair :: heap_upward.c:130 <- pair_main, hit of cache entry 21, against pair :: heap_upward.c:129 <- pair_main: differs on __malloc_child_mk_l54_6, __malloc_child_mk_l54_7, slot, at 9 points.
 Initial state: equal.
 Differences with the run without memexec:
-Answers: 721 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
-Callstacks listed: those of the run without memexec at each of the 320 points.
-Callstacks listed through the filter: those of the run without memexec at each of the 320 points.
+Answers: 901 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 410 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 410 points.
 Filtered requests that reject one callstack: 25.
-Requests made: 1361; reported by the trap: 1361, each once with its description; reads of the legacy store: 0.
+Requests made: 1721; reported by the trap: 1721, each once with its description; reads of the legacy store: 0.
 Passes after the iteration:
-  with memexec, without recording: 182 requests, 105 reads of the legacy store in them, 126 reads outside any request.
-  with -eva-hit-log: 183 requests, 0 reads of the legacy store in them, 0 reads outside any request.
-    unreachable statements: 151 requests
+  with memexec, without recording: 227 requests, 105 reads of the legacy store in them, 126 reads outside any request.
+  with -eva-hit-log: 228 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 193 requests
     statuses of the properties: 6 requests
     statistics: 17 requests
-    summary: 9 requests
+    summary: 12 requests
   requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
-Statuses of the properties: those of the run without memexec, for 302 properties.
+Statuses of the properties: those of the run without memexec, for 308 properties.
 Alarms: 1, of which 1 not proven, those of the run without memexec.
-Summary: statement coverage 1.0000, function coverage 0.1538, 1 alarm, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1250, 1 alarm, those of the run without memexec.
 Calls of the functions of the test:
-child_mk :: heap_upward.c:120 <- pair_main, analysed:
-  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:120 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
-  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:120 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
-  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:120 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+child_mk :: heap_upward.c:127 <- pair_main, analysed:
+  inputs: __fc_heap_status{[0..31]}; v{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:127 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:127 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:127 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
   heap effects:
-    heap_upward.c:47, in malloc: allocation of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:120 <- pair_main, suffix malloc :: heap_upward.c:47, rank 0, created
+    heap_upward.c:54, in malloc: allocation of block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:127 <- pair_main, suffix malloc :: heap_upward.c:54, rank 0, created
   stored by memexec, key: __fc_heap_status, errno, p, v
-  created: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:120 <- pair_main
-  before K: covers block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:120 <- pair_main; does not bind none; swept on every path: none; on some path only: none
-drop :: heap_upward.c:121 <- pair_main, analysed:
+  created: block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:127 <- pair_main
+  before K: covers block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:127 <- pair_main; does not bind none; swept on every path: none; on some path only: none
+drop :: heap_upward.c:128 <- pair_main, analysed:
+  inputs: slot{[0..31]}
   outputs: slot{[0..31]}
   outputs on return: slot{[0..31]}
   sure outputs: slot{[0..31]}
   heap effects:
-    heap_upward.c:116, in free: removal of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:120 <- pair_main
-    heap_upward.c:116, in free: sweep of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:120 <- pair_main, exact
-  stored by memexec, key: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:120 <- pair_main, slot
+    heap_upward.c:123, in free: removal of block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:127 <- pair_main
+    heap_upward.c:123, in free: sweep of block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:127 <- pair_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:127 <- pair_main, slot
   created: none
-  before D: covers block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:120 <- pair_main; does not bind block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:120 <- pair_main; swept on every path: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:120 <- pair_main; on some path only: none
-child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main, hit:
-  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
-  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
-  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
-drop :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main, hit:
+  before D: covers block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:127 <- pair_main; does not bind block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:127 <- pair_main; swept on every path: block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:127 <- pair_main; on some path only: none
+child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main, hit:
+  inputs: __fc_heap_status{[0..31]}; v{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+drop :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main, hit:
+  inputs: slot{[0..31]}
   outputs: slot{[0..31]}
   outputs on return: slot{[0..31]}
   sure outputs: slot{[0..31]}
-pair :: heap_upward.c:122 <- pair_main, analysed:
-  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
-  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
-  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
+pair :: heap_upward.c:129 <- pair_main, analysed:
+  inputs: __fc_heap_status{[0..31]}; v{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
   heap effects:
-    heap_upward.c:117, in child_mk: allocation of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main, suffix malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117, rank 0, created
-    heap_upward.c:117, in drop: removal of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main
-    heap_upward.c:117, in drop: sweep of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main, exact
+    heap_upward.c:124, in child_mk: allocation of block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main, suffix malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124, rank 0, created
+    heap_upward.c:124, in drop: removal of block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main
+    heap_upward.c:124, in drop: sweep of block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main, exact
   stored by memexec, key: __fc_heap_status, errno, slot, v
-  created: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main
-  before Y: covers block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main; does not bind block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main; swept on every path: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main; on some path only: none
-pair :: heap_upward.c:123 <- pair_main, hit:
-  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
-  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
-  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
+  created: block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main
+  before Y: covers block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main; does not bind block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main; swept on every path: block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:129 <- pair_main; on some path only: none
+pair :: heap_upward.c:130 <- pair_main, hit:
+  inputs: __fc_heap_status{[0..31]}; v{[0..31]}
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:130 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:130 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:54 <- child_mk :: heap_upward.c:124 <- pair :: heap_upward.c:130 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
