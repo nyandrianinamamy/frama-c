@@ -58,14 +58,17 @@ _Avoid_: Freeing call
 
 **Call that allocates**:
 A heap call whose heap effects are removals, sweeps, and allocations by
-`malloc` under the policy `by_stack`, at a statement without annotation
-`eva_allocate`, on a stack that extends the callstack of the call by at
-least one call; a validity mutation is allowed only as the resize of a block
-that the builtin reuses. Memexec stores it, with the candidate blocks of its
-allocations in its matching key and the blocks it creates as creation
-symbols. A hit on it replays the decisions of the policy in their order on
-the callstack of the hit, then removes and sweeps as a hit on a call that
-frees.
+`malloc`, `calloc`, `realloc` or `reallocarray` under the policy
+`by_stack`, at a statement without annotation `eva_allocate`, on a stack
+that extends the callstack of the call by at least one call; a validity
+mutation is allowed only as the resize of a block that the builtin reuses.
+Memexec stores it, with the candidate blocks of its allocations and the
+blocks whose content `realloc` copies in its matching key, and the blocks
+it creates as creation symbols. A hit on it replays the decisions of the
+policy in their order on the callstack of the hit, and names each block it
+creates after the builtin, then removes and sweeps as a hit on a call that
+frees. The content that the builtins write in the blocks, zeroes for
+`calloc` and the copy for `realloc`, comes from the parts of the entry.
 _Avoid_: Allocating call (also used for any heap call)
 
 ### Parts of an entry
