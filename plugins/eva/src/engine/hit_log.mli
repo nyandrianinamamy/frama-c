@@ -256,8 +256,9 @@ val record_mentioned: Base.t list option -> unit
     entry of a heap call, the hit receives the heap effects of the analysed
     call of the entry and its sweeps from the start of its body to its
     return, renamed through [renaming], with the stack of each allocation
-    moved from the callstack of the analysed call to [callstack]: the
-    innermost [call] passes them to the caller. Fails if the entry of [id]
+    moved from the callstack of the analysed call to [callstack], and the
+    variables that the recursive calls nested in the analysed call withdrew:
+    the innermost [call] passes them to the caller. Fails if the entry of [id]
     holds full states, which memexec does not store, if the effects of the
     entry of a heap call were not kept, or if they name a block that
     [renaming], when it is not the identity, does not map. *)

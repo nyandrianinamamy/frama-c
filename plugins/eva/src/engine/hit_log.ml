@@ -398,10 +398,10 @@ type running = {
   (* The number of calls being analysed that memexec would have reused if it
      stored the heap calls, see [lost_hit]. *)
   mutable lost: int;
-  (* The heap effects and the exit of the analysed call of each cache entry
-     that memexec may store as a heap call, by number, for its hits, see
-     [record_hit]. *)
-  stored: (effects * exit) Int_table.t;
+  (* The heap effects, the exit and the variables withdrawn by recursive
+     calls of the analysed call of each cache entry that memexec may store
+     as a heap call, by number, for its hits, see [record_hit]. *)
+  stored: (effects * exit * Base.Hptset.t) Int_table.t;
 }
 
 let new_running () =
@@ -1158,7 +1158,9 @@ let rename_sweeps rename (sweeps: Heap_paths.sweeps) =
 
 (* The hit on [callstack] of the entry [id] of a heap call, [entry], through
    [renaming], receives in [frame] the heap effects of the analysed call of
-   the entry, in their order, and its exit. The blocks of the effects and of
+   the entry, in their order, its exit, and the variables that the
+   recursive calls nested in it withdrew, which are not allocated blocks,
+   see [recursive_call]. The blocks of the effects and of
    the exit are renamed through [renaming], and so are the pointers that the
    size of an allocation may hold. The statements of the effects are those
    of the body of the same function. The stack of an allocation is the
@@ -1173,7 +1175,7 @@ let receive_entry_effects ~id ~renaming callstack entry frame =
   | None ->
     Self.fatal "hit log: hit of the cache entry %d of a heap call, whose \
                 effects were not kept" id
-  | Some (effects, exit) ->
+  | Some (effects, exit, withdrawn) ->
     let rename block =
       match renaming with
       | [] -> block
@@ -1200,6 +1202,7 @@ let receive_entry_effects ~id ~renaming callstack entry frame =
     in
     let f = rename_effect ~rename ~size ~stack in
     frame.effects <- List.map (rename_received f) effects @ frame.effects;
+    frame.withdrawn <- Base.Hptset.union frame.withdrawn withdrawn;
     frame.exit <-
       match exit with
       | Exit sweeps -> Exit (rename_sweeps rename sweeps)
@@ -1344,7 +1347,8 @@ let candidates_and_created ~callstack allocations =
 (* A heap call that is not refused, whose entry holds an Inner part, and
    whose effects memexec can store, see [heap_effects_of], is stored by
    memexec, with its sweeps from the start of its body to its return and
-   its allocations. Its effects and its exit are kept for its hits, see
+   its allocations. Its effects, its exit and the variables withdrawn by
+   the recursive calls nested in it are kept for its hits, see
    [record_hit]. The sweeps of the automatic release at the end of the
    call go to its caller. A call whose entry, or the entry of a call nested
    in it, holds full states is not stored: the full states of an entry
@@ -1380,7 +1384,7 @@ let storage ~callstack =
           Option.iter
             (fun id ->
                Int_table.replace (Running.get ()).stored id
-                 (frame.effects, frame.exit))
+                 (frame.effects, frame.exit, frame.withdrawn))
             frame.used;
           Heap { Mem_exec.removed; swept; exit; mutations; allocations;
                  candidates; created }
