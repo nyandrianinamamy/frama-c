@@ -1,0 +1,40 @@
+[kernel] Parsing heap_alloc_bare.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_alloc_bare.c:19 <- bare :: heap_alloc_bare.c:24 <- bare_main: 0: strong, record Variable [0..31--31], type int, malloc
+  block 0 of malloc :: heap_alloc_bare.c:19 <- bare :: heap_alloc_bare.c:24 <- bare_main: owned by bare :: heap_alloc_bare.c:24 <- bare_main
+These are the tables of the run without memexec.
+Calls:
+  malloc :: heap_alloc_bare.c:19 <- bare :: heap_alloc_bare.c:24 <- bare_main: builtin
+  bare :: heap_alloc_bare.c:24 <- bare_main: analysed, cache entry 11
+  free :: heap_alloc_bare.c:26 <- bare_main: builtin
+  malloc :: heap_alloc_bare.c:19 <- bare :: heap_alloc_bare.c:24 <- bare_main: builtin
+  bare :: heap_alloc_bare.c:24 <- bare_main: analysed, cache entry 12
+  free :: heap_alloc_bare.c:26 <- bare_main: builtin
+  bare :: heap_alloc_bare.c:24 <- bare_main: hit of cache entry 12
+  free :: heap_alloc_bare.c:26 <- bare_main: builtin
+  bare :: heap_alloc_bare.c:24 <- bare_main: hit of cache entry 12
+  free :: heap_alloc_bare.c:26 <- bare_main: builtin
+  bare_main: analysed, cache entry 13
+Heap calls, not stored by memexec: bare_main 1.
+Heap calls stored by memexec: bare 2.
+Heap calls whose answers come from full states: bare_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  bare_main 1.
+Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 84 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 28 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 28 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 140; reported by the trap: 140, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 27 requests, 51 reads of the legacy store in them, 56 reads outside any request.
+  with -eva-hit-log: 27 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 14 requests
+    statistics: 12 requests
+    summary: 1 request
+Statuses of the properties: those of the run without memexec, for 91 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.
