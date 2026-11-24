@@ -1,0 +1,234 @@
+[kernel] Parsing heap_full_states.c (with preprocessing)
+[eva] heap_full_states.c:25: Warning: 
+  cannot interpret \from clause arr[unknown{Old}]
+  (unsupported ACSL construct: logic function unknown); effects will be ignored
+[inout] heap_full_states.c:25: Warning: 
+  failed to interpret inputs in assigns clause 'assigns g
+                                                  \from arr[unknown{Old}];'
+[eva:alarm] heap_full_states.c:25: Warning: 
+  signed overflow. assert g + 1 ≤ 2147483647;
+[eva] heap_full_states.c:25: Warning: 
+  cannot interpret \from clause arr[unknown{Old}]
+  (unsupported ACSL construct: logic function unknown); effects will be ignored
+[inout] heap_full_states.c:25: Warning: 
+  failed to interpret inputs in assigns clause 'assigns g
+                                                  \from arr[unknown{Old}];'
+[eva:alarm] heap_full_states.c:25: Warning: 
+  signed overflow. assert g + 1 ≤ 2147483647;
+[eva] heap_full_states.c:25: Warning: 
+  cannot interpret \from clause arr[unknown{Old}]
+  (unsupported ACSL construct: logic function unknown); effects will be ignored
+[inout] heap_full_states.c:25: Warning: 
+  failed to interpret inputs in assigns clause 'assigns g
+                                                  \from arr[unknown{Old}];'
+[eva:alarm] heap_full_states.c:25: Warning: 
+  signed overflow. assert g + 1 ≤ 2147483647;
+Calls:
+  malloc :: heap_full_states.c:29 <- full_main: builtin
+  myst :: heap_full_states.c:25 <- child :: heap_full_states.c:26 <- wrap :: heap_full_states.c:30 <- full_main: specification
+  free :: heap_full_states.c:25 <- child :: heap_full_states.c:26 <- wrap :: heap_full_states.c:30 <- full_main: builtin
+  child :: heap_full_states.c:26 <- wrap :: heap_full_states.c:30 <- full_main: analysed, cache entry 11
+  wrap :: heap_full_states.c:30 <- full_main: analysed, cache entry 12
+  malloc :: heap_full_states.c:31 <- full_main: builtin
+  myst :: heap_full_states.c:25 <- child :: heap_full_states.c:26 <- wrap :: heap_full_states.c:33 <- full_main: specification
+  free :: heap_full_states.c:25 <- child :: heap_full_states.c:26 <- wrap :: heap_full_states.c:33 <- full_main: builtin
+  child :: heap_full_states.c:26 <- wrap :: heap_full_states.c:33 <- full_main: analysed, cache entry 13
+  wrap :: heap_full_states.c:33 <- full_main: analysed, cache entry 14
+  full_main: analysed, cache entry 15
+Heap calls, not stored by memexec: child 2, full_main 1, wrap 2.
+Heap calls whose answers come from full states: child 2, full_main 1, wrap 2.
+Hits not made because memexec does not store the heap calls: none.
+child, start:
+  joined: arr[0..1] ∈ {0}
+          g ∈ [-2147483647..2147483647]
+          cur ∈ {{ &__malloc_full_main_l29_1 ; &__malloc_full_main_l31_1 }}
+          keep ∈ {{ NULL ; &__malloc_full_main_l31_1 }}
+          n ∈ [--..--]
+          p ∈ {{ &__malloc_full_main_l29_1 ; &__malloc_full_main_l31_1 }}
+          p ∈ {{ &__malloc_full_main_l29_1 ; &__malloc_full_main_l31_1 }}
+          __malloc_full_main_l29_1 ∈ UNINITIALIZED
+          __malloc_full_main_l31_1 ∈ UNINITIALIZED
+  child :: heap_full_states.c:26 <- wrap :: heap_full_states.c:30 <- full_main: 
+  arr[0..1] ∈ {0}
+  g ∈ {0}
+  cur ∈ {{ &__malloc_full_main_l29_1 }}
+  keep ∈ {0}
+  n ∈ [--..--]
+  p ∈ {{ &__malloc_full_main_l29_1 }}
+  p ∈ {{ &__malloc_full_main_l29_1 }}
+  __malloc_full_main_l29_1 ∈ UNINITIALIZED
+  child :: heap_full_states.c:26 <- wrap :: heap_full_states.c:33 <- full_main: 
+  arr[0..1] ∈ {0}
+  g ∈ [-2147483647..2147483647]
+  cur ∈ {{ &__malloc_full_main_l31_1 }}
+  keep ∈ {{ &__malloc_full_main_l31_1 }}
+  n ∈ [--..--]
+  p ∈ {{ &__malloc_full_main_l31_1 }}
+  p ∈ {{ &__malloc_full_main_l31_1 }}
+  __malloc_full_main_l31_1 ∈ UNINITIALIZED
+child, before heap_full_states.c:25 `;` (C):
+  joined: arr[0..1] ∈ {0}
+          g ∈ [-2147483647..2147483647]
+          cur ∈ ESCAPINGADDR
+          keep ∈ {0} or ESCAPINGADDR
+          n ∈ [--..--]
+          p ∈ ESCAPINGADDR
+          p ∈ ESCAPINGADDR
+  child :: heap_full_states.c:26 <- wrap :: heap_full_states.c:30 <- full_main: 
+  arr[0..1] ∈ {0}
+  g ∈ [-2147483647..2147483647]
+  cur ∈ ESCAPINGADDR
+  keep ∈ {0}
+  n ∈ [--..--]
+  p ∈ ESCAPINGADDR
+  p ∈ ESCAPINGADDR
+  child :: heap_full_states.c:26 <- wrap :: heap_full_states.c:33 <- full_main: 
+  arr[0..1] ∈ {0}
+  g ∈ [-2147483647..2147483647]
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  n ∈ [--..--]
+  p ∈ ESCAPINGADDR
+  p ∈ ESCAPINGADDR
+child, after heap_full_states.c:25 `return;`:
+  joined: arr[0..1] ∈ {0}
+          g ∈ [-2147483647..2147483647]
+          cur ∈ ESCAPINGADDR
+          keep ∈ {0} or ESCAPINGADDR
+          n ∈ [--..--]
+          p ∈ ESCAPINGADDR
+          p ∈ ESCAPINGADDR
+  child :: heap_full_states.c:26 <- wrap :: heap_full_states.c:30 <- full_main: 
+  arr[0..1] ∈ {0}
+  g ∈ [-2147483647..2147483647]
+  cur ∈ ESCAPINGADDR
+  keep ∈ {0}
+  n ∈ [--..--]
+  p ∈ ESCAPINGADDR
+  p ∈ ESCAPINGADDR
+  child :: heap_full_states.c:26 <- wrap :: heap_full_states.c:33 <- full_main: 
+  arr[0..1] ∈ {0}
+  g ∈ [-2147483647..2147483647]
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  n ∈ [--..--]
+  p ∈ ESCAPINGADDR
+  p ∈ ESCAPINGADDR
+wrap, start:
+  joined: arr[0..1] ∈ {0}
+          g ∈ [-2147483647..2147483647]
+          cur ∈ {{ &__malloc_full_main_l29_1 ; &__malloc_full_main_l31_1 }}
+          keep ∈ {{ NULL ; &__malloc_full_main_l31_1 }}
+          n ∈ [--..--]
+          p ∈ {{ &__malloc_full_main_l29_1 ; &__malloc_full_main_l31_1 }}
+          __malloc_full_main_l29_1 ∈ UNINITIALIZED
+          __malloc_full_main_l31_1 ∈ UNINITIALIZED
+  wrap :: heap_full_states.c:30 <- full_main: arr[0..1] ∈ {0}
+                                              g ∈ {0}
+                                              cur ∈
+                                                 {{ &__malloc_full_main_l29_1 }}
+                                              keep ∈ {0}
+                                              n ∈ [--..--]
+                                              p ∈
+                                               {{ &__malloc_full_main_l29_1 }}
+                                              __malloc_full_main_l29_1
+                                               ∈ UNINITIALIZED
+  wrap :: heap_full_states.c:33 <- full_main: arr[0..1] ∈ {0}
+                                              g ∈ [-2147483647..2147483647]
+                                              cur ∈
+                                                 {{ &__malloc_full_main_l31_1 }}
+                                              keep ∈
+                                                  {{ &__malloc_full_main_l31_1 }}
+                                              n ∈ [--..--]
+                                              p ∈
+                                               {{ &__malloc_full_main_l31_1 }}
+                                              __malloc_full_main_l31_1
+                                               ∈ UNINITIALIZED
+wrap, before heap_full_states.c:26 `;` (W):
+  joined: arr[0..1] ∈ {0}
+          g ∈ [-2147483647..2147483647]
+          cur ∈ ESCAPINGADDR
+          keep ∈ {0} or ESCAPINGADDR
+          n ∈ [--..--]
+          p ∈ ESCAPINGADDR
+  wrap :: heap_full_states.c:30 <- full_main: arr[0..1] ∈ {0}
+                                              g ∈ [-2147483647..2147483647]
+                                              cur ∈ ESCAPINGADDR
+                                              keep ∈ {0}
+                                              n ∈ [--..--]
+                                              p ∈ ESCAPINGADDR
+  wrap :: heap_full_states.c:33 <- full_main: arr[0..1] ∈ {0}
+                                              g ∈ [-2147483647..2147483647]
+                                              cur ∈ ESCAPINGADDR
+                                              keep ∈ ESCAPINGADDR
+                                              n ∈ [--..--]
+                                              p ∈ ESCAPINGADDR
+wrap, after heap_full_states.c:26 `return;`:
+  joined: arr[0..1] ∈ {0}
+          g ∈ [-2147483647..2147483647]
+          cur ∈ ESCAPINGADDR
+          keep ∈ {0} or ESCAPINGADDR
+          n ∈ [--..--]
+          p ∈ ESCAPINGADDR
+  wrap :: heap_full_states.c:30 <- full_main: arr[0..1] ∈ {0}
+                                              g ∈ [-2147483647..2147483647]
+                                              cur ∈ ESCAPINGADDR
+                                              keep ∈ {0}
+                                              n ∈ [--..--]
+                                              p ∈ ESCAPINGADDR
+  wrap :: heap_full_states.c:33 <- full_main: arr[0..1] ∈ {0}
+                                              g ∈ [-2147483647..2147483647]
+                                              cur ∈ ESCAPINGADDR
+                                              keep ∈ ESCAPINGADDR
+                                              n ∈ [--..--]
+                                              p ∈ ESCAPINGADDR
+full_main, start:
+  joined: arr[0..1] ∈ {0}
+          g ∈ {0}
+          cur ∈ {0}
+          keep ∈ {0}
+          n ∈ [--..--]
+  full_main: arr[0..1] ∈ {0}
+             g ∈ {0}
+             cur ∈ {0}
+             keep ∈ {0}
+             n ∈ [--..--]
+full_main, before heap_full_states.c:34 `;` (Z):
+  joined: arr[0..1] ∈ {0}
+          g ∈ [-2147483647..2147483647]
+          cur ∈ ESCAPINGADDR
+          keep ∈ ESCAPINGADDR
+          n ∈ [--..--]
+  full_main: arr[0..1] ∈ {0}
+             g ∈ [-2147483647..2147483647]
+             cur ∈ ESCAPINGADDR
+             keep ∈ ESCAPINGADDR
+             n ∈ [--..--]
+full_main, after heap_full_states.c:35 `return;`:
+  joined: arr[0..1] ∈ {0}
+          g ∈ [-2147483647..2147483647]
+          cur ∈ ESCAPINGADDR
+          keep ∈ ESCAPINGADDR
+          n ∈ [--..--]
+  full_main: arr[0..1] ∈ {0}
+             g ∈ [-2147483647..2147483647]
+             cur ∈ ESCAPINGADDR
+             keep ∈ ESCAPINGADDR
+             n ∈ [--..--]
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 131 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 37 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 37 points.
+Filtered requests that reject one callstack: 20.
+Requests made: 205; reported by the trap: 205, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 43 requests, 89 reads of the legacy store in them, 100 reads outside any request.
+  with -eva-hit-log: 44 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 20 requests
+    statuses of the properties: 6 requests
+    statistics: 16 requests
+    summary: 2 requests
+Statuses of the properties: those of the run without memexec, for 96 properties.
+Alarms: 1, of which 1 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 1 alarm, those of the run without memexec.
