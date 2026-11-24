@@ -1,0 +1,45 @@
+[kernel] Parsing heap_alloca_sweep.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of alloca :: heap_alloca_sweep.c:26 <- maybe :: heap_alloca_sweep.c:32 <- user :: heap_alloca_sweep.c:42 <- stale_main: 0: strong, record Variable [0..31--31], type char [4], alloca
+  list of malloc :: heap_alloca_sweep.c:37 <- stale_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloca_sweep.c:38 <- stale_main: 0: strong, record Variable [0..31--31], type int, malloc
+  block 0 of alloca :: heap_alloca_sweep.c:26 <- maybe :: heap_alloca_sweep.c:32 <- user :: heap_alloca_sweep.c:42 <- stale_main: owned by maybe :: heap_alloca_sweep.c:32 <- user :: heap_alloca_sweep.c:42 <- stale_main
+  block 0 of malloc :: heap_alloca_sweep.c:37 <- stale_main: owned by stale_main
+  block 0 of malloc :: heap_alloca_sweep.c:38 <- stale_main: owned by stale_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on alloca :: heap_alloca_sweep.c:26 <- maybe :: heap_alloca_sweep.c:32 <- user :: heap_alloca_sweep.c:42 <- stale_main: 0: __alloca_maybe_l26
+  names on malloc :: heap_alloca_sweep.c:37 <- stale_main: 0: __malloc_stale_main_l37
+  names on malloc :: heap_alloca_sweep.c:38 <- stale_main: 0: __malloc_stale_main_l38
+These are the names of the run without memexec.
+Calls:
+  malloc :: heap_alloca_sweep.c:37 <- stale_main: builtin
+  malloc :: heap_alloca_sweep.c:38 <- stale_main: builtin
+  alloca :: heap_alloca_sweep.c:26 <- maybe :: heap_alloca_sweep.c:32 <- user :: heap_alloca_sweep.c:42 <- stale_main: builtin
+  maybe :: heap_alloca_sweep.c:32 <- user :: heap_alloca_sweep.c:42 <- stale_main: analysed, cache entry 14
+  user :: heap_alloca_sweep.c:42 <- stale_main: analysed, cache entry 15
+  maybe :: heap_alloca_sweep.c:32 <- user :: heap_alloca_sweep.c:42 <- stale_main: analysed, cache entry 16
+  user :: heap_alloca_sweep.c:42 <- stale_main: analysed, cache entry 17
+  maybe :: heap_alloca_sweep.c:32 <- user :: heap_alloca_sweep.c:42 <- stale_main: hit of cache entry 16
+  user :: heap_alloca_sweep.c:42 <- stale_main: analysed, cache entry 18
+  stale_main: analysed, cache entry 19
+Heap calls, not stored by memexec: user 2.
+Heap calls stored by memexec: maybe 1, stale_main 1, user 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 177 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 59 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 59 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 295; reported by the trap: 295, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 57 requests, 111 reads of the legacy store in them, 119 reads outside any request.
+  with -eva-hit-log: 57 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 30 requests
+    statistics: 27 requests
+Statuses of the properties: those of the run without memexec, for 80 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.
