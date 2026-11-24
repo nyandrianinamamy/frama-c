@@ -400,12 +400,14 @@ type running = {
   mutable lost: int;
   (* The heap effects, the exit and the variables withdrawn by recursive
      calls of the analysed call of each cache entry that memexec may store
-     as a heap call, by number, for its hits, see [record_hit]. *)
-  stored: (effects * exit * Base.Hptset.t) Int_table.t;
+     as a heap call, by number, for its hits, see [record_hit]. The table
+     is created when the first entry is kept, see [stored_table]: an
+     analysis without -eva-hit-log creates none. *)
+  mutable stored: (effects * exit * Base.Hptset.t) Int_table.t option;
 }
 
 let new_running () =
-  { frames = []; slot = Closed; lost = 0; stored = Int_table.create 7 }
+  { frames = []; slot = Closed; lost = 0; stored = None }
 
 module Running =
   State_builder.Ref
@@ -1171,7 +1173,12 @@ let rename_sweeps rename (sweeps: Heap_paths.sweeps) =
    analysed call created: the renaming, if not the identity, maps each of
    them. *)
 let receive_entry_effects ~id ~renaming callstack entry frame =
-  match Int_table.find_opt (Running.get ()).stored id with
+  let kept =
+    match (Running.get ()).stored with
+    | Some table -> Int_table.find_opt table id
+    | None -> None
+  in
+  match kept with
   | None ->
     Self.fatal "hit log: hit of the cache entry %d of a heap call, whose \
                 effects were not kept" id
@@ -1344,6 +1351,17 @@ let candidates_and_created ~callstack allocations =
   then Some (List.filter_map Fun.id candidates, created)
   else None
 
+(* The table of the entries kept for their hits, created at its first
+   use. *)
+let stored_table () =
+  let running = Running.get () in
+  match running.stored with
+  | Some table -> table
+  | None ->
+    let table = Int_table.create 7 in
+    running.stored <- Some table;
+    table
+
 (* A heap call that is not refused, whose entry holds an Inner part, and
    whose effects memexec can store, see [heap_effects_of], is stored by
    memexec, with its sweeps from the start of its body to its return and
@@ -1383,7 +1401,7 @@ let storage ~callstack =
           in
           Option.iter
             (fun id ->
-               Int_table.replace (Running.get ()).stored id
+               Int_table.replace (stored_table ()) id
                  (frame.effects, frame.exit, frame.withdrawn))
             frame.used;
           Heap { Mem_exec.removed; swept; exit; mutations; allocations;
