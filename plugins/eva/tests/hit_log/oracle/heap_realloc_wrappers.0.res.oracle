@@ -1,0 +1,84 @@
+[kernel] Parsing heap_realloc_wrappers.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_realloc_wrappers.c:46 <- wrap_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc_wrappers.c:49 <- wrap_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc_wrappers.c:52 <- wrap_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc_wrappers.c:55 <- wrap_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of my_calloc :: heap_realloc_wrappers.c:26 <- use_calloc :: heap_realloc_wrappers.c:44 <- wrap_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of my_calloc :: heap_realloc_wrappers.c:26 <- use_calloc :: heap_realloc_wrappers.c:45 <- wrap_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of my_realloc :: heap_realloc_wrappers.c:32 <- use_realloc :: heap_realloc_wrappers.c:48 <- wrap_main: 0: strong, record Variable [0..63--63], type char [8], malloc
+  list of my_realloc :: heap_realloc_wrappers.c:32 <- use_realloc :: heap_realloc_wrappers.c:51 <- wrap_main: 0: strong, record Variable [0..63--63], type char [8], malloc
+  list of my_reallocarray :: heap_realloc_wrappers.c:38 <- use_reallocarray :: heap_realloc_wrappers.c:54 <- wrap_main: 0: strong, record Variable [0..63--63], type char [8], malloc
+  list of my_reallocarray :: heap_realloc_wrappers.c:38 <- use_reallocarray :: heap_realloc_wrappers.c:57 <- wrap_main: 0: strong, record Variable [0..63--63], type char [8], malloc
+  block 0 of malloc :: heap_realloc_wrappers.c:46 <- wrap_main: owned by wrap_main
+  block 0 of malloc :: heap_realloc_wrappers.c:49 <- wrap_main: owned by wrap_main
+  block 0 of malloc :: heap_realloc_wrappers.c:52 <- wrap_main: owned by wrap_main
+  block 0 of malloc :: heap_realloc_wrappers.c:55 <- wrap_main: owned by wrap_main
+  block 0 of my_calloc :: heap_realloc_wrappers.c:26 <- use_calloc :: heap_realloc_wrappers.c:44 <- wrap_main: owned by use_calloc :: heap_realloc_wrappers.c:44 <- wrap_main
+  block 0 of my_calloc :: heap_realloc_wrappers.c:26 <- use_calloc :: heap_realloc_wrappers.c:45 <- wrap_main: owned by use_calloc :: heap_realloc_wrappers.c:45 <- wrap_main
+  block 0 of my_realloc :: heap_realloc_wrappers.c:32 <- use_realloc :: heap_realloc_wrappers.c:48 <- wrap_main: owned by use_realloc :: heap_realloc_wrappers.c:48 <- wrap_main
+  block 0 of my_realloc :: heap_realloc_wrappers.c:32 <- use_realloc :: heap_realloc_wrappers.c:51 <- wrap_main: owned by use_realloc :: heap_realloc_wrappers.c:51 <- wrap_main
+  block 0 of my_reallocarray :: heap_realloc_wrappers.c:38 <- use_reallocarray :: heap_realloc_wrappers.c:54 <- wrap_main: owned by use_reallocarray :: heap_realloc_wrappers.c:54 <- wrap_main
+  block 0 of my_reallocarray :: heap_realloc_wrappers.c:38 <- use_reallocarray :: heap_realloc_wrappers.c:57 <- wrap_main: owned by use_reallocarray :: heap_realloc_wrappers.c:57 <- wrap_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on malloc :: heap_realloc_wrappers.c:46 <- wrap_main: 0: __malloc_wrap_main_l46
+  names on malloc :: heap_realloc_wrappers.c:49 <- wrap_main: 0: __malloc_wrap_main_l49
+  names on malloc :: heap_realloc_wrappers.c:52 <- wrap_main: 0: __malloc_wrap_main_l52
+  names on malloc :: heap_realloc_wrappers.c:55 <- wrap_main: 0: __malloc_wrap_main_l55
+  names on my_calloc :: heap_realloc_wrappers.c:26 <- use_calloc :: heap_realloc_wrappers.c:44 <- wrap_main: 0: __calloc_use_calloc_l26
+  names on my_calloc :: heap_realloc_wrappers.c:26 <- use_calloc :: heap_realloc_wrappers.c:45 <- wrap_main: 0: __calloc_use_calloc_l26
+  names on my_realloc :: heap_realloc_wrappers.c:32 <- use_realloc :: heap_realloc_wrappers.c:48 <- wrap_main: 0: __realloc_use_realloc_l32
+  names on my_realloc :: heap_realloc_wrappers.c:32 <- use_realloc :: heap_realloc_wrappers.c:51 <- wrap_main: 0: __realloc_use_realloc_l32
+  names on my_reallocarray :: heap_realloc_wrappers.c:38 <- use_reallocarray :: heap_realloc_wrappers.c:54 <- wrap_main: 0: __realloc_use_reallocarray_l38
+  names on my_reallocarray :: heap_realloc_wrappers.c:38 <- use_reallocarray :: heap_realloc_wrappers.c:57 <- wrap_main: 0: __realloc_use_reallocarray_l38
+These are the names of the run without memexec.
+Calls:
+  calloc :: heap_realloc_wrappers.c:21 <- my_calloc :: heap_realloc_wrappers.c:26 <- use_calloc :: heap_realloc_wrappers.c:44 <- wrap_main: builtin
+  my_calloc :: heap_realloc_wrappers.c:26 <- use_calloc :: heap_realloc_wrappers.c:44 <- wrap_main: analysed, cache entry 27
+  use_calloc :: heap_realloc_wrappers.c:44 <- wrap_main: analysed, cache entry 28
+  use_calloc :: heap_realloc_wrappers.c:45 <- wrap_main: hit of cache entry 28
+  malloc :: heap_realloc_wrappers.c:46 <- wrap_main: builtin
+  realloc :: heap_realloc_wrappers.c:22 <- my_realloc :: heap_realloc_wrappers.c:32 <- use_realloc :: heap_realloc_wrappers.c:48 <- wrap_main: builtin
+  my_realloc :: heap_realloc_wrappers.c:32 <- use_realloc :: heap_realloc_wrappers.c:48 <- wrap_main: analysed, cache entry 29
+  use_realloc :: heap_realloc_wrappers.c:48 <- wrap_main: analysed, cache entry 30
+  malloc :: heap_realloc_wrappers.c:49 <- wrap_main: builtin
+  use_realloc :: heap_realloc_wrappers.c:51 <- wrap_main: hit of cache entry 30
+  malloc :: heap_realloc_wrappers.c:52 <- wrap_main: builtin
+  reallocarray :: heap_realloc_wrappers.c:23 <- my_reallocarray :: heap_realloc_wrappers.c:38 <- use_reallocarray :: heap_realloc_wrappers.c:54 <- wrap_main: builtin
+  my_reallocarray :: heap_realloc_wrappers.c:38 <- use_reallocarray :: heap_realloc_wrappers.c:54 <- wrap_main: analysed, cache entry 31
+  use_reallocarray :: heap_realloc_wrappers.c:54 <- wrap_main: analysed, cache entry 32
+  malloc :: heap_realloc_wrappers.c:55 <- wrap_main: builtin
+  use_reallocarray :: heap_realloc_wrappers.c:57 <- wrap_main: hit of cache entry 32
+  wrap_main: analysed, cache entry 33
+Heap calls, not stored by memexec: my_calloc 1, my_realloc 1,
+  my_reallocarray 1.
+Heap calls stored by memexec: use_calloc 1, use_realloc 1,
+  use_reallocarray 1, wrap_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  my_calloc :: heap_realloc_wrappers.c:26 <- use_calloc :: heap_realloc_wrappers.c:45 <- wrap_main
+  my_realloc :: heap_realloc_wrappers.c:32 <- use_realloc :: heap_realloc_wrappers.c:51 <- wrap_main
+  my_reallocarray :: heap_realloc_wrappers.c:38 <- use_reallocarray :: heap_realloc_wrappers.c:57 <- wrap_main
+Hits against the analysed call of their cache entry:
+  use_calloc :: heap_realloc_wrappers.c:45 <- wrap_main, hit of cache entry 28, against use_calloc :: heap_realloc_wrappers.c:44 <- wrap_main: differs on __calloc_use_calloc_l26_3, __calloc_use_calloc_l26_4, a, p, at 7 points.
+  use_realloc :: heap_realloc_wrappers.c:51 <- wrap_main, hit of cache entry 30, against use_realloc :: heap_realloc_wrappers.c:48 <- wrap_main: differs on __malloc_wrap_main_l46_1, __malloc_wrap_main_l49_1, __realloc_use_realloc_l32_3, __realloc_use_realloc_l32_4, c, g, p, at 7 points.
+  use_reallocarray :: heap_realloc_wrappers.c:57 <- wrap_main, hit of cache entry 32, against use_reallocarray :: heap_realloc_wrappers.c:54 <- wrap_main: differs on __malloc_wrap_main_l52_1, __malloc_wrap_main_l55_1, __realloc_use_reallocarray_l38_3, __realloc_use_reallocarray_l38_4, e, g, p, at 7 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 315 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 93 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 93 points.
+Filtered requests that reject one callstack: 36.
+Requests made: 501; reported by the trap: 501, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 93 requests, 192 reads of the legacy store in them, 232 reads outside any request.
+  with -eva-hit-log: 93 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 49 requests
+    statistics: 42 requests
+    summary: 2 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
+Statuses of the properties: those of the run without memexec, for 175 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.
