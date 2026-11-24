@@ -1,0 +1,195 @@
+[kernel] Parsing heap_alloc_two.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_alloc_two.c:21 <- mk_pair :: heap_alloc_two.c:29 <- pair_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc_two.c:21 <- mk_pair :: heap_alloc_two.c:33 <- pair_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc_two.c:22 <- mk_pair :: heap_alloc_two.c:29 <- pair_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc_two.c:22 <- mk_pair :: heap_alloc_two.c:33 <- pair_main: 0: strong, record Variable [0..31--31], type int, malloc
+  block 0 of malloc :: heap_alloc_two.c:21 <- mk_pair :: heap_alloc_two.c:29 <- pair_main: owned by mk_pair :: heap_alloc_two.c:29 <- pair_main
+  block 0 of malloc :: heap_alloc_two.c:21 <- mk_pair :: heap_alloc_two.c:33 <- pair_main: owned by mk_pair :: heap_alloc_two.c:33 <- pair_main
+  block 0 of malloc :: heap_alloc_two.c:22 <- mk_pair :: heap_alloc_two.c:29 <- pair_main: owned by mk_pair :: heap_alloc_two.c:29 <- pair_main
+  block 0 of malloc :: heap_alloc_two.c:22 <- mk_pair :: heap_alloc_two.c:33 <- pair_main: owned by mk_pair :: heap_alloc_two.c:33 <- pair_main
+These are the tables of the run without memexec.
+Calls:
+  malloc :: heap_alloc_two.c:21 <- mk_pair :: heap_alloc_two.c:29 <- pair_main: builtin
+  malloc :: heap_alloc_two.c:22 <- mk_pair :: heap_alloc_two.c:29 <- pair_main: builtin
+  mk_pair :: heap_alloc_two.c:29 <- pair_main: analysed, cache entry 7
+  mk_pair :: heap_alloc_two.c:33 <- pair_main: hit of cache entry 7
+  pair_main: analysed, cache entry 8
+Heap calls, not stored by memexec: pair_main 1.
+Heap calls stored by memexec: mk_pair 1.
+Heap calls whose answers come from full states: pair_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  pair_main 1.
+Hits not made because memexec does not store the heap calls: none.
+mk_pair, start:
+  joined: pa ∈ {0}
+          pb ∈ {0}
+          v ∈ {1}
+          a ∈ {{ &__malloc_mk_pair_l21_3 }} or UNINITIALIZED
+          b ∈ {{ &__malloc_mk_pair_l22_3 }} or UNINITIALIZED
+          l0 ∈ {0}
+          l1 ∈ {0}
+          __malloc_mk_pair_l21_3 ∈ {1}
+          __malloc_mk_pair_l22_3 ∈ {2}
+  mk_pair :: heap_alloc_two.c:29 <- pair_main: pa ∈ {0}
+                                               pb ∈ {0}
+                                               v ∈ {1}
+                                               a ∈ UNINITIALIZED
+                                               b ∈ UNINITIALIZED
+                                               l0 ∈ {0}
+                                               l1 ∈ {0}
+  mk_pair :: heap_alloc_two.c:33 <- pair_main: pa ∈ {0}
+                                               pb ∈ {0}
+                                               v ∈ {1}
+                                               a ∈
+                                                {{ &__malloc_mk_pair_l21_3 }}
+                                               b ∈
+                                                {{ &__malloc_mk_pair_l22_3 }}
+                                               l0 ∈ {0}
+                                               l1 ∈ {0}
+                                               __malloc_mk_pair_l21_3 ∈ {1}
+                                               __malloc_mk_pair_l22_3 ∈ {2}
+mk_pair, before heap_alloc_two.c:25 `;` (MP):
+  joined: pa ∈ {{ &__malloc_mk_pair_l21_3 ; &__malloc_mk_pair_l21_4 }}
+          pb ∈ {{ &__malloc_mk_pair_l22_3 ; &__malloc_mk_pair_l22_4 }}
+          v ∈ {1}
+          a ∈ {{ &__malloc_mk_pair_l21_3 }} or UNINITIALIZED
+          b ∈ {{ &__malloc_mk_pair_l22_3 }} or UNINITIALIZED
+          l0 ∈ {0}
+          l1 ∈ {0}
+          __malloc_mk_pair_l21_3 ∈ {1}
+          __malloc_mk_pair_l22_3 ∈ {2}
+          __malloc_mk_pair_l21_4 ∈ {1}
+          __malloc_mk_pair_l22_4 ∈ {2}
+  mk_pair :: heap_alloc_two.c:29 <- pair_main: pa ∈
+                                                 {{ &__malloc_mk_pair_l21_3 }}
+                                               pb ∈
+                                                 {{ &__malloc_mk_pair_l22_3 }}
+                                               v ∈ {1}
+                                               a ∈ UNINITIALIZED
+                                               b ∈ UNINITIALIZED
+                                               l0 ∈ {0}
+                                               l1 ∈ {0}
+                                               __malloc_mk_pair_l21_3 ∈ {1}
+                                               __malloc_mk_pair_l22_3 ∈ {2}
+  mk_pair :: heap_alloc_two.c:33 <- pair_main: pa ∈
+                                                 {{ &__malloc_mk_pair_l21_4 }}
+                                               pb ∈
+                                                 {{ &__malloc_mk_pair_l22_4 }}
+                                               v ∈ {1}
+                                               a ∈
+                                                {{ &__malloc_mk_pair_l21_3 }}
+                                               b ∈
+                                                {{ &__malloc_mk_pair_l22_3 }}
+                                               l0 ∈ {0}
+                                               l1 ∈ {0}
+                                               __malloc_mk_pair_l21_3 ∈ {1}
+                                               __malloc_mk_pair_l22_3 ∈ {2}
+                                               __malloc_mk_pair_l21_4 ∈ {1}
+                                               __malloc_mk_pair_l22_4 ∈ {2}
+mk_pair, after heap_alloc_two.c:26 `return;`:
+  joined: pa ∈ {{ &__malloc_mk_pair_l21_3 ; &__malloc_mk_pair_l21_4 }}
+          pb ∈ {{ &__malloc_mk_pair_l22_3 ; &__malloc_mk_pair_l22_4 }}
+          v ∈ {1}
+          a ∈ {{ &__malloc_mk_pair_l21_3 }} or UNINITIALIZED
+          b ∈ {{ &__malloc_mk_pair_l22_3 }} or UNINITIALIZED
+          l0 ∈ {0}
+          l1 ∈ {0}
+          __malloc_mk_pair_l21_3 ∈ {1}
+          __malloc_mk_pair_l22_3 ∈ {2}
+          __malloc_mk_pair_l21_4 ∈ {1}
+          __malloc_mk_pair_l22_4 ∈ {2}
+  mk_pair :: heap_alloc_two.c:29 <- pair_main: pa ∈
+                                                 {{ &__malloc_mk_pair_l21_3 }}
+                                               pb ∈
+                                                 {{ &__malloc_mk_pair_l22_3 }}
+                                               v ∈ {1}
+                                               a ∈ UNINITIALIZED
+                                               b ∈ UNINITIALIZED
+                                               l0 ∈ {0}
+                                               l1 ∈ {0}
+                                               __malloc_mk_pair_l21_3 ∈ {1}
+                                               __malloc_mk_pair_l22_3 ∈ {2}
+  mk_pair :: heap_alloc_two.c:33 <- pair_main: pa ∈
+                                                 {{ &__malloc_mk_pair_l21_4 }}
+                                               pb ∈
+                                                 {{ &__malloc_mk_pair_l22_4 }}
+                                               v ∈ {1}
+                                               a ∈
+                                                {{ &__malloc_mk_pair_l21_3 }}
+                                               b ∈
+                                                {{ &__malloc_mk_pair_l22_3 }}
+                                               l0 ∈ {0}
+                                               l1 ∈ {0}
+                                               __malloc_mk_pair_l21_3 ∈ {1}
+                                               __malloc_mk_pair_l22_3 ∈ {2}
+                                               __malloc_mk_pair_l21_4 ∈ {1}
+                                               __malloc_mk_pair_l22_4 ∈ {2}
+pair_main, start:
+  joined: pa ∈ {0}
+          pb ∈ {0}
+          l0 ∈ {0}
+          l1 ∈ {0}
+  pair_main: pa ∈ {0}
+             pb ∈ {0}
+             l0 ∈ {0}
+             l1 ∈ {0}
+pair_main, before heap_alloc_two.c:34 `;` (PM):
+  joined: pa ∈ {{ &__malloc_mk_pair_l21_4 }}
+          pb ∈ {{ &__malloc_mk_pair_l22_4 }}
+          a ∈ {{ &__malloc_mk_pair_l21_3 }}
+          b ∈ {{ &__malloc_mk_pair_l22_3 }}
+          l0 ∈ {0}
+          l1 ∈ {0}
+          __malloc_mk_pair_l21_3 ∈ {1}
+          __malloc_mk_pair_l22_3 ∈ {2}
+          __malloc_mk_pair_l21_4 ∈ {1}
+          __malloc_mk_pair_l22_4 ∈ {2}
+  pair_main: pa ∈ {{ &__malloc_mk_pair_l21_4 }}
+             pb ∈ {{ &__malloc_mk_pair_l22_4 }}
+             a ∈ {{ &__malloc_mk_pair_l21_3 }}
+             b ∈ {{ &__malloc_mk_pair_l22_3 }}
+             l0 ∈ {0}
+             l1 ∈ {0}
+             __malloc_mk_pair_l21_3 ∈ {1}
+             __malloc_mk_pair_l22_3 ∈ {2}
+             __malloc_mk_pair_l21_4 ∈ {1}
+             __malloc_mk_pair_l22_4 ∈ {2}
+pair_main, after heap_alloc_two.c:35 `return;`:
+  joined: pa ∈ {{ &__malloc_mk_pair_l21_4 }}
+          pb ∈ {{ &__malloc_mk_pair_l22_4 }}
+          a ∈ {{ &__malloc_mk_pair_l21_3 }}
+          b ∈ {{ &__malloc_mk_pair_l22_3 }}
+          l0 ∈ {0}
+          l1 ∈ {0}
+          __malloc_mk_pair_l21_3 ∈ {1}
+          __malloc_mk_pair_l22_3 ∈ {2}
+          __malloc_mk_pair_l21_4 ∈ {1}
+          __malloc_mk_pair_l22_4 ∈ {2}
+  pair_main: pa ∈ {{ &__malloc_mk_pair_l21_4 }}
+             pb ∈ {{ &__malloc_mk_pair_l22_4 }}
+             a ∈ {{ &__malloc_mk_pair_l21_3 }}
+             b ∈ {{ &__malloc_mk_pair_l22_3 }}
+             l0 ∈ {0}
+             l1 ∈ {0}
+             __malloc_mk_pair_l21_3 ∈ {1}
+             __malloc_mk_pair_l22_3 ∈ {2}
+             __malloc_mk_pair_l21_4 ∈ {1}
+             __malloc_mk_pair_l22_4 ∈ {2}
+Hits against the analysed call of their cache entry:
+  mk_pair :: heap_alloc_two.c:33 <- pair_main, hit of cache entry 7, against mk_pair :: heap_alloc_two.c:29 <- pair_main: differs on __malloc_mk_pair_l21_3, __malloc_mk_pair_l21_4, __malloc_mk_pair_l22_3, __malloc_mk_pair_l22_4, a, b, pa, pb, at 13 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 201 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 78 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 78 points.
+Filtered requests that reject one callstack: 13.
+Requests made: 357; reported by the trap: 357, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 52 requests, 64 reads of the legacy store in them, 78 reads outside any request.
+  with -eva-hit-log: 52 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 38 requests
+    statistics: 14 requests
+Statuses of the properties: those of the run without memexec, for 74 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.5000, 0 alarms, those of the run without memexec.
