@@ -13,8 +13,8 @@ Calls:
   malloc :: heap_hit.c:251 <- arg_main: builtin
   cfree :: heap_hit.c:254 <- arg_main: hit of cache entry 12
   arg_main: analysed, cache entry 13
-Heap calls, not stored by memexec: arg_main 1.
-Heap calls stored by memexec: cfree 1, rel 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: arg_main 1, cfree 1, rel 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 rel, start:

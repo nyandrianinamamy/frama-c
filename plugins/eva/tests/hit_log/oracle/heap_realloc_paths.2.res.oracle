@@ -50,27 +50,28 @@ Calls:
   malloc :: heap_realloc_paths.c:94 <- two :: heap_realloc_paths.c:103 <- upward_main: builtin
   Frama_C_interval :: heap_realloc_paths.c:97 <- two :: heap_realloc_paths.c:103 <- upward_main: specification
   two :: heap_realloc_paths.c:103 <- upward_main: analysed, cache entry 27
-  realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:86 <- parent :: heap_realloc_paths.c:104 <- upward_main: builtin
-  rs :: heap_realloc_paths.c:86 <- parent :: heap_realloc_paths.c:104 <- upward_main: analysed, cache entry 28
-  parent :: heap_realloc_paths.c:104 <- upward_main: analysed, cache entry 29
+  rs :: heap_realloc_paths.c:86 <- parent :: heap_realloc_paths.c:104 <- upward_main: hit of cache entry 26
+  parent :: heap_realloc_paths.c:104 <- upward_main: analysed, cache entry 28
   two :: heap_realloc_paths.c:105 <- upward_main: hit of cache entry 27
-  realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:86 <- parent :: heap_realloc_paths.c:106 <- upward_main: builtin
-  rs :: heap_realloc_paths.c:86 <- parent :: heap_realloc_paths.c:106 <- upward_main: analysed, cache entry 30
-  parent :: heap_realloc_paths.c:106 <- upward_main: analysed, cache entry 31
+  parent :: heap_realloc_paths.c:106 <- upward_main: hit of cache entry 28
   malloc :: heap_realloc_paths.c:93 <- two :: heap_realloc_paths.c:108 <- upward_main: builtin
   malloc :: heap_realloc_paths.c:94 <- two :: heap_realloc_paths.c:108 <- upward_main: builtin
   Frama_C_interval :: heap_realloc_paths.c:97 <- two :: heap_realloc_paths.c:108 <- upward_main: specification
-  two :: heap_realloc_paths.c:108 <- upward_main: analysed, cache entry 32
+  two :: heap_realloc_paths.c:108 <- upward_main: analysed, cache entry 29
   realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:86 <- parent :: heap_realloc_paths.c:109 <- upward_main: builtin
-  rs :: heap_realloc_paths.c:86 <- parent :: heap_realloc_paths.c:109 <- upward_main: analysed, cache entry 33
-  parent :: heap_realloc_paths.c:109 <- upward_main: analysed, cache entry 34
-  upward_main: analysed, cache entry 35
-Heap calls, not stored by memexec: parent 3, rs 4, upward_main 1.
-Heap calls stored by memexec: two 3.
+  rs :: heap_realloc_paths.c:86 <- parent :: heap_realloc_paths.c:109 <- upward_main: analysed, cache entry 30
+  parent :: heap_realloc_paths.c:109 <- upward_main: analysed, cache entry 31
+  upward_main: analysed, cache entry 32
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: parent 2, rs 2, two 3, upward_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  rs :: heap_realloc_paths.c:86 <- parent :: heap_realloc_paths.c:106 <- upward_main
 Hits against the analysed call of their cache entry:
+  rs :: heap_realloc_paths.c:86 <- parent :: heap_realloc_paths.c:104 <- upward_main, hit of cache entry 26, against rs :: heap_realloc_paths.c:102 <- upward_main: differs on __malloc_two_l93_8, __malloc_two_l94_8, __realloc_rs_l29_7, __realloc_rs_l29_8, g, p, tmp, at 5 points.
   two :: heap_realloc_paths.c:105 <- upward_main, hit of cache entry 27, against two :: heap_realloc_paths.c:103 <- upward_main: differs on __malloc_two_l93_8, __malloc_two_l93_9, __malloc_two_l94_8, __malloc_two_l94_9, __realloc_rs_l29_8, a, b, g, q, at 31 points.
+  parent :: heap_realloc_paths.c:106 <- upward_main, hit of cache entry 28, against parent :: heap_realloc_paths.c:104 <- upward_main: differs on __malloc_two_l93_9, __malloc_two_l94_9, __realloc_rs_l29_8, __realloc_rs_l29_9, g, p, q, at 5 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 652 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
@@ -84,6 +85,7 @@ Passes after the iteration:
     unreachable statements: 117 requests
     statistics: 30 requests
     summary: 4 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
 Statuses of the properties: those of the run without memexec, for 312 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.6667, 0 alarms, those of the run without memexec.

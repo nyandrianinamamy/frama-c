@@ -9,8 +9,8 @@
 /* #119: the heap calls made through each allocation builtin, and through a
    free reached only by a callee two calls down. Every call that runs an
    allocation builtin or free, in its body or in a call nested in it, is a
-   heap call. Memexec stores the calls that free and those that allocate by
-   malloc under by_stack (#126, #127), and no other heap call. */
+   heap call. Memexec stores only the calls that free and those that allocate
+   by malloc, calloc, realloc or reallocarray under by_stack (#126-#129). */
 
 #include <stdlib.h>
 #include <alloca.h>

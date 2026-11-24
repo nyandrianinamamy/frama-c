@@ -58,44 +58,45 @@ Calls:
   rz :: heap_realloc.c:167 <- sizes_main: analysed, cache entry 36
   malloc :: heap_realloc.c:168 <- sizes_main: builtin
   fill :: heap_realloc.c:168 <- sizes_main: hit of cache entry 35
-  realloc :: heap_realloc.c:158 <- rz :: heap_realloc.c:169 <- sizes_main: builtin
-  rz :: heap_realloc.c:169 <- sizes_main: analysed, cache entry 37
+  rz :: heap_realloc.c:169 <- sizes_main: hit of cache entry 36
   malloc :: heap_realloc.c:171 <- sizes_main: builtin
   fill :: heap_realloc.c:171 <- sizes_main: hit of cache entry 35
   realloc :: heap_realloc.c:158 <- rz :: heap_realloc.c:172 <- sizes_main: builtin
-  rz :: heap_realloc.c:172 <- sizes_main: analysed, cache entry 38
+  rz :: heap_realloc.c:172 <- sizes_main: analysed, cache entry 37
   malloc :: heap_realloc.c:173 <- sizes_main: builtin
   fill :: heap_realloc.c:173 <- sizes_main: hit of cache entry 35
-  realloc :: heap_realloc.c:158 <- rz :: heap_realloc.c:174 <- sizes_main: builtin
-  rz :: heap_realloc.c:174 <- sizes_main: analysed, cache entry 39
+  rz :: heap_realloc.c:174 <- sizes_main: hit of cache entry 37
   malloc :: heap_realloc.c:176 <- sizes_main: builtin
   fill :: heap_realloc.c:176 <- sizes_main: hit of cache entry 35
   realloc :: heap_realloc.c:158 <- rz :: heap_realloc.c:177 <- sizes_main: builtin
-  rz :: heap_realloc.c:177 <- sizes_main: analysed, cache entry 40
+  rz :: heap_realloc.c:177 <- sizes_main: analysed, cache entry 38
   malloc :: heap_realloc.c:178 <- sizes_main: builtin
   fill :: heap_realloc.c:178 <- sizes_main: hit of cache entry 35
-  realloc :: heap_realloc.c:158 <- rz :: heap_realloc.c:179 <- sizes_main: builtin
-  rz :: heap_realloc.c:179 <- sizes_main: analysed, cache entry 41
+  rz :: heap_realloc.c:179 <- sizes_main: hit of cache entry 38
   malloc :: heap_realloc.c:181 <- sizes_main: builtin
   fill :: heap_realloc.c:181 <- sizes_main: hit of cache entry 35
   realloc :: heap_realloc.c:158 <- rz :: heap_realloc.c:182 <- sizes_main: builtin
-  rz :: heap_realloc.c:182 <- sizes_main: analysed, cache entry 42
+  rz :: heap_realloc.c:182 <- sizes_main: analysed, cache entry 39
   malloc :: heap_realloc.c:183 <- sizes_main: builtin
   fill :: heap_realloc.c:183 <- sizes_main: hit of cache entry 35
-  realloc :: heap_realloc.c:158 <- rz :: heap_realloc.c:184 <- sizes_main: builtin
-  rz :: heap_realloc.c:184 <- sizes_main: analysed, cache entry 43
-  sizes_main: analysed, cache entry 44
-Heap calls, not stored by memexec: rz 8, sizes_main 1.
+  rz :: heap_realloc.c:184 <- sizes_main: hit of cache entry 39
+  sizes_main: analysed, cache entry 40
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: rz 4, sizes_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Hits against the analysed call of their cache entry:
   fill :: heap_realloc.c:168 <- sizes_main, hit of cache entry 35, against fill :: heap_realloc.c:166 <- sizes_main: differs on __malloc_sizes_main_l166_1, __malloc_sizes_main_l168_1, __realloc_rz_l158_15, g, l1, at 11 points.
+  rz :: heap_realloc.c:169 <- sizes_main, hit of cache entry 36, against rz :: heap_realloc.c:167 <- sizes_main: differs on __malloc_sizes_main_l166_1, __malloc_sizes_main_l168_1, __realloc_rz_l158_15, __realloc_rz_l158_16, g, l1, tmp, at 5 points.
   fill :: heap_realloc.c:171 <- sizes_main, hit of cache entry 35, against fill :: heap_realloc.c:166 <- sizes_main: differs on __malloc_sizes_main_l166_1, __malloc_sizes_main_l171_1, __realloc_rz_l158_15, __realloc_rz_l158_16, g, l1, l2, x, at 11 points.
   fill :: heap_realloc.c:173 <- sizes_main, hit of cache entry 35, against fill :: heap_realloc.c:166 <- sizes_main: differs on __malloc_sizes_main_l166_1, __malloc_sizes_main_l173_1, __realloc_rz_l158_15, __realloc_rz_l158_16, __realloc_rz_l158_17, g, l1, l2, s1, x, at 11 points.
+  rz :: heap_realloc.c:174 <- sizes_main, hit of cache entry 37, against rz :: heap_realloc.c:172 <- sizes_main: differs on __malloc_sizes_main_l171_1, __malloc_sizes_main_l173_1, __realloc_rz_l158_17, __realloc_rz_l158_18, g, s1, tmp, at 5 points.
   fill :: heap_realloc.c:176 <- sizes_main, hit of cache entry 35, against fill :: heap_realloc.c:166 <- sizes_main: differs on __malloc_sizes_main_l166_1, __malloc_sizes_main_l176_1, __realloc_rz_l158_15, __realloc_rz_l158_16, __realloc_rz_l158_17, __realloc_rz_l158_18, g, l1, l2, s1, s2, x, at 11 points.
   fill :: heap_realloc.c:178 <- sizes_main, hit of cache entry 35, against fill :: heap_realloc.c:166 <- sizes_main: differs on __malloc_sizes_main_l166_1, __malloc_sizes_main_l178_1, __realloc_rz_l158_15, __realloc_rz_l158_16, __realloc_rz_l158_17, __realloc_rz_l158_18, __realloc_rz_l158_19, e1, g, l1, l2, s1, s2, x, at 11 points.
+  rz :: heap_realloc.c:179 <- sizes_main, hit of cache entry 38, against rz :: heap_realloc.c:177 <- sizes_main: differs on __malloc_sizes_main_l176_1, __malloc_sizes_main_l178_1, __realloc_rz_l158_19, __realloc_rz_l158_20, e1, g, tmp, at 5 points.
   fill :: heap_realloc.c:181 <- sizes_main, hit of cache entry 35, against fill :: heap_realloc.c:166 <- sizes_main: differs on __malloc_sizes_main_l166_1, __malloc_sizes_main_l181_1, __realloc_rz_l158_15, __realloc_rz_l158_16, __realloc_rz_l158_17, __realloc_rz_l158_18, __realloc_rz_l158_19, __realloc_rz_l158_20, e1, e2, g, l1, l2, s1, s2, x, at 11 points.
   fill :: heap_realloc.c:183 <- sizes_main, hit of cache entry 35, against fill :: heap_realloc.c:166 <- sizes_main: differs on __malloc_sizes_main_l166_1, __malloc_sizes_main_l183_1, __realloc_rz_l158_15, __realloc_rz_l158_16, __realloc_rz_l158_17, __realloc_rz_l158_18, __realloc_rz_l158_19, __realloc_rz_l158_20, __realloc_rz_l158_21, e1, e2, g, l1, l2, s1, s2, x, z1, at 11 points.
+  rz :: heap_realloc.c:184 <- sizes_main, hit of cache entry 39, against rz :: heap_realloc.c:182 <- sizes_main: differs on __malloc_sizes_main_l181_1, __malloc_sizes_main_l183_1, __realloc_rz_l158_21, __realloc_rz_l158_22, g, tmp, z1, at 5 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 1293 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

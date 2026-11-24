@@ -27,20 +27,22 @@ Calls:
   rs :: heap_realloc_paths.c:43 <- strong_main: analysed, cache entry 13
   malloc :: heap_realloc_paths.c:44 <- strong_main: builtin
   malloc :: heap_realloc_paths.c:44 <- strong_main: builtin
+  rs :: heap_realloc_paths.c:47 <- strong_main: hit of cache entry 13
   realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:47 <- strong_main: builtin
   rs :: heap_realloc_paths.c:47 <- strong_main: analysed, cache entry 14
-  realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:47 <- strong_main: builtin
-  rs :: heap_realloc_paths.c:47 <- strong_main: analysed, cache entry 15
   malloc :: heap_realloc_paths.c:50 <- strong_main: builtin
   malloc :: heap_realloc_paths.c:50 <- strong_main: builtin
+  realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:53 <- strong_main: builtin
+  rs :: heap_realloc_paths.c:53 <- strong_main: analysed, cache entry 15
   realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:53 <- strong_main: builtin
   rs :: heap_realloc_paths.c:53 <- strong_main: analysed, cache entry 16
-  realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:53 <- strong_main: builtin
-  rs :: heap_realloc_paths.c:53 <- strong_main: analysed, cache entry 17
-  strong_main: analysed, cache entry 18
-Heap calls, not stored by memexec: rs 5, strong_main 1.
+  strong_main: analysed, cache entry 17
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: rs 4, strong_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  rs :: heap_realloc_paths.c:47 <- strong_main, hit of cache entry 13, against rs :: heap_realloc_paths.c:43 <- strong_main: differs on __malloc_strong_main_l44_1, __realloc_rs_l29_5, __realloc_rs_l29_6, g, p, tmp, at 5 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 550 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

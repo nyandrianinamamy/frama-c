@@ -20,36 +20,28 @@ Calls:
   regrow :: heap_realloc.c:273 <- loop_main: analysed, cache entry 36
   realloc :: heap_realloc.c:262 <- regrow :: heap_realloc.c:273 <- loop_main: builtin
   regrow :: heap_realloc.c:273 <- loop_main: analysed, cache entry 37
-  realloc :: heap_realloc.c:262 <- regrow :: heap_realloc.c:273 <- loop_main: builtin
-  regrow :: heap_realloc.c:273 <- loop_main: analysed, cache entry 38
-  realloc :: heap_realloc.c:262 <- regrow :: heap_realloc.c:273 <- loop_main: builtin
-  regrow :: heap_realloc.c:273 <- loop_main: analysed, cache entry 39
-  realloc :: heap_realloc.c:262 <- regrow :: heap_realloc.c:273 <- loop_main: builtin
-  regrow :: heap_realloc.c:273 <- loop_main: analysed, cache entry 40
-  realloc :: heap_realloc.c:262 <- regrow :: heap_realloc.c:273 <- loop_main: builtin
-  regrow :: heap_realloc.c:273 <- loop_main: analysed, cache entry 41
-  realloc :: heap_realloc.c:262 <- regrow :: heap_realloc.c:273 <- loop_main: builtin
-  regrow :: heap_realloc.c:273 <- loop_main: analysed, cache entry 42
+  regrow :: heap_realloc.c:273 <- loop_main: hit of cache entry 37
+  regrow :: heap_realloc.c:273 <- loop_main: hit of cache entry 37
+  regrow :: heap_realloc.c:273 <- loop_main: hit of cache entry 37
+  regrow :: heap_realloc.c:273 <- loop_main: hit of cache entry 37
+  regrow :: heap_realloc.c:273 <- loop_main: hit of cache entry 37
   realloc :: heap_realloc.c:266 <- keep :: heap_realloc.c:274 <- loop_main: builtin
-  keep :: heap_realloc.c:274 <- loop_main: analysed, cache entry 43
+  keep :: heap_realloc.c:274 <- loop_main: analysed, cache entry 38
   realloc :: heap_realloc.c:266 <- keep :: heap_realloc.c:274 <- loop_main: builtin
-  keep :: heap_realloc.c:274 <- loop_main: analysed, cache entry 44
+  keep :: heap_realloc.c:274 <- loop_main: analysed, cache entry 39
   realloc :: heap_realloc.c:266 <- keep :: heap_realloc.c:274 <- loop_main: builtin
-  keep :: heap_realloc.c:274 <- loop_main: analysed, cache entry 45
-  realloc :: heap_realloc.c:266 <- keep :: heap_realloc.c:274 <- loop_main: builtin
-  keep :: heap_realloc.c:274 <- loop_main: analysed, cache entry 46
-  realloc :: heap_realloc.c:266 <- keep :: heap_realloc.c:274 <- loop_main: builtin
-  keep :: heap_realloc.c:274 <- loop_main: analysed, cache entry 47
-  realloc :: heap_realloc.c:266 <- keep :: heap_realloc.c:274 <- loop_main: builtin
-  keep :: heap_realloc.c:274 <- loop_main: analysed, cache entry 48
-  realloc :: heap_realloc.c:266 <- keep :: heap_realloc.c:274 <- loop_main: builtin
-  keep :: heap_realloc.c:274 <- loop_main: analysed, cache entry 49
-  realloc :: heap_realloc.c:266 <- keep :: heap_realloc.c:274 <- loop_main: builtin
-  keep :: heap_realloc.c:274 <- loop_main: analysed, cache entry 50
-  loop_main: analysed, cache entry 51
-Heap calls, not stored by memexec: keep 8, loop_main 1, regrow 8.
+  keep :: heap_realloc.c:274 <- loop_main: analysed, cache entry 40
+  keep :: heap_realloc.c:274 <- loop_main: hit of cache entry 40
+  keep :: heap_realloc.c:274 <- loop_main: hit of cache entry 40
+  keep :: heap_realloc.c:274 <- loop_main: hit of cache entry 40
+  keep :: heap_realloc.c:274 <- loop_main: hit of cache entry 40
+  keep :: heap_realloc.c:274 <- loop_main: hit of cache entry 40
+  loop_main: analysed, cache entry 41
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: keep 3, loop_main 1, regrow 3.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 1161 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

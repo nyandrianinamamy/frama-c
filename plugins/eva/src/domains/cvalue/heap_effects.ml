@@ -10,11 +10,18 @@ type decision =
   | Created
   | Reused of { weakened: bool }
 
+type builtin =
+  | Malloc
+  | Calloc
+  | Realloc
+
 type record = { min_alloc: Z.t; max_alloc: Z.t }
 
 type t =
   | Allocation of {
       block: Base.t;
+      builtin: builtin;
+      copied: Base.Hptset.t;
       policy: Eva_annotations.allocation_kind;
       stack: Callstack.t;
       rank: int option;
@@ -47,16 +54,31 @@ let pretty_decision fmt = function
 let pretty_record fmt { min_alloc; max_alloc } =
   Format.fprintf fmt "[%a..%a]" Z.pretty min_alloc Z.pretty max_alloc
 
+(* Nothing is printed for [malloc]. *)
+let pretty_builtin fmt (builtin, copied) =
+  match builtin with
+  | Malloc -> ()
+  | Calloc -> Format.fprintf fmt ",@ by calloc"
+  | Realloc when Base.Hptset.is_empty copied ->
+    Format.fprintf fmt ",@ by realloc,@ copying nothing"
+  | Realloc ->
+    Format.fprintf fmt ",@ by realloc,@ copying %a"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ") Base.pretty)
+      (Base.Hptset.elements copied)
+
 let pretty fmt = function
-  | Allocation { block; policy; stack; rank; size; typ; decision } ->
+  | Allocation { block; builtin; copied; policy; stack; rank; size; typ;
+                 decision } ->
     Format.fprintf fmt
       "@[<hov 2>allocation of %a:@ policy %a,@ stack %a,@ %a@ size %a,@ \
-       type %a,@ %a@]"
+       type %a,@ %a%a@]"
       Base.pretty block pretty_policy policy Callstack.pretty stack
       (fun fmt -> function
          | None -> Format.pp_print_string fmt "no rank,"
          | Some rank -> Format.fprintf fmt "rank %d," rank)
       rank Cvalue.V.pretty size Printer.pp_typ typ pretty_decision decision
+      pretty_builtin (builtin, copied)
   | Mutation { block; record; weakened; typ } ->
     let changes =
       Option.to_list

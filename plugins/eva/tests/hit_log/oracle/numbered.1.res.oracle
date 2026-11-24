@@ -31,6 +31,28 @@ Cache entry 8, copy_slot:
     frag_copy: [0..31] {{ garbled mix of &{#0_w} (origin: Misaligned read {numbered.c:47}) }}
   round trip: equal
   new numbered form
+Cache entry 9, fragments_main:
+  numbered blocks:
+    #0: __calloc_w_fragments_main_l51_1, creation symbol; weak, record Variable [0..31--31], type int, malloc
+  arguments: none
+  key: __fc_heap_status, errno, frag_slot, frag_copy, w, i, p1, p2
+  start, clobbered set none:
+    __fc_heap_status: [0..31] [--..--]
+    errno: [0..31] [--..--]
+    frag_slot: [0..31] {0}
+    frag_copy: [0..31] {0}
+  exit 1, clobbered set none:
+    __fc_heap_status: [0..31] [--..--]
+    errno: [0..31] [--..--]
+    frag_slot: [0..31] {{ garbled mix of &{#0_w} (origin: Misaligned read {numbered.c:47}) }}
+    frag_copy: [0..31] {{ garbled mix of &{#0_w} (origin: Misaligned read {numbered.c:47}) }}
+    w: [0..31] {{ &#0_w }}
+    p1: [0..31] {{ &#0_w }}
+    p2: [0..31] {{ &#0_w }}
+    #0_w: [0..31] {0}, [32..34359738367] BOTVALUE
+  created: #0_w
+  round trip: equal
+  new numbered form
 Calls:
   calloc :: numbered.c:51 <- fragments_main: builtin
   calloc :: numbered.c:51 <- fragments_main: builtin
@@ -39,7 +61,8 @@ Calls:
   memcpy :: numbered.c:57 <- fragments_main: builtin
   copy_slot :: numbered.c:58 <- fragments_main: analysed, cache entry 8
   fragments_main: analysed, cache entry 9
-Heap calls, not stored by memexec: fragments_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: fragments_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Initial state: equal.
@@ -59,4 +82,4 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 318 properties.
 Alarms: 1, of which 1 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1538, 1 alarm, those of the run without memexec.
-Stored entries: 2; with a numbered block: 2; without numbered form: 0; round trips that differ: 0; lost hits: 0; placeholders in the entries given by memexec: 0.
+Stored entries: 3; with a numbered block: 3; without numbered form: 0; round trips that differ: 0; lost hits: 0; placeholders in the entries given by memexec: 0.

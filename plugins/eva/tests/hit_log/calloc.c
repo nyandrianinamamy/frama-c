@@ -5,8 +5,8 @@
 */
 
 /* A call that creates an allocated block is answered at its own points, with
-   the content of the block. A call that creates a block is not reused by
-   memexec: both calls are analysed. */
+   the content of the block. Memexec stores such a call under the policy
+   by_stack (#129), but the start states differ: both calls are analysed. */
 
 #include <stdlib.h>
 

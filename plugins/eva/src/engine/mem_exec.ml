@@ -117,6 +117,7 @@ let equal_blocks b1 b2 = List.equal equal_block b1 b2
    interface. *)
 type allocation = {
   block: Base.t;
+  builtin: Heap_effects.builtin;
   suffix: Callstack.call list;
   rank: int;
   size: Cvalue.V.t;
@@ -126,6 +127,7 @@ type allocation = {
 type heap = {
   removed: Base.Hptset.t;
   swept: Base.Hptset.t;
+  copied: Base.Hptset.t;
   exit: Heap_paths.sweeps;
   mutations: Heap_effects.t list;
   allocations: allocation list;
@@ -292,11 +294,12 @@ module Make
      allocated block, see [Numbering]. *)
 
   (* An allocation of a heap call, numbered: the number of the block it
-     creates or reuses, the calls from the call down to the allocation, its
-     rank on this stack, the size requested and the decision of the
-     policy. *)
+     creates or reuses, the builtin that makes it, the calls from the call
+     down to the allocation, its rank on this stack, the size requested and
+     the decision of the policy. *)
   type replayed = {
     number: int;
+    builtin: Heap_effects.builtin;
     suffix: Callstack.call list;
     rank: int;
     size: Cvalue.V.t;
@@ -562,8 +565,9 @@ module Make
            let replay =
              List.map
                (fun (a: allocation) ->
-                  { number = number a.block; suffix = a.suffix; rank = a.rank;
-                    size = a.size; decision = a.decision })
+                  { number = number a.block; builtin = a.builtin;
+                    suffix = a.suffix; rank = a.rank; size = a.size;
+                    decision = a.decision })
                heap.allocations
            in
            { removed_numbers = rewrite heap.removed;
@@ -675,9 +679,10 @@ module Make
         (* The matching key: the bases read by the call, those read by its
            annotations, and those it writes on any path, whether the path
            returns or not, including the bases it surely overwrites; and,
-           for a heap call, the blocks that it removes, which the inout plugin
-           does not give, and the candidates of its allocations, without the
-           blocks that it creates, which do not exist at its start. *)
+           for a heap call, the blocks that it removes and those whose content
+           its allocations by [realloc] copy, which the inout plugin does not
+           give, and the candidates of its allocations, without the blocks
+           that it creates, which do not exist at its start. *)
         let input_bases =
           let input_bases = bases inout.Inout_type.over_inputs in
           let logic_input_bases = bases inout.Inout_type.over_logic_inputs in
@@ -693,6 +698,7 @@ module Make
                 candidates
             in
             let input_bases = Base.Hptset.union input_bases heap.removed in
+            let input_bases = Base.Hptset.union input_bases heap.copied in
             let input_bases =
               List.fold_left add_candidates input_bases heap.candidates
             in
@@ -951,7 +957,10 @@ module Make
       if a.number <> Numbering.length numbering then
         Self.fatal "replay of an allocation: creation symbol %d, expected %d"
           a.number (Numbering.length numbering);
-      let base = Builtins_malloc.replay_creation ~stack ~rank:a.rank a.size in
+      let base =
+        Builtins_malloc.replay_creation ~stack ~rank:a.rank ~builtin:a.builtin
+          a.size
+      in
       Numbering.add Creation [ base ] numbering
     | Reused { weakened } ->
       let base =

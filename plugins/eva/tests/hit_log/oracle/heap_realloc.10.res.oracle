@@ -19,13 +19,14 @@ Calls:
   calloc :: heap_realloc.c:224 <- cr :: heap_realloc.c:230 <- calloc_realloc_main: builtin
   realloc :: heap_realloc.c:225 <- cr :: heap_realloc.c:230 <- calloc_realloc_main: builtin
   cr :: heap_realloc.c:230 <- calloc_realloc_main: analysed, cache entry 7
-  calloc :: heap_realloc.c:224 <- cr :: heap_realloc.c:231 <- calloc_realloc_main: builtin
-  realloc :: heap_realloc.c:225 <- cr :: heap_realloc.c:231 <- calloc_realloc_main: builtin
-  cr :: heap_realloc.c:231 <- calloc_realloc_main: analysed, cache entry 8
-  calloc_realloc_main: analysed, cache entry 9
-Heap calls, not stored by memexec: calloc_realloc_main 1, cr 2.
+  cr :: heap_realloc.c:231 <- calloc_realloc_main: hit of cache entry 7
+  calloc_realloc_main: analysed, cache entry 8
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: calloc_realloc_main 1, cr 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  cr :: heap_realloc.c:231 <- calloc_realloc_main, hit of cache entry 7, against cr :: heap_realloc.c:230 <- calloc_realloc_main: differs on __calloc_cr_l224_3, __calloc_cr_l224_4, __realloc_cr_l225_3, __realloc_cr_l225_4, a, p, q, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 1133 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

@@ -20,12 +20,14 @@ Calls:
   realloc :: heap_realloc.c:192 <- rself :: heap_realloc.c:198 <- self_main: builtin
   rself :: heap_realloc.c:198 <- self_main: analysed, cache entry 7
   malloc :: heap_realloc.c:199 <- self_main: builtin
-  realloc :: heap_realloc.c:192 <- rself :: heap_realloc.c:201 <- self_main: builtin
-  rself :: heap_realloc.c:201 <- self_main: analysed, cache entry 8
-  self_main: analysed, cache entry 9
-Heap calls, not stored by memexec: rself 2, self_main 1.
+  rself :: heap_realloc.c:201 <- self_main: hit of cache entry 7
+  self_main: analysed, cache entry 8
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: rself 1, self_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  rself :: heap_realloc.c:201 <- self_main, hit of cache entry 7, against rself :: heap_realloc.c:198 <- self_main: differs on __malloc_self_main_l196_1, __malloc_self_main_l199_1, __realloc_rself_l192_3, __realloc_rself_l192_4, p, s, tmp, at 5 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 1135 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

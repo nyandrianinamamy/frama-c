@@ -13,16 +13,16 @@ Calls:
   calloc :: heap_calloc.c:51 <- cz :: heap_calloc.c:56 <- freed_main: builtin
   cz :: heap_calloc.c:56 <- freed_main: analysed, cache entry 12
   free :: heap_calloc.c:58 <- freed_main: builtin
-  calloc :: heap_calloc.c:51 <- cz :: heap_calloc.c:56 <- freed_main: builtin
-  cz :: heap_calloc.c:56 <- freed_main: analysed, cache entry 13
+  cz :: heap_calloc.c:56 <- freed_main: hit of cache entry 12
   free :: heap_calloc.c:58 <- freed_main: builtin
-  calloc :: heap_calloc.c:51 <- cz :: heap_calloc.c:56 <- freed_main: builtin
-  cz :: heap_calloc.c:56 <- freed_main: analysed, cache entry 14
+  cz :: heap_calloc.c:56 <- freed_main: hit of cache entry 12
   free :: heap_calloc.c:58 <- freed_main: builtin
-  freed_main: analysed, cache entry 15
-Heap calls, not stored by memexec: cz 4, freed_main 1.
+  freed_main: analysed, cache entry 13
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: cz 2, freed_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 258 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

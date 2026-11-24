@@ -1,14 +1,15 @@
 [kernel] Parsing heap_effects.c (with preprocessing)
 Heap effects received by calloc_realloc_main:
-  heap_effects.c:43, in calloc: allocation of __calloc_calloc_realloc_main_l43_1: policy by_stack, stack calloc :: heap_effects.c:43 <- calloc_realloc_main, rank 0, size {4}, type char, created, suffix calloc :: heap_effects.c:43
-  heap_effects.c:44, in realloc: allocation of __realloc_calloc_realloc_main_l44_1: policy by_stack, stack realloc :: heap_effects.c:44 <- calloc_realloc_main, rank 0, size {8}, type char, created, suffix realloc :: heap_effects.c:44
+  heap_effects.c:43, in calloc: allocation of __calloc_calloc_realloc_main_l43_1: policy by_stack, stack calloc :: heap_effects.c:43 <- calloc_realloc_main, rank 0, size {4}, type char, created, by calloc, suffix calloc :: heap_effects.c:43
+  heap_effects.c:44, in realloc: allocation of __realloc_calloc_realloc_main_l44_1: policy by_stack, stack realloc :: heap_effects.c:44 <- calloc_realloc_main, rank 0, size {8}, type char, created, by realloc, copying __calloc_calloc_realloc_main_l43_1, suffix realloc :: heap_effects.c:44
   heap_effects.c:44, in realloc: removal of __calloc_calloc_realloc_main_l43_1
   heap_effects.c:44, in realloc: sweep of __calloc_calloc_realloc_main_l43_1, exact
 Calls:
   calloc :: heap_effects.c:43 <- calloc_realloc_main: builtin
   realloc :: heap_effects.c:44 <- calloc_realloc_main: builtin
   calloc_realloc_main: analysed, cache entry 3
-Heap calls, not stored by memexec: calloc_realloc_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: calloc_realloc_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Initial state: equal.

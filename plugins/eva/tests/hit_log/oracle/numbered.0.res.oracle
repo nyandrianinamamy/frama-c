@@ -41,6 +41,32 @@ Cache entry 8, store:
     #0: [0..31] {{ &local }}, [32..34359738367] BOTVALUE
   round trip: equal
   new numbered form
+Cache entry 9, round_trip_main:
+  numbered blocks:
+    #0: __malloc_round_trip_main_l32_1, creation symbol; strong, record Variable [0..159--159], type struct cell, malloc
+    #1: __malloc_round_trip_main_l33_1, creation symbol; strong, record Variable [0..31--31], type int, malloc
+    #2: __calloc_w_round_trip_main_l35_1, creation symbol; weak, record Variable [0..31--31], type int, malloc
+    #3: __malloc_round_trip_main_l39_1, creation symbol; strong, record Variable [0..31--31], type int *, malloc
+  arguments: none
+  key: __fc_heap_status, errno, r_cell, c, i, dead, local, slot
+  start, clobbered set #0, #3:
+    __fc_heap_status: [0..31] [--..--]
+    errno: [0..31] [--..--]
+    r_cell: [0..31] {0}
+  exit 1, clobbered set #0, #3:
+    __fc_heap_status: [0..31] [--..--]
+    errno: [0..31] [--..--]
+    r_cell: [0..31] {1}
+    c: [0..31] {{ &#0 }}
+    local: [0..31] {0}
+    slot: [0..31] {{ &#3 }}
+    #0: [0..31] {{ &#1 }}, [32..63] {{ &#2_w }}, [64..95] ESCAPINGADDR, [96..159] UNINITIALIZED, [160..34359738367] BOTVALUE
+    #1: [0..31] {1}, [32..34359738367] BOTVALUE
+    #2_w: [0..31] {0}, [32..34359738367] BOTVALUE
+    #3: [0..31] {{ &local }}, [32..34359738367] BOTVALUE
+  created: #0, #1, #2_w, #3
+  round trip: equal
+  new numbered form
 Calls:
   malloc :: numbered.c:32 <- round_trip_main: builtin
   malloc :: numbered.c:33 <- round_trip_main: builtin
@@ -50,7 +76,8 @@ Calls:
   malloc :: numbered.c:39 <- round_trip_main: builtin
   store :: numbered.c:40 <- round_trip_main: analysed, cache entry 8
   round_trip_main: analysed, cache entry 9
-Heap calls, not stored by memexec: round_trip_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: round_trip_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Initial state: equal.
@@ -69,4 +96,4 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 319 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.2308, 0 alarms, those of the run without memexec.
-Stored entries: 2; with a numbered block: 2; without numbered form: 0; round trips that differ: 0; lost hits: 0; placeholders in the entries given by memexec: 0.
+Stored entries: 3; with a numbered block: 3; without numbered form: 0; round trips that differ: 0; lost hits: 0; placeholders in the entries given by memexec: 0.

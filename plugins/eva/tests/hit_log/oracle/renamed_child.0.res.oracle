@@ -14,7 +14,8 @@ Calls:
   pair :: renamed_child.c:33 <- child_main: analysed, cache entry 25
   pair :: renamed_child.c:34 <- child_main: hit of cache entry 25
   child_main: analysed, cache entry 26
-Heap calls, not stored by memexec: child_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: child_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls below a hit:

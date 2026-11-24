@@ -225,16 +225,18 @@ let guess_intended_malloc_type stack sizev constant_size =
     { min_bytes = size_min; max_bytes = size_max; elem_typ = Cil_const.charType;
       nb_elems = nb_elems Z.one }
 
-(* Emits the allocation of [block] by [policy] on [stack], stripped of the
+(* Emits the allocation of [block] by [builtin], which copies the content of
+   the blocks [copied] into it, by [policy] on [stack], stripped of the
    allocation wrappers, as [call_stack_no_wrappers] gives it. *)
-let emit_allocation ~policy ~stack ?rank ?typ ~sizev decision block =
+let emit_allocation ~builtin ~copied ~policy ~stack ?rank ?typ ~sizev decision
+    block =
   let typ =
     match typ with
     | Some typ -> typ
     | None -> (guess_intended_malloc_type stack sizev false).elem_typ
   in
-  Heap_effects.(emit (Allocation { block; policy; stack; rank; size = sizev;
-                                   typ; decision }))
+  Heap_effects.(emit (Allocation { block; builtin; copied; policy; stack;
+                                   rank; size = sizev; typ; decision }))
 
 (* Helper function to create the best type for a new base.  Builds an
    array type with the appropriate number of elements if needed.  When
@@ -331,8 +333,10 @@ let pp_validity fmt (v1, v2) =
 (* Create a new variable of size [sizev] with deallocation type [deallocation],
    allocated on [stack], and registers it as allocated on [stack]. Returns the
    new base, and its maximum validity. If [emit], the creation is emitted as
-   an allocation by [policy], of rank [rank] if given. *)
-let alloc_on ~stack ~emit ~policy ?rank weak deallocation prefix sizev =
+   an allocation by [builtin], which copies the blocks [copied] into it, by
+   [policy], of rank [rank] if given. *)
+let alloc_on ~stack ~emit ~policy ?rank ~builtin ~copied weak deallocation
+    prefix sizev =
   let tsize = guess_intended_malloc_type stack sizev (weak = Strong) in
   let type_base = type_from_nb_elems tsize in
   let var = create_new_var stack prefix type_base weak in
@@ -353,18 +357,19 @@ let alloc_on ~stack ~emit ~policy ?rank weak deallocation prefix sizev =
   let new_base = Base.register_allocated_var var deallocation validity in
   register_malloced_base ~stack new_base;
   if emit then
-    emit_allocation ~policy ~stack ?rank ~typ:tsize.elem_typ ~sizev Created
-      new_base;
+    emit_allocation ~builtin ~copied ~policy ~stack ?rank ~typ:tsize.elem_typ
+      ~sizev Created new_base;
   new_base, max_alloc, Builtins.NoCacheCallers
 
 (* Create a new variable as [alloc_on] does, on the current callstack without
    the allocation wrappers, and emits its creation with -eva-hit-log.
    Note that [_state] is not used, but it is present to ensure a compatible
    signature with [alloc_by_stack]. *)
-let alloc_fresh ~policy ?rank weak deallocation prefix sizev _state =
+let alloc_fresh ~policy ?rank ~builtin ~copied weak deallocation prefix sizev
+    _state =
   let stack = call_stack_no_wrappers () in
-  alloc_on ~stack ~emit:(Heap_effects.enabled ()) ~policy ?rank weak
-    deallocation prefix sizev
+  alloc_on ~stack ~emit:(Heap_effects.enabled ()) ~policy ?rank ~builtin
+    ~copied weak deallocation prefix sizev
 
 
 let string_of_region = function
@@ -394,28 +399,29 @@ module Base_with_Size = Datatype.Pair (Base.Base) (Z)
 
 (* Memoize the creation of the weakest base for [region]. Returns a function
    returning the base, its size, and the suitable cache status: NoCacheCallers
-   if the base is new, Cacheable otherwise. The function takes the size
-   requested, to emit the allocation. *)
+   if the base is new, Cacheable otherwise. The function takes the builtin,
+   the blocks it copies and the size requested, to emit the allocation. *)
 let memo_weakest_base name region =
   let module Info = struct
     let name = "Eva.Builtins_malloc." ^ name
     let dependencies = [ Self.state ]
   end in
   let module M = State_builder.Option_ref (Base_with_Size) (Info) in
-  let emit sizev decision base =
+  let emit ~builtin ~copied sizev decision base =
     if Heap_effects.enabled () then
       let stack = call_stack_no_wrappers () in
-      emit_allocation ~policy:Imprecise ~stack ~sizev decision base
+      emit_allocation ~builtin ~copied ~policy:Imprecise ~stack ~sizev decision
+        base
   in
-  fun sizev ->
+  fun ~builtin ~copied sizev ->
     match M.get_option () with
     | Some (base, size) ->
-      emit sizev (Reused { weakened = false }) base;
+      emit ~builtin ~copied sizev (Reused { weakened = false }) base;
       base, size, Builtins.Cacheable
     | None ->
       let base, size = create_weakest_base region in
       M.set (base, size);
-      emit sizev Created base;
+      emit ~builtin ~copied sizev Created base;
       base, size, Builtins.NoCacheCallers
 
 let malloc_weakest_base = memo_weakest_base "SingeMalloc" Base.Malloc
@@ -424,11 +430,11 @@ let alloca_weakest_base = memo_weakest_base "SingleAlloca" Base.Alloca
 
 (* Returns the single base representing the given region, its size and the
    suitable cache status. *)
-let alloc_weakest_base region sizev =
+let alloc_weakest_base ~builtin ~copied region sizev =
   match region with
-  | Base.Malloc -> malloc_weakest_base sizev
-  | Base.VLA -> vla_weakest_base sizev
-  | Base.Alloca -> alloca_weakest_base sizev
+  | Base.Malloc -> malloc_weakest_base ~builtin ~copied sizev
+  | Base.VLA -> vla_weakest_base ~builtin ~copied sizev
+  | Base.Alloca -> alloca_weakest_base ~builtin ~copied sizev
 
 (* Variables that have been returned by a call to an allocation function
    at this callstack. The first allocated variable is at the top of the
@@ -498,7 +504,7 @@ let update_variable_validity ?(emit=true) ?(make_weak=false) base sizev =
     base, max_valid_bits, Builtins.NoCacheCallers
   | _ -> Self.fatal "base is not Allocated: %a" Base.pretty base
 
-let alloc_by_stack region prefix sizev state =
+let alloc_by_stack ~builtin ~copied region prefix sizev state =
   let stack = call_stack_no_wrappers () in
   let max_level = Parameters.MallocLevel.get () in
   let all_vars =
@@ -507,7 +513,7 @@ let alloc_by_stack region prefix sizev state =
   in
   let reuse ~weakened rank b =
     if Heap_effects.enabled () then
-      emit_allocation ~policy:By_stack ~stack ~rank ~sizev
+      emit_allocation ~builtin ~copied ~policy:By_stack ~stack ~rank ~sizev
         (Reused { weakened }) b;
     update_variable_validity ~make_weak:weakened b sizev
   in
@@ -515,7 +521,8 @@ let alloc_by_stack region prefix sizev state =
     match vars with
     | [] -> (* must allocate a new variable *)
       let b, _, _ as r =
-        alloc_fresh ~policy:By_stack ~rank:nb Strong region prefix sizev state
+        alloc_fresh ~policy:By_stack ~rank:nb ~builtin ~copied Strong region
+          prefix sizev state
       in
       MallocedByStack.replace stack (all_vars @ [b]);
       r
@@ -538,18 +545,30 @@ let malloced_on stack =
 let fold_malloced_by_stack f init = MallocedByStack.fold f init
 
 (* The replay of the allocations of a call that memexec reuses (#127). Each
-   applies a decision that [alloc_by_stack] took for [malloc] in the call
-   that memexec stored, on the stack [stack] of the call that reuses it,
-   without running the policy again and without emitting a heap effect. *)
+   applies a decision that [alloc_by_stack] took for [malloc], [calloc],
+   [realloc] or [reallocarray] in the call that memexec stored, on the stack
+   [stack] of the call that reuses it, without running the policy again and
+   without emitting a heap effect. The content of the block is not written:
+   the reuse takes it from the states of the stored call. *)
 
-let replay_creation ~stack ~rank sizev =
+(* The prefix of the names of the blocks that [builtin] creates under the
+   policy [by_stack]: that of [register_malloc] for [malloc], of
+   [calloc_builtin] for [calloc] and of [realloc_alloc_copy] for [realloc]
+   and [reallocarray]. *)
+let prefix_of_builtin = function
+  | Heap_effects.Malloc -> "malloc"
+  | Calloc -> "calloc"
+  | Realloc -> "realloc"
+
+let replay_creation ~stack ~rank ~builtin sizev =
   let all_vars = malloced_on stack in
   if List.length all_vars <> rank then
     Self.fatal "replay of an allocation: %d blocks on the stack, rank %d"
       (List.length all_vars) rank;
   let base, _, _ =
-    alloc_on ~stack ~emit:false ~policy:By_stack ~rank Strong Base.Malloc
-      "malloc" sizev
+    alloc_on ~stack ~emit:false ~policy:By_stack ~rank ~builtin
+      ~copied:Base.Hptset.empty Strong Base.Malloc (prefix_of_builtin builtin)
+      sizev
   in
   MallocedByStack.replace stack (all_vars @ [base]);
   base
@@ -572,9 +591,10 @@ let has_allocation_annotation stmt =
     (Annotations.code_annot stmt)
 
 (* With -eva-hit-log, memexec may store a call that allocates with [malloc]
-   under the policy [by_stack], at a site without annotation [eva_allocate]
-   (#127): the builtin lets it, and the hit log decides, see
-   [Hit_log.storage]. Any other allocation keeps its status. *)
+   (#127), [calloc], [realloc] or [reallocarray] (#129) under the policy
+   [by_stack], at a site without annotation [eva_allocate]: the builtin lets
+   it, and the hit log decides, see [Hit_log.storage]. Any other allocation
+   keeps its status. *)
 let storable_by_hit_log () =
   Heap_effects.enabled ()
   &&
@@ -587,7 +607,9 @@ let choose_base_allocation () =
   | Fresh -> alloc_fresh ~policy:Fresh Strong
   | Fresh_weak -> alloc_fresh ~policy:Fresh_weak Weak
   | By_stack -> alloc_by_stack
-  | Imprecise -> fun region _ sizev _ -> alloc_weakest_base region sizev
+  | Imprecise ->
+    fun ~builtin ~copied region _ sizev _ ->
+      alloc_weakest_base ~builtin ~copied region sizev
 
 let register_malloc ?replace name ?returns_null prefix region =
   let storable =
@@ -600,7 +622,10 @@ let register_malloc ?replace name ?returns_null prefix region =
       | _ -> raise (Builtins.Invalid_nb_of_args 1)
     in
     let alloc_base = choose_base_allocation () in
-    let new_base, max_alloc, cacheable = alloc_base region prefix size state in
+    let new_base, max_alloc, cacheable =
+      alloc_base ~builtin:Heap_effects.Malloc ~copied:Base.Hptset.empty region
+        prefix size state
+    in
     let cacheable =
       if storable () then Builtins.Cacheable else cacheable
     in
@@ -655,7 +680,13 @@ let calloc_builtin state args =
     Builtins.Full { c_values; c_clobbered; c_assigns; cacheable; }
   else
     let alloc_base = choose_base_allocation () in
-    let base, max_valid, cacheable = alloc_base Malloc "calloc" size state in
+    let base, max_valid, cacheable =
+      alloc_base ~builtin:Heap_effects.Calloc ~copied:Base.Hptset.empty Malloc
+        "calloc" size state
+    in
+    let cacheable =
+      if storable_by_hit_log () then Builtins.Cacheable else cacheable
+    in
     let new_state = add_zeroes state base max_valid in
     let returns_null =
       if size_ok = Alarmset.Unknown then Some true else None
@@ -889,9 +920,12 @@ let realloc_alloc_copy ~policy weak bases_to_realloc null_in_arg sizev state =
   let _size_valid, size_max = extract_size sizev in (* bytes everywhere *)
   let base, max_valid, cacheable =
     let prefix = "realloc" in
+    let builtin = Heap_effects.Realloc and copied = bases_to_realloc in
     match weak with
-    | Strong -> alloc_fresh ~policy Strong Base.Malloc prefix sizev state
-    | Weak -> alloc_by_stack Base.Malloc prefix sizev state
+    | Strong ->
+      alloc_fresh ~policy ~builtin ~copied Strong Base.Malloc prefix sizev
+        state
+    | Weak -> alloc_by_stack ~builtin ~copied Base.Malloc prefix sizev state
   in
   (* Make sure that [ret] will be present in the result: we bind it at least
      to bottom everywhere *)
@@ -957,7 +991,10 @@ let realloc_multiple ~policy bases null size state =
   else res
 
 let realloc_imprecise_weakest _bases _null size state =
-  let new_base, max_alloc, cacheable = alloc_weakest_base Base.Malloc size in
+  let new_base, max_alloc, cacheable =
+    alloc_weakest_base ~builtin:Heap_effects.Realloc ~copied:Base.Hptset.empty
+      Base.Malloc size
+  in
   let state = add_uninitialized state new_base max_alloc in
   let ret = V.inject new_base Ival.zero in
   ret, state, cacheable
@@ -973,6 +1010,9 @@ let realloc_builtin_aux state ptr size =
   if card_ok > 0 then
     let realloc = choose_bases_reallocation () in
     let ret, new_state, cacheable = realloc bases null size state in
+    let cacheable =
+      if storable_by_hit_log () then Builtins.Cacheable else cacheable
+    in
     (* Maybe the calls above made [ret] weak, and it
        was among the arguments. In this case, do not free it entirely! *)
     let strong = card_ok <= 1 && not Base.(Hptset.exists is_weak bases) in

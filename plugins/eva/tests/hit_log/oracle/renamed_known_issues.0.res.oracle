@@ -11,7 +11,8 @@ Calls:
   Frama_C_interval :: renamed_known_issues.c:42 <- issue97_b3_renamed: specification
   limit97 :: renamed_known_issues.c:42 <- issue97_b3_renamed: hit of cache entry 7
   issue97_b3_renamed: analysed, cache entry 8
-Heap calls, not stored by memexec: issue97_b3_renamed 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: issue97_b3_renamed 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Hits against the analysed call of their cache entry:

@@ -15,7 +15,8 @@
     There are four effects:
     - an allocation, by the builtins of [malloc], [calloc], [realloc],
       [reallocarray], [alloca] and of the allocation of a variable-length
-      array: it creates a block or reuses one;
+      array: it creates a block or reuses one, and, for [realloc], reads the
+      blocks whose content it copies there;
     - a validity mutation, by the same builtins when they reuse a block, and
       by the widening of a memory map, which raises the validity of a weak
       block in place (see {!Lmap.register_validity_widening_hook});
@@ -34,12 +35,30 @@ type decision =
   | Created
   | Reused of { weakened: bool }
 
+(** The builtin that makes an allocation, which gives the name of the block
+    it creates and what it writes in the block. *)
+type builtin =
+  | Malloc
+  (** [malloc], [alloca] and the allocation of a variable-length array: the
+      block is uninitialized. *)
+  | Calloc (** [calloc]: the block is filled with zeroes. *)
+  | Realloc
+  (** [realloc] and [reallocarray]: the block receives a copy of the
+      content of the blocks that the allocation copies, which the builtin
+      releases after it. *)
+
 (** The validity record of an allocated block, in bits. *)
 type record = { min_alloc: Z.t; max_alloc: Z.t }
 
 type t =
   | Allocation of {
       block: Base.t; (** The block created or reused. *)
+      builtin: builtin;
+      copied: Base.Hptset.t;
+      (** The blocks whose content the builtin copies into the block, read
+          by the allocation: the blocks that [realloc] releases, except under
+          the policy [imprecise], where it copies nothing. Empty for the
+          other builtins. *)
       policy: Eva_annotations.allocation_kind; (** The policy that applied. *)
       stack: Callstack.t;
       (** The callstack of the allocation, without the calls of the

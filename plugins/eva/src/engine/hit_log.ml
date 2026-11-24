@@ -1137,8 +1137,12 @@ let record_mentioned mentioned =
 let rename_effect ~rename ~size ~stack (e: Heap_effects.t) : Heap_effects.t =
   match e with
   | Allocation a ->
+    let copied =
+      Base.Hptset.fold (fun b acc -> Base.Hptset.add (rename b) acc) a.copied
+        Base.Hptset.empty
+    in
     Allocation
-      { a with block = rename a.block; size = size a.size;
+      { a with block = rename a.block; copied; size = size a.size;
                stack = stack a.stack }
   | Mutation m -> Mutation { m with block = rename m.block }
   | Removal block -> Removal (rename block)
@@ -1242,13 +1246,14 @@ type storage =
   | Refused
 
 (* The heap effects [effects] of a call on [callstack] that memexec can
-   store: the blocks they remove and sweep, their validity mutations in the
-   order of emission, and their allocations, in the order of emission.
-   Among the allocation builtins, the builtin of [malloc] under the policy
-   [by_stack], at a site without annotation, lets memexec store its callers;
-   so do the builtins of the policy [imprecise] once their single block
-   exists, whose allocations this function refuses. [None] if an effect
-   refuses the call:
+   store: the blocks they remove and sweep, the blocks whose content their
+   allocations copy, their validity mutations in the order of emission, and
+   their allocations, in the order of emission. Among the allocation
+   builtins, those of [malloc], [calloc], [realloc] and [reallocarray] under
+   the policy [by_stack], at a site without annotation, let memexec store
+   their callers; so do the builtins of the policy [imprecise] once their
+   single block exists, whose allocations this function refuses. [None] if
+   an effect refuses the call:
    - an allocation by another policy than [by_stack], of a block that is not
      a heap allocation, or whose stack, without the allocation wrappers,
      ends at or above the call: the call is then an allocation wrapper, or
@@ -1258,6 +1263,7 @@ type storage =
      block in a loop. *)
 let heap_effects_of ~callstack effects =
   let removed = ref Base.Hptset.empty and swept = ref Base.Hptset.empty in
+  let copied = ref Base.Hptset.empty in
   let mutations = ref [] and allocations = ref [] in
   let last = ref None in
   let rec add = function
@@ -1276,13 +1282,16 @@ let heap_effects_of ~callstack effects =
           | Some _ | None -> raise Exit
         end
       | Some _, Mutation _ -> raise Exit
-      | _, Allocation { block; policy; stack; rank; size; decision; _ } ->
+      | _, Allocation { block; builtin; copied = c; policy; stack; rank; size;
+                        decision; _ } ->
         let suffix = Mem_exec.suffix_below ~callstack stack in
         match policy, block, rank, suffix with
         | Eva_annotations.By_stack, Base.Allocated (_, Base.Malloc, _),
           Some rank, Some suffix ->
+          copied := Base.Hptset.union c !copied;
           allocations :=
-            { Mem_exec.block; suffix; rank; size; decision } :: !allocations
+            { Mem_exec.block; builtin; suffix; rank; size; decision }
+            :: !allocations
         | _ -> raise Exit
     end;
     last := Some e
@@ -1290,15 +1299,16 @@ let heap_effects_of ~callstack effects =
   match List.iter add (List.rev effects) with
   | exception Exit -> None
   | () ->
-    Some (!removed, !swept, List.rev !mutations, List.rev !allocations)
+    Some (!removed, !swept, !copied, List.rev !mutations,
+          List.rev !allocations)
 
 (* For the allocations [allocations] of a call on [callstack], in their
    order: the stacks on which they allocate, by the order of the first
    allocation on each, each with its candidates, the blocks that the policy
    [by_stack] made on it before the call; and the blocks they create, in the
    order of their creation. The policy adds each block it creates at the
-   end of the list of its stack, and only a call of [malloc] on this stack,
-   made in the call, adds to this list: the candidates are the list now
+   end of the list of its stack, and only a call of the builtin on this
+   stack, made in the call, adds to this list: the candidates are the list now
    without the blocks created by the call, which are its last blocks. [None]
    if they are not. *)
 let candidates_and_created ~callstack allocations =
@@ -1390,7 +1400,7 @@ let storage ~callstack =
     else
       match heap_effects_of ~callstack frame.effects with
       | None -> Refused
-      | Some (removed, swept, mutations, allocations) ->
+      | Some (removed, swept, copied, mutations, allocations) ->
         match candidates_and_created ~callstack allocations with
         | None -> Refused
         | Some (candidates, created) ->
@@ -1404,8 +1414,8 @@ let storage ~callstack =
                Int_table.replace (stored_table ()) id
                  (frame.effects, frame.exit, frame.withdrawn))
             frame.used;
-          Heap { Mem_exec.removed; swept; exit; mutations; allocations;
-                 candidates; created }
+          Heap { Mem_exec.removed; swept; copied; exit; mutations;
+                 allocations; candidates; created }
 
 let mark_unrolled_recursion kf = mark (Store.get ()).body_unavailable kf
 

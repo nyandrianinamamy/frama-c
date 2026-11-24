@@ -79,9 +79,10 @@
     is not a heap call.
 
     Memexec stores a call that frees, a heap call whose heap effects are
-    removals and sweeps only, and a call that allocates by [malloc] under the
-    policy [by_stack] (#127), if it is not refused and its entry holds an
-    Inner part, see [storage]. It stores no other heap call. The entry of a
+    removals and sweeps only, and a call that allocates by [malloc] (#127),
+    [calloc], [realloc] or [reallocarray] (#129) under the policy
+    [by_stack], if it is not refused and its entry holds an Inner part, see
+    [storage]. It stores no other heap call. The entry of a
     heap call keeps the calls made by the body, projected as above and on
     the blocks covered by the heap effects before the call statement: a hit
     on the entry of a call that frees has calls below it. A hit on the entry
@@ -275,19 +276,19 @@ val builtin_outputs: int -> unit
       heap effects;
     - [Heap heap]: a heap call, not refused, whose entry holds an Inner
       part, see {!Mem_exec.heap}, whose heap effects are removals, sweeps,
-      and allocations by [malloc] under the policy [by_stack] at sites
-      without annotation (#127), each with the resize of the block it
-      reuses, and whose stack, without the allocation wrappers, ends below
-      the call;
+      and allocations by [malloc] (#127), [calloc], [realloc] and
+      [reallocarray] (#129) under the policy [by_stack] at sites without
+      annotation, each with the resize of the block it reuses, and whose
+      stack, without the allocation wrappers, ends below the call;
     - [Refused]: any other heap call, among them a call with another
       allocation or with a validity mutation by the widening of a loop, and
       any call whose entry, or the entry of a call nested in it, holds full
       states.
       Memexec does not store it. The allocation builtins let memexec store
-      no call that allocates by [calloc], [realloc], [alloca], a
-      variable-length array, or by [malloc] under another policy or at an
-      annotated site, except the policy [imprecise] once its single block
-      exists, which this refuses. *)
+      no call that allocates by [alloca], a variable-length array, or by
+      [malloc], [calloc], [realloc] or [reallocarray] under another policy
+      or at an annotated site, except the policy [imprecise] once its single
+      block exists, which this refuses. *)
 type storage =
   | Plain
   | Heap of Mem_exec.heap

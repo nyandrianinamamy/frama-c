@@ -7,8 +7,8 @@ Calls:
   malloc :: heap_hit.c:50 <- frame_main: builtin
   rel :: heap_hit.c:53 <- frame_main: hit of cache entry 7
   frame_main: analysed, cache entry 8
-Heap calls, not stored by memexec: frame_main 1.
-Heap calls stored by memexec: rel 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: frame_main 1, rel 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 rel, start:

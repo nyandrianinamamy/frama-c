@@ -28,21 +28,23 @@ Calls:
   rs :: heap_realloc.c:246 <- upward_main: analysed, cache entry 20
   malloc :: heap_realloc.c:247 <- upward_main: builtin
   fill :: heap_realloc.c:247 <- upward_main: hit of cache entry 19
-  realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:239 <- parent :: heap_realloc.c:248 <- upward_main: builtin
-  rs :: heap_realloc.c:239 <- parent :: heap_realloc.c:248 <- upward_main: analysed, cache entry 21
-  parent :: heap_realloc.c:248 <- upward_main: analysed, cache entry 22
+  rs :: heap_realloc.c:239 <- parent :: heap_realloc.c:248 <- upward_main: hit of cache entry 20
+  parent :: heap_realloc.c:248 <- upward_main: analysed, cache entry 21
   malloc :: heap_realloc.c:249 <- upward_main: builtin
   fill :: heap_realloc.c:249 <- upward_main: hit of cache entry 19
-  realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:239 <- parent :: heap_realloc.c:250 <- upward_main: builtin
-  rs :: heap_realloc.c:239 <- parent :: heap_realloc.c:250 <- upward_main: analysed, cache entry 23
-  parent :: heap_realloc.c:250 <- upward_main: analysed, cache entry 24
-  upward_main: analysed, cache entry 25
-Heap calls, not stored by memexec: parent 2, rs 3, upward_main 1.
+  parent :: heap_realloc.c:250 <- upward_main: hit of cache entry 21
+  upward_main: analysed, cache entry 22
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: parent 1, rs 1, upward_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  rs :: heap_realloc.c:239 <- parent :: heap_realloc.c:250 <- upward_main
 Hits against the analysed call of their cache entry:
   fill :: heap_realloc.c:247 <- upward_main, hit of cache entry 19, against fill :: heap_realloc.c:245 <- upward_main: differs on __malloc_upward_main_l245_1, __malloc_upward_main_l247_1, __realloc_rs_l46_5, a, g, at 11 points.
+  rs :: heap_realloc.c:239 <- parent :: heap_realloc.c:248 <- upward_main, hit of cache entry 20, against rs :: heap_realloc.c:246 <- upward_main: differs on __malloc_upward_main_l245_1, __malloc_upward_main_l247_1, __realloc_rs_l46_5, __realloc_rs_l46_6, a, g, p, tmp, at 5 points.
   fill :: heap_realloc.c:249 <- upward_main, hit of cache entry 19, against fill :: heap_realloc.c:245 <- upward_main: differs on __malloc_upward_main_l245_1, __malloc_upward_main_l249_1, __realloc_rs_l46_5, __realloc_rs_l46_6, a, b, g, at 11 points.
+  parent :: heap_realloc.c:250 <- upward_main, hit of cache entry 21, against parent :: heap_realloc.c:248 <- upward_main: differs on __malloc_upward_main_l247_1, __malloc_upward_main_l249_1, __realloc_rs_l46_6, __realloc_rs_l46_7, b, g, p, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 1193 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
@@ -56,6 +58,7 @@ Passes after the iteration:
     unreachable statements: 274 requests
     statistics: 21 requests
     summary: 19 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
 Statuses of the properties: those of the run without memexec, for 406 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1739, 0 alarms, those of the run without memexec.

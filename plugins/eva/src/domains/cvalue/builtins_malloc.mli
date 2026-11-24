@@ -49,19 +49,24 @@ val fold_malloced_by_stack: (Callstack.t -> Base.t list -> 'a -> 'a) -> 'a -> 'a
 val malloced_on: Callstack.t -> Base.t list
 
 (** With option [-eva-hit-log], memexec stores and reuses a call that
-    allocates with [malloc] under the policy [by_stack] (#127). A reuse
-    replays each decision of the policy that the analysis of the stored call
-    took, in the order it took them, on the callstack [stack] of the
-    allocation in the call that reuses it, without running the policy again
-    and without emitting a heap effect. Both functions return the block:
-    - [replay_creation ~stack ~rank size] creates the block of rank [rank]
-      on [stack] for a request of [size] bytes, as the builtin does when the
-      list of the blocks of [stack] has [rank] blocks, and adds it to the
-      tables of the allocated blocks. Fails if the list has another length.
+    allocates with [malloc] (#127), [calloc], [realloc] or [reallocarray]
+    (#129) under the policy [by_stack]. A reuse replays each decision of the
+    policy that the analysis of the stored call took, in the order it took
+    them, on the callstack [stack] of the allocation in the call that reuses
+    it, without running the policy again and without emitting a heap
+    effect. Neither function writes the content of the block, which the
+    reuse takes from the states of the stored call. Both return the block:
+    - [replay_creation ~stack ~rank ~builtin size] creates the block of rank
+      [rank] on [stack] for a request of [size] bytes, as [builtin] does when
+      the list of the blocks of [stack] has [rank] blocks, with the name that
+      [builtin] gives it, and adds it to the tables of the allocated blocks.
+      Fails if the list has another length.
     - [replay_reuse ~stack ~rank ~weakened size] reuses the block of rank
       [rank] on [stack], weakened if [weakened], and resizes it to [size]
       bytes, as the builtin does, which changes its type as well. Fails if
       the list has no block of this rank. *)
-val replay_creation: stack:Callstack.t -> rank:int -> Cvalue.V.t -> Base.t
+val replay_creation:
+  stack:Callstack.t -> rank:int -> builtin:Heap_effects.builtin ->
+  Cvalue.V.t -> Base.t
 val replay_reuse:
   stack:Callstack.t -> rank:int -> weakened:bool -> Cvalue.V.t -> Base.t

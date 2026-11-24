@@ -19,12 +19,14 @@ Calls:
   Frama_C_unsigned_int_interval :: heap_calloc.c:91 <- maybe_main: specification
   calloc :: heap_calloc.c:85 <- maybe :: heap_calloc.c:92 <- maybe_main: builtin
   maybe :: heap_calloc.c:92 <- maybe_main: analysed, cache entry 7
-  calloc :: heap_calloc.c:85 <- maybe :: heap_calloc.c:93 <- maybe_main: builtin
-  maybe :: heap_calloc.c:93 <- maybe_main: analysed, cache entry 8
-  maybe_main: analysed, cache entry 9
-Heap calls, not stored by memexec: maybe 2, maybe_main 1.
+  maybe :: heap_calloc.c:93 <- maybe_main: hit of cache entry 7
+  maybe_main: analysed, cache entry 8
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: maybe 1, maybe_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  maybe :: heap_calloc.c:93 <- maybe_main, hit of cache entry 7, against maybe :: heap_calloc.c:92 <- maybe_main: differs on __calloc_maybe_l85_3, __calloc_maybe_l85_4, a, p, at 9 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 263 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

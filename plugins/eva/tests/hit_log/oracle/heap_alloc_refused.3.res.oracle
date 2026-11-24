@@ -12,14 +12,13 @@ These are the tables of the run without memexec.
 Calls:
   calloc :: heap_alloc_refused.c:73 <- c_alloc :: heap_alloc_refused.c:84 <- other_main: builtin
   c_alloc :: heap_alloc_refused.c:84 <- other_main: analysed, cache entry 11
-  calloc :: heap_alloc_refused.c:73 <- c_alloc :: heap_alloc_refused.c:85 <- other_main: builtin
-  c_alloc :: heap_alloc_refused.c:85 <- other_main: analysed, cache entry 12
+  c_alloc :: heap_alloc_refused.c:85 <- other_main: hit of cache entry 11
   realloc :: heap_alloc_refused.c:78 <- r_alloc :: heap_alloc_refused.c:86 <- other_main: builtin
-  r_alloc :: heap_alloc_refused.c:86 <- other_main: analysed, cache entry 13
-  realloc :: heap_alloc_refused.c:78 <- r_alloc :: heap_alloc_refused.c:87 <- other_main: builtin
-  r_alloc :: heap_alloc_refused.c:87 <- other_main: analysed, cache entry 14
-  other_main: analysed, cache entry 15
-Heap calls, not stored by memexec: c_alloc 2, other_main 1, r_alloc 2.
+  r_alloc :: heap_alloc_refused.c:86 <- other_main: analysed, cache entry 12
+  r_alloc :: heap_alloc_refused.c:87 <- other_main: hit of cache entry 12
+  other_main: analysed, cache entry 13
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: c_alloc 1, other_main 1, r_alloc 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 other_main, start:
@@ -59,6 +58,9 @@ other_main, after heap_alloc_refused.c:89 `return;`:
               __calloc_c_alloc_l73_4 ∈ {0}
               __realloc_r_alloc_l78_3 ∈ {1}
               __realloc_r_alloc_l78_4 ∈ {1}
+Hits against the analysed call of their cache entry:
+  c_alloc :: heap_alloc_refused.c:85 <- other_main, hit of cache entry 11, against c_alloc :: heap_alloc_refused.c:84 <- other_main: differs on __calloc_c_alloc_l73_3, __calloc_c_alloc_l73_4, a, p, at 5 points.
+  r_alloc :: heap_alloc_refused.c:87 <- other_main, hit of cache entry 12, against r_alloc :: heap_alloc_refused.c:86 <- other_main: differs on __realloc_r_alloc_l78_3, __realloc_r_alloc_l78_4, c, p, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 321 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

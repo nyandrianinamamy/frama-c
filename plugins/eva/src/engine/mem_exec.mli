@@ -51,14 +51,16 @@ val equal_block: block -> block -> bool
 type renaming = (Base.t * Base.t) list
 
 (** An allocation of a heap call that memexec stores (#127): [block], the
-    block it creates or reuses; [suffix], the calls from the heap call down
-    to the call of [malloc], innermost first, of the callstack of the
-    allocation without the allocation wrappers, as the policy [by_stack]
-    reads it; [rank], the rank of the block among the blocks made on this
-    stack; [size], the size requested; [decision], the decision of the
-    policy. *)
+    block it creates or reuses; [builtin], the builtin that makes it (#129),
+    which names the blocks it creates; [suffix], the calls from the heap
+    call down to the call of the builtin, innermost first, of the callstack
+    of the allocation without the allocation wrappers, as the policy
+    [by_stack] reads it; [rank], the rank of the block among the blocks made
+    on this stack; [size], the size requested; [decision], the decision of
+    the policy. *)
 type allocation = {
   block: Base.t;
+  builtin: Heap_effects.builtin;
   suffix: Callstack.call list;
   rank: int;
   size: Cvalue.V.t;
@@ -67,9 +69,11 @@ type allocation = {
 
 (** What memexec stores of a heap call (see {!Hit_log}): a call that frees,
     whose heap effects are removals and sweeps only, or a call that also
-    allocates with [malloc] under the policy [by_stack] (#127).
+    allocates with [malloc] (#127), [calloc], [realloc] or [reallocarray]
+    (#129) under the policy [by_stack].
     [removed], the blocks it removes; [swept], the blocks it sweeps at any
-    point of its body; [exit], the blocks swept on every path from its start
+    point of its body; [copied], the blocks whose content its allocations by
+    [realloc] copy; [exit], the blocks swept on every path from its start
     to its return, and on some path only; [mutations], its validity
     mutations, from which the snapshot of its start is rebuilt, see
     {!take_block_at_entry}; [allocations], its allocations, in the order of
@@ -81,6 +85,7 @@ type allocation = {
 type heap = {
   removed: Base.Hptset.t;
   swept: Base.Hptset.t;
+  copied: Base.Hptset.t;
   exit: Heap_paths.sweeps;
   mutations: Heap_effects.t list;
   allocations: allocation list;
@@ -156,7 +161,10 @@ val suffix_below:
     effects [heap], is stored in numbered form only (#127). Its key holds the
     candidates of its allocations: for each stack on which it allocates, the
     blocks that the policy [by_stack] made on this stack before it, present
-    in its start state or not. The blocks it creates are not in its key:
+    in its start state or not; and the blocks whose content [realloc] copies
+    (#129), which the inout plugin does not give as read. The content that an
+    allocation writes, uninitialized, zeroes or a copy, is in the exits of
+    the call. The blocks it creates are not in its key:
     they are numbered after every other block, in the order of their
     creation, the creation symbols, have no snapshot, and are copied on a
     reuse. Its start state is numbered with the strength of each block at

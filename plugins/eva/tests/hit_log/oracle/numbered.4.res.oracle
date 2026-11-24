@@ -30,13 +30,38 @@ Cache entry 8, unreached:
   with the blocks of earlier entries as candidates, __malloc_unreached_main_l109_1:
     #0: __malloc_unreached_main_l109_1, candidate; strong, record Variable [0..31--31], type int, malloc
     #1: __calloc_unreached_main_l112_1, key block reached from no root, in the key; strong, record Variable [0..31--31], type int, malloc
+Cache entry 9, unreached_main:
+  numbered blocks:
+    #0: __malloc_unreached_main_l109_1, creation symbol; strong, record Variable [0..31--31], type int, malloc
+    #1: __calloc_unreached_main_l112_1, creation symbol; strong, record Variable [0..31--31], type int, malloc
+  arguments: none
+  key: __fc_heap_status, errno, r_deref, gp, r_unreached, f
+  start, clobbered set none:
+    __fc_heap_status: [0..31] [--..--]
+    errno: [0..31] [--..--]
+    r_deref: [0..63] {0}
+    gp: [0..31] {0}
+    r_unreached: [0..31] {0}
+  exit 1, clobbered set none:
+    __fc_heap_status: [0..31] [--..--]
+    errno: [0..31] [--..--]
+    r_deref: [0..31] {5}, [32..63] {0}
+    gp: [0..31] {{ &#1 }}
+    r_unreached: [0..31] {7}
+    f: [0..31] {{ &#0 }}
+    #0: [0..31] {5}, [32..34359738367] BOTVALUE
+    #1: [0..31] {0}, [32..34359738367] BOTVALUE
+  created: #0, #1
+  round trip: equal
+  new numbered form
 Calls:
   malloc :: numbered.c:109 <- unreached_main: builtin
   deref :: numbered.c:111 <- unreached_main: analysed, cache entry 7
   calloc :: numbered.c:112 <- unreached_main: builtin
   unreached :: numbered.c:113 <- unreached_main: analysed, cache entry 8
   unreached_main: analysed, cache entry 9
-Heap calls, not stored by memexec: unreached_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: unreached_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Initial state: equal.
@@ -57,4 +82,4 @@ Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.2308, 0 alarms, those of the run without memexec.
 Numbering of an argument that may point to any block: no numbered form, unknown targets
 Numbering of a block of the key that may point to any block: no numbered form, unknown targets
-Stored entries: 2; with a numbered block: 2; without numbered form: 0; round trips that differ: 0; lost hits: 0; placeholders in the entries given by memexec: 0.
+Stored entries: 3; with a numbered block: 3; without numbered form: 0; round trips that differ: 0; lost hits: 0; placeholders in the entries given by memexec: 0.
