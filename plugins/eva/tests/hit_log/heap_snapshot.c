@@ -9,8 +9,8 @@
    snapshot at the start of each call analysed by its body, rebuilds it when
    the call ends, and prints the blocks where the two differ, and, as a
    control, the blocks whose snapshot at the end differs from the one taken
-   at the start. Memexec stores no call that received a validity mutation:
-   this checks the rebuilding on the calls that do. */
+   at the start. Memexec stores a call with validity mutations only if they
+   resize blocks that malloc reuses (#127); the device checks all calls. */
 
 #include <stdlib.h>
 #include "__fc_builtin.h"

@@ -262,22 +262,32 @@ val record_hit:
     [call] runs returns [n] states. *)
 val builtin_outputs: int -> unit
 
-(** How memexec stores the call analysed by its body whose analysis the
-    innermost [call] runs, once [record_analysed_call] has recorded it:
+(** How memexec stores the call on [callstack] analysed by its body whose
+    analysis the innermost [call] runs, once [record_analysed_call] has
+    recorded it:
     - [Plain]: the call is not a heap call and encloses no hit on the entry
       of a heap call; memexec stores it as without heap effects;
-    - [Heap heap]: the call frees, see {!Mem_exec.heap}: a heap call whose
-      heap effects are removals and sweeps only, which is not refused and
-      whose entry holds an Inner part. Its validity mutations are none;
-    - [Refused]: any other heap call, any call that encloses a hit on the
-      entry of a heap call, and any call whose entry, or the entry of a call
-      nested in it, holds full states. Memexec does not store it. *)
+    - [Heap heap]: a heap call, not refused, whose entry holds an Inner
+      part, see {!Mem_exec.heap}, whose heap effects are removals, sweeps,
+      and allocations by [malloc] under the policy [by_stack] at sites
+      without annotation (#127), each with the resize of the block it
+      reuses, and whose stack, without the allocation wrappers, ends below
+      the call;
+    - [Refused]: any other heap call, among them a call with another
+      allocation or with a validity mutation by the widening of a loop, any
+      call that encloses a hit on the entry of a heap call, and any call
+      whose entry, or the entry of a call nested in it, holds full states.
+      Memexec does not store it. The allocation builtins let memexec store
+      no call that allocates by [calloc], [realloc], [alloca], a
+      variable-length array, or by [malloc] under another policy or at an
+      annotated site, except the policy [imprecise] once its single block
+      exists, which this refuses. *)
 type storage =
   | Plain
   | Heap of Mem_exec.heap
   | Refused
 
-val storage: unit -> storage
+val storage: callstack:Callstack.t -> storage
 
 (** [lost_hit kf f] runs [f], the analysis of a call to [kf] that memexec
     would have reused if it stored the heap calls that it does not store,

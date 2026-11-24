@@ -17,12 +17,34 @@ Cache entry 5, second:
     #1: [0..31] {{ &#0 }}, [32..63] {2}, [64..34359738367] BOTVALUE
   round trip: equal
   new numbered form
+Cache entry 6, cycle_main:
+  numbered blocks:
+    #0: __malloc_cycle_main_l122_1, creation symbol; strong, record Variable [0..63--63], type struct node, malloc
+    #1: __malloc_cycle_main_l123_1, creation symbol; strong, record Variable [0..63--63], type struct node, malloc
+  arguments: none
+  key: __fc_heap_status, errno, r_second, a, b
+  start, clobbered set none:
+    __fc_heap_status: [0..31] [--..--]
+    errno: [0..31] [--..--]
+    r_second: [0..31] {0}
+  exit 1, clobbered set none:
+    __fc_heap_status: [0..31] [--..--]
+    errno: [0..31] [--..--]
+    r_second: [0..31] {3}
+    a: [0..31] {{ &#0 }}
+    b: [0..31] {{ &#1 }}
+    #0: [0..31] {{ &#1 }}, [32..63] {1}, [64..34359738367] BOTVALUE
+    #1: [0..31] {{ &#0 }}, [32..63] {2}, [64..34359738367] BOTVALUE
+  created: #0, #1
+  round trip: equal
+  new numbered form
 Calls:
   malloc :: numbered.c:122 <- cycle_main: builtin
   malloc :: numbered.c:123 <- cycle_main: builtin
   second :: numbered.c:126 <- cycle_main: analysed, cache entry 5
   cycle_main: analysed, cache entry 6
-Heap calls, not stored by memexec: cycle_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: cycle_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Initial state: equal.
@@ -41,4 +63,4 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 319 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1538, 0 alarms, those of the run without memexec.
-Stored entries: 1; with a numbered block: 1; without numbered form: 0; round trips that differ: 0; lost hits: 0; placeholders in the entries given by memexec: 0.
+Stored entries: 2; with a numbered block: 2; without numbered form: 0; round trips that differ: 0; lost hits: 0; placeholders in the entries given by memexec: 0.

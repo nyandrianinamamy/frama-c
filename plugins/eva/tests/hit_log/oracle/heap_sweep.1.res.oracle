@@ -19,8 +19,9 @@ Calls:
   recur_stale :: heap_sweep.c:49 <- recur_stale :: heap_sweep.c:52 <- stale_main: analysed, cache entry 25
   recur_stale :: heap_sweep.c:52 <- stale_main: analysed, cache entry 26
   stale_main: analysed, cache entry 27
-Heap calls, not stored by memexec: recur_stale 4, stale_main 1, worker 2.
-Heap calls stored by memexec: withdraw 2.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: recur_stale 4, stale_main 1, withdraw 2,
+  worker 2.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 worker, start:

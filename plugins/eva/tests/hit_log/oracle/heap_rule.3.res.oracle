@@ -7,7 +7,8 @@ Calls:
   malloc :: heap_rule.c:61 <- again :: heap_rule.c:63 <- again_main: builtin
   again :: heap_rule.c:63 <- again_main: analysed, cache entry 8
   again_main: analysed, cache entry 9
-Heap calls, not stored by memexec: again 2, again_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: again 2, again_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 again, start:

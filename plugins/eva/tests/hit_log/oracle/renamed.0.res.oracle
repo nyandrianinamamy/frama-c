@@ -5,7 +5,8 @@ Calls:
   get :: renamed.c:35 <- equal_main: analysed, cache entry 7
   get :: renamed.c:36 <- equal_main: hit of cache entry 7
   equal_main: analysed, cache entry 8
-Heap calls, not stored by memexec: equal_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: equal_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 get, start:

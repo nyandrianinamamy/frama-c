@@ -1161,53 +1161,153 @@ type storage =
   | Heap of Mem_exec.heap
   | Refused
 
-(* The blocks that the effects [effects] remove and sweep, their validity
-   mutations in the order of emission, and whether they hold an allocation
-   or a validity mutation. *)
-let removals_and_sweeps effects =
+(* The heap effects [effects] of a call on [callstack] that memexec can
+   store: the blocks they remove and sweep, their validity mutations in the
+   order of emission, and their allocations, in the order of emission.
+   Among the allocation builtins, the builtin of [malloc] under the policy
+   [by_stack], at a site without annotation, lets memexec store its callers;
+   so do the builtins of the policy [imprecise] once their single block
+   exists, whose allocations this function refuses. [None] if an effect
+   refuses the call:
+   - an allocation by another policy than [by_stack], of a block that is not
+     a heap allocation, or whose stack, without the allocation wrappers,
+     ends at or above the call: the call is then an allocation wrapper, or
+     made by one;
+   - a validity mutation that is not the resize of the block that the
+     allocation emitted just before it reuses, as the widening of a weak
+     block in a loop. *)
+let heap_effects_of ~callstack effects =
   let removed = ref Base.Hptset.empty and swept = ref Base.Hptset.empty in
-  let mutations = ref [] and other = ref false in
+  let mutations = ref [] and allocations = ref [] in
+  let last = ref None in
   let rec add = function
-    | Here (_, (Heap_effects.Removal block)) ->
-      removed := Base.Hptset.add block !removed
-    | Here (_, Sweep { block; _ }) -> swept := Base.Hptset.add block !swept
-    | Here (_, (Mutation _ as e)) -> mutations := e :: !mutations; other := true
-    | Here (_, Allocation _) -> other := true
+    | Here (point, e) -> add_effect point e
     | Through (_, _, received) -> List.iter add (List.rev received)
+  and add_effect point e =
+    begin match point, e with
+      | _, Heap_effects.Removal block ->
+        removed := Base.Hptset.add block !removed
+      | _, Sweep { block; _ } -> swept := Base.Hptset.add block !swept
+      | None, Mutation { block; _ } ->
+        mutations := e :: !mutations;
+        begin match !last with
+          | Some (Heap_effects.Allocation { block = b; decision = Reused _; _ })
+            when Base.equal b block -> ()
+          | Some _ | None -> raise Exit
+        end
+      | Some _, Mutation _ -> raise Exit
+      | _, Allocation { block; policy; stack; rank; size; decision; _ } ->
+        let suffix = Mem_exec.suffix_below ~callstack stack in
+        match policy, block, rank, suffix with
+        | Eva_annotations.By_stack, Base.Allocated (_, Base.Malloc, _),
+          Some rank, Some suffix ->
+          allocations :=
+            { Mem_exec.block; suffix; rank; size; decision } :: !allocations
+        | _ -> raise Exit
+    end;
+    last := Some e
   in
-  List.iter add (List.rev effects);
-  !removed, !swept, List.rev !mutations, !other
+  match List.iter add (List.rev effects) with
+  | exception Exit -> None
+  | () ->
+    Some (!removed, !swept, List.rev !mutations, List.rev !allocations)
 
-(* A heap call whose effects are removals and sweeps only, which is not
-   refused and whose entry holds an Inner part, is stored by memexec, with
-   its sweeps from the start of its body to its return. The sweeps of the
-   automatic release at the end of the call go to its caller. A call whose
-   entry, or the entry of a call nested in it, holds full states is not
-   stored: the full states of an entry answer the requests on the callstack
-   of its analysed call only, and a call nested in a hit would have none. A
-   heap call can keep full states while the heap call that makes it does
-   not, as when its footprint is unknown at one of its points only. *)
-let storage () =
+(* For the allocations [allocations] of a call on [callstack], in their
+   order: the stacks on which they allocate, by the order of the first
+   allocation on each, each with its candidates, the blocks that the policy
+   [by_stack] made on it before the call; and the blocks they create, in the
+   order of their creation. The policy adds each block it creates at the
+   end of the list of its stack, and only a call of [malloc] on this stack,
+   made in the call, adds to this list: the candidates are the list now
+   without the blocks created by the call, which are its last blocks. [None]
+   if they are not. *)
+let candidates_and_created ~callstack allocations =
+  let created =
+    List.filter_map
+      (fun (a: Mem_exec.allocation) ->
+         match a.decision with
+         | Created -> Some a.block
+         | Reused _ -> None)
+      allocations
+  in
+  let same suffix (a: Mem_exec.allocation) =
+    List.equal Callstack.Call.equal suffix a.suffix
+  in
+  let suffixes =
+    List.fold_left
+      (fun acc (a: Mem_exec.allocation) ->
+         if List.exists (fun s -> same s a) acc then acc
+         else acc @ [ a.suffix ])
+      [] allocations
+  in
+  let candidates suffix =
+    let on_stack =
+      Builtins_malloc.malloced_on (Mem_exec.extend callstack suffix)
+    in
+    let created_here =
+      List.filter_map
+        (fun (a: Mem_exec.allocation) ->
+           match a.decision with
+           | Created when same suffix a -> Some a.block
+           | Created | Reused _ -> None)
+        allocations
+    in
+    let before = List.length on_stack - List.length created_here in
+    let rec split n list =
+      if n = 0 then Some ([], list)
+      else
+        match list with
+        | [] -> None
+        | b :: rest ->
+          Option.map (fun (l, r) -> b :: l, r) (split (n - 1) rest)
+    in
+    match split before on_stack with
+    | Some (candidates, rest) when List.equal Base.equal rest created_here ->
+      Some (suffix, candidates)
+    | Some _ | None -> None
+  in
+  let candidates = List.map candidates suffixes in
+  if List.for_all Option.is_some candidates
+  then Some (List.filter_map Fun.id candidates, created)
+  else None
+
+(* A heap call that is not refused, whose entry holds an Inner part, and
+   whose effects memexec can store, see [heap_effects_of], is stored by
+   memexec, with its sweeps from the start of its body to its return and
+   its allocations. The sweeps of the automatic release at the end of the
+   call go to its caller. A call whose entry, or the entry of a call nested
+   in it, holds full states is not stored: the full states of an entry
+   answer the requests on the callstack of its analysed call only, and a
+   call nested in a hit would have none. A heap call can keep full states
+   while the heap call that makes it does not, as when its footprint is
+   unknown at one of its points only. *)
+let storage ~callstack =
   match current_frame () with
   | None -> Plain
   | Some frame when frame.heap_hit || frame.full_below -> Refused
   | Some { effects = []; _ } -> Plain
   | Some frame ->
-    let removed, swept, mutations, other = removals_and_sweeps frame.effects in
     let known =
       match Option.map (Int_table.find_opt (Store.get ()).entries) frame.used
       with
       | Some (Some { inner = Known _; _ }) -> true
       | Some (Some { inner = Unknown | Full _; _ } | None) | None -> false
     in
-    if other || refused frame || not known then Refused
+    if refused frame || not known then Refused
     else
-      let exit =
-        match frame.exit with
-        | Exit sweeps -> sweeps
-        | No_return | Unset -> Heap_paths.no_sweep
-      in
-      Heap { Mem_exec.removed; swept; exit; mutations }
+      match heap_effects_of ~callstack frame.effects with
+      | None -> Refused
+      | Some (removed, swept, mutations, allocations) ->
+        match candidates_and_created ~callstack allocations with
+        | None -> Refused
+        | Some (candidates, created) ->
+          let exit =
+            match frame.exit with
+            | Exit sweeps -> sweeps
+            | No_return | Unset -> Heap_paths.no_sweep
+          in
+          Heap { Mem_exec.removed; swept; exit; mutations; allocations;
+                 candidates; created }
 
 let mark_unrolled_recursion kf = mark (Store.get ()).body_unavailable kf
 

@@ -44,6 +44,9 @@ type discovery =
   (** A candidate of an allocation. *)
   | No_root
   (** An allocated key block reached from no root. *)
+  | Creation
+  (** A creation symbol: a block that the call of the entry creates, which
+      does not exist at its start (#127). *)
 
 (** A numbering in progress: the numbered blocks, and those of them already
     examined. It is persistent, so that a lookup can number the arguments
@@ -76,9 +79,10 @@ val roots: Base.Hptset.t -> Cvalue.Model.t -> t -> t
     walked as by [roots]; any other block is only mentioned. *)
 val drain: is_key:(int -> Base.t -> bool) -> Cvalue.Model.t -> t -> t
 
-(** [add discovery bases t] numbers the allocated blocks of [bases] not
-    numbered yet, in the order of the list. *)
-val add: discovery -> Base.t list -> t -> t
+(** [add ?weak discovery bases t] numbers the allocated blocks of [bases]
+    not numbered yet, in the order of the list. The strength of each block
+    is [weak base], {!Base.is_weak} by default. *)
+val add: ?weak:(Base.t -> bool) -> discovery -> Base.t list -> t -> t
 
 (** [of_entry ~candidates ~args ~key state] numbers the allocated blocks
     of an entry whose start state on its key [key] is [state], in the order of
@@ -89,8 +93,11 @@ val add: discovery -> Base.t list -> t -> t
     key reached from no root, in the order of their identifiers. A numbered
     block of the key is entered whatever its discovery, so that the
     numbering ends with every block that a value of the key may point to.
-    Raises [Unknown_targets]. *)
+    The strength of each block is [weak base], {!Base.is_weak} by default:
+    for an entry stored at the end of a call that made a block weak, its
+    strength at the start of the call. Raises [Unknown_targets]. *)
 val of_entry:
+  ?weak:(Base.t -> bool) ->
   candidates:Base.t list ->
   args:Cvalue.V.t Lattice_bounds.or_bottom list ->
   key:Base.Hptset.t -> Cvalue.Model.t -> t
@@ -126,21 +133,28 @@ val number: t -> Base.t -> int option
 (** {2 Rewriting} *)
 
 (** The substitution from each numbered block to the placeholder of its
-    number, of the pool of its strength when it was numbered. *)
-val to_numbers: t -> Base.substitution
+    number, of the pool of its strength when it was numbered, or of the
+    pool of [weak base] if [weak] is given. A cache entry of a call that
+    makes a block weak numbers its start state with the strength at the
+    start of the call, and its states at the exits with the strength at the
+    end (#127). *)
+val to_numbers: ?weak:(Base.t -> bool) -> t -> Base.substitution
 
-(** The substitution from the placeholders of [to_numbers] back to the
+(** The substitution from the placeholders of [to_numbers ?weak] back to the
     numbered blocks. *)
-val of_numbers: t -> Base.substitution
+val of_numbers: ?weak:(Base.t -> bool) -> t -> Base.substitution
 
 (** What the numbered form rewrites of a cache entry: the arguments, the
     key, the start state on the key, and the states at the exits, each a
-    cvalue state with its clobbered set. *)
+    cvalue state with its clobbered set; and the blocks that the call
+    creates, in the order of their creation, empty for a call that creates
+    none (#127). *)
 type entry = {
   args: Cvalue.V.t Lattice_bounds.or_bottom list;
   key: Base.Hptset.t;
   start: Cvalue.Model.t * Locals_scoping.clobbered_set;
   exits: (Cvalue.Model.t * Locals_scoping.clobbered_set) list;
+  created: Base.t list;
 }
 
 (** [rewrite substitution entry] replaces the bases of [entry] by
@@ -182,8 +196,9 @@ type error =
   (** Allocated blocks left in the rewritten entry: an exit or a clobbered
       set holds a block that the numbering of the key did not reach. *)
 
-(** [number_entry ~candidates entry] numbers the blocks of [entry] and
-    rewrites it with numbers in place of its allocated blocks. *)
+(** [number_entry ~candidates entry] numbers the blocks of [entry], then
+    the blocks it creates as creation symbols, and rewrites it with numbers
+    in place of its allocated blocks. *)
 val number_entry:
   candidates:Base.t list -> entry -> (t * entry, error) result
 

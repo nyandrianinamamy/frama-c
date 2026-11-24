@@ -15,12 +15,13 @@ Calls:
   free :: heap_alloc.c:104 <- recycle :: heap_alloc.c:112 <- recycle_main: builtin
   malloc :: heap_alloc.c:105 <- recycle :: heap_alloc.c:112 <- recycle_main: builtin
   recycle :: heap_alloc.c:112 <- recycle_main: analysed, cache entry 13
-  free :: heap_alloc.c:104 <- recycle :: heap_alloc.c:112 <- recycle_main: builtin
-  malloc :: heap_alloc.c:105 <- recycle :: heap_alloc.c:112 <- recycle_main: builtin
-  recycle :: heap_alloc.c:112 <- recycle_main: analysed, cache entry 14
-  recycle_main: analysed, cache entry 15
-Heap calls, not stored by memexec: recycle 4, recycle_main 1.
-Heap calls whose answers come from full states: none.
+  recycle :: heap_alloc.c:112 <- recycle_main: hit of cache entry 12
+  recycle_main: analysed, cache entry 14
+Heap calls, not stored by memexec: recycle_main 1.
+Heap calls stored by memexec: recycle 3.
+Heap calls whose answers come from full states: recycle_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  recycle_main 1.
 Hits not made because memexec does not store the heap calls: none.
 recycle, start:
   joined: last ∈ {0}
@@ -143,6 +144,8 @@ recycle_main, after heap_alloc.c:114 `return;`:
                 rs ∈ {0}
                 hold ∈ {0}
                 __malloc_recycle_l105_4 ∈ {3}
+Hits against the analysed call of their cache entry:
+  recycle :: heap_alloc.c:112 <- recycle_main, hit of cache entry 12, against recycle :: heap_alloc.c:111 <- recycle_main: differs on __malloc_recycle_l105_3, __malloc_recycle_l105_4, i, i_0, rc, saved, at 11 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 735 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

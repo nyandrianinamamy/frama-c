@@ -328,13 +328,11 @@ let pp_validity fmt (v1, v2) =
 
 (* --------------------------------- Malloc --------------------------------- *)
 
-(* Create a new variable of size [sizev] with deallocation type [deallocation].
-   Returns the new base, and its maximum validity. The creation is emitted as
-   an allocation by [policy], of rank [rank] if given.
-   Note that [_state] is not used, but it is present to ensure a compatible
-   signature with [alloc_by_stack]. *)
-let alloc_fresh ~policy ?rank weak deallocation prefix sizev _state =
-  let stack = call_stack_no_wrappers () in
+(* Create a new variable of size [sizev] with deallocation type [deallocation],
+   allocated on [stack], and registers it as allocated on [stack]. Returns the
+   new base, and its maximum validity. If [emit], the creation is emitted as
+   an allocation by [policy], of rank [rank] if given. *)
+let alloc_on ~stack ~emit ~policy ?rank weak deallocation prefix sizev =
   let tsize = guess_intended_malloc_type stack sizev (weak = Strong) in
   let type_base = type_from_nb_elems tsize in
   let var = create_new_var stack prefix type_base weak in
@@ -354,10 +352,19 @@ let alloc_fresh ~policy ?rank weak deallocation prefix sizev _state =
   let validity = Base.Variable variable_v in
   let new_base = Base.register_allocated_var var deallocation validity in
   register_malloced_base ~stack new_base;
-  if Heap_effects.enabled () then
+  if emit then
     emit_allocation ~policy ~stack ?rank ~typ:tsize.elem_typ ~sizev Created
       new_base;
   new_base, max_alloc, Builtins.NoCacheCallers
+
+(* Create a new variable as [alloc_on] does, on the current callstack without
+   the allocation wrappers, and emits its creation with -eva-hit-log.
+   Note that [_state] is not used, but it is present to ensure a compatible
+   signature with [alloc_by_stack]. *)
+let alloc_fresh ~policy ?rank weak deallocation prefix sizev _state =
+  let stack = call_stack_no_wrappers () in
+  alloc_on ~stack ~emit:(Heap_effects.enabled ()) ~policy ?rank weak
+    deallocation prefix sizev
 
 
 let string_of_region = function
@@ -456,13 +463,14 @@ let emit_mutation block (v: Base.variable_validity) vi before =
     Heap_effects.(emit (Mutation { block; record; weakened; typ }))
 
 (* Performs an abstract allocation on an existing allocated variable,
-   its validity. If [make_weak], the variable is marked as being weak. *)
-let update_variable_validity ?(make_weak=false) base sizev =
+   its validity. If [make_weak], the variable is marked as being weak. The
+   changes are emitted as a validity mutation unless [emit] is false. *)
+let update_variable_validity ?(emit=true) ?(make_weak=false) base sizev =
   let size_min, size_max = extract_size sizev in
   match base with
   | Base.Allocated (vi, _deallocation, (Base.Variable variable_v)) ->
     let before =
-      if Heap_effects.enabled ()
+      if emit && Heap_effects.enabled ()
       then Some Base.(variable_v.weak, variable_v.min_alloc,
                       variable_v.max_alloc, vi.vtype)
       else None
@@ -523,7 +531,56 @@ let alloc_by_stack region prefix sizev state =
   in
   aux 0 all_vars
 
+let malloced_on stack =
+  try MallocedByStack.find stack
+  with Not_found -> []
+
 let fold_malloced_by_stack f init = MallocedByStack.fold f init
+
+(* The replay of the allocations of a call that memexec reuses (#127). Each
+   applies a decision that [alloc_by_stack] took for [malloc] in the call
+   that memexec stored, on the stack [stack] of the call that reuses it,
+   without running the policy again and without emitting a heap effect. *)
+
+let replay_creation ~stack ~rank sizev =
+  let all_vars = malloced_on stack in
+  if List.length all_vars <> rank then
+    Self.fatal "replay of an allocation: %d blocks on the stack, rank %d"
+      (List.length all_vars) rank;
+  let base, _, _ =
+    alloc_on ~stack ~emit:false ~policy:By_stack ~rank Strong Base.Malloc
+      "malloc" sizev
+  in
+  MallocedByStack.replace stack (all_vars @ [base]);
+  base
+
+let replay_reuse ~stack ~rank ~weakened sizev =
+  match List.nth_opt (malloced_on stack) rank with
+  | None -> Self.fatal "replay of an allocation: no block of rank %d" rank
+  | Some base ->
+    ignore
+      (update_variable_validity ~emit:false ~make_weak:weakened base sizev);
+    base
+
+(* Whether [stmt] has an annotation [eva_allocate]. *)
+let has_allocation_annotation stmt =
+  List.exists
+    (fun annot ->
+       match annot.annot_content with
+       | AExtended (_, _, { ext_name = "eva_allocate"; _ }) -> true
+       | _ -> false)
+    (Annotations.code_annot stmt)
+
+(* With -eva-hit-log, memexec may store a call that allocates with [malloc]
+   under the policy [by_stack], at a site without annotation [eva_allocate]
+   (#127): the builtin lets it, and the hit log decides, see
+   [Hit_log.storage]. Any other allocation keeps its status. *)
+let storable_by_hit_log () =
+  Heap_effects.enabled ()
+  &&
+  let site = current_call_site () in
+  Eva_annotations.get_allocation site = By_stack
+  && not (has_allocation_annotation site)
 
 let choose_base_allocation () =
   match Eva_annotations.get_allocation (current_call_site ()) with
@@ -533,6 +590,10 @@ let choose_base_allocation () =
   | Imprecise -> fun region _ sizev _ -> alloc_weakest_base region sizev
 
 let register_malloc ?replace name ?returns_null prefix region =
+  let storable =
+    if name = "malloc" && region = Base.Malloc then storable_by_hit_log
+    else fun () -> false
+  in
   let builtin state args =
     let size = match args with
       | [ _, size ] -> size
@@ -540,6 +601,9 @@ let register_malloc ?replace name ?returns_null prefix region =
     in
     let alloc_base = choose_base_allocation () in
     let new_base, max_alloc, cacheable = alloc_base region prefix size state in
+    let cacheable =
+      if storable () then Builtins.Cacheable else cacheable
+    in
     let new_state = add_uninitialized state new_base max_alloc in
     let ret = V.inject new_base Ival.zero in
     let c_values = wrap_fallible_alloc ?returns_null ret state new_state in

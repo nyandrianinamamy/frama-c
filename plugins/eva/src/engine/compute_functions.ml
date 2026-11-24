@@ -52,25 +52,29 @@ module Make (Engine: Engine_sig.S) = struct
      if it stored them, with the matching of memexec without the snapshot. *)
   module Refused = Mem_exec.Make (Engine.Val) (Engine.Dom)
 
-  (* The results of [call] in [init_state] from the cache entry [i], whose
-     states at the exits are [states], used through [renaming]. Without
-     renaming, the hooks receive [`Reuse i], as without -eva-hit-log. *)
-  let reuse_call ~record call init_state states i renaming =
+  (* The states at the start of the body of [call] in [init_state], after
+     the evaluation of the preconditions of its function, which updates
+     their statuses at this call. *)
+  let check_preconditions call init_state =
     apply_call_hooks call init_state `Reuse;
     (* Evaluate the preconditions of kf, to update the statuses
        at this call. *)
     Populate_spec.populate_funspec call.kf [`Assigns];
     let spec = Annotations.funspec call.kf in
-    let body_entry_states =
-      if not (Eva_utils.skip_specifications call.kf) &&
-         List.exists (fun b -> b.b_requires <> []) spec.spec_behavior
-      then begin
-        let ab = Logic.create init_state call.kf in
-        let kinstr = Callstack.top_callsite call.callstack in
-        Logic.check_fct_preconditions kinstr call.kf ab init_state
-      end
-      else [ init_state ]
-    in
+    if not (Eva_utils.skip_specifications call.kf) &&
+       List.exists (fun b -> b.b_requires <> []) spec.spec_behavior
+    then begin
+      let ab = Logic.create init_state call.kf in
+      let kinstr = Callstack.top_callsite call.callstack in
+      Logic.check_fct_preconditions kinstr call.kf ab init_state
+    end
+    else [ init_state ]
+
+  (* The results of [call] in [init_state] from the cache entry [i], whose
+     states at the exits are [states], used through [renaming], once the
+     preconditions have given [body_entry_states]. Without renaming, the
+     hooks receive [`Reuse i], as without -eva-hit-log. *)
+  let reused ~record call init_state body_entry_states states i renaming =
     if record then begin
       let start = Engine.Dom.get_cvalue_or_top init_state in
       let body_entry =
@@ -91,6 +95,18 @@ module Make (Engine: Engine_sig.S) = struct
     (* call can be cached since it was cached once *)
     Engine_sig.{ states; cacheable = Cacheable; kind = `Body }
 
+  let reuse_call ~record call init_state states i renaming =
+    let body_entry_states = check_preconditions call init_state in
+    reused ~record call init_state body_entry_states states i renaming
+
+  (* The same, for a heap call that allocates (#127): [replay] replays its
+     allocations and gives its states and renaming. It runs once the
+     preconditions are evaluated, as the body of the call would run. *)
+  let replay_call ~record call init_state replay i =
+    let body_entry_states = check_preconditions call init_state in
+    let states, renaming = replay () in
+    reused ~record call init_state body_entry_states states i renaming
+
   let compute_and_cache_call compute call init_state =
     let args =
       List.map (fun {avalue} -> Eval.value_assigned avalue) call.arguments
@@ -108,7 +124,7 @@ module Make (Engine: Engine_sig.S) = struct
       else args
     in
     match
-      MemExec.reuse_previous_call ~snapshot:record
+      MemExec.reuse_previous_call ~snapshot:record ~callstack:call.callstack
         call.kf init_state memexec_args
     with
     | None ->
@@ -133,7 +149,7 @@ module Make (Engine: Engine_sig.S) = struct
                 (Refused.store_computed_call ~snapshot:false
                    call.kf init_state args final_states)
             in
-            match Hit_log.storage () with
+            match Hit_log.storage ~callstack:call.callstack with
             | Refused -> refuse ()
             | Plain ->
               Hit_log.record_mentioned
@@ -152,6 +168,8 @@ module Make (Engine: Engine_sig.S) = struct
       reuse_call ~record call init_state states i []
     | Some (MemExec.Renamed_hit (states, i, renaming)) ->
       reuse_call ~record call init_state states i renaming
+    | Some (MemExec.Replayed_hit (replay, i)) ->
+      replay_call ~record call init_state replay i
 
   (* ----- Body or specification analysis ----------------------------------- *)
 

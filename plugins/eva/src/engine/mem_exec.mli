@@ -50,19 +50,53 @@ val equal_block: block -> block -> bool
     identity. *)
 type renaming = (Base.t * Base.t) list
 
-(** What memexec stores of a call that frees, a heap call whose heap
-    effects are removals and sweeps only (see {!Hit_log}): [removed], the
-    blocks it removes, which exist at its start; [swept], the blocks it
-    sweeps at any point of its body; [exit], the blocks swept on every path
-    from its start to its return, and on some path only; [mutations], its
-    validity mutations, from which the snapshot of its start is rebuilt,
-    see {!take_block_at_entry}. *)
+(** An allocation of a heap call that memexec stores (#127): [block], the
+    block it creates or reuses; [suffix], the calls from the heap call down
+    to the call of [malloc], innermost first, of the callstack of the
+    allocation without the allocation wrappers, as the policy [by_stack]
+    reads it; [rank], the rank of the block among the blocks made on this
+    stack; [size], the size requested; [decision], the decision of the
+    policy. *)
+type allocation = {
+  block: Base.t;
+  suffix: Callstack.call list;
+  rank: int;
+  size: Cvalue.V.t;
+  decision: Heap_effects.decision;
+}
+
+(** What memexec stores of a heap call (see {!Hit_log}): a call that frees,
+    whose heap effects are removals and sweeps only, or a call that also
+    allocates with [malloc] under the policy [by_stack] (#127).
+    [removed], the blocks it removes; [swept], the blocks it sweeps at any
+    point of its body; [exit], the blocks swept on every path from its start
+    to its return, and on some path only; [mutations], its validity
+    mutations, from which the snapshot of its start is rebuilt, see
+    {!take_block_at_entry}; [allocations], its allocations, in the order of
+    their emission; [candidates], for the stack of each allocation, by the
+    order of the first allocation on each, the blocks that the policy had
+    made on this stack before the call, the first one made first; and
+    [created], the blocks that its allocations create, in the order of their
+    creation. *)
 type heap = {
   removed: Base.Hptset.t;
   swept: Base.Hptset.t;
   exit: Heap_paths.sweeps;
   mutations: Heap_effects.t list;
+  allocations: allocation list;
+  candidates: (Callstack.call list * Base.t list) list;
+  created: Base.t list;
 }
+
+(** [extend callstack suffix] is [callstack] extended by the calls
+    [suffix], innermost first. *)
+val extend: Callstack.t -> Callstack.call list -> Callstack.t
+
+(** [suffix_below ~callstack stack] is the list of the calls of [stack]
+    below [callstack], innermost first, if [stack] extends [callstack] by at
+    least one call; [None] otherwise. *)
+val suffix_below:
+  callstack:Callstack.t -> Callstack.t -> Callstack.call list option
 
 (** With [~snapshot:true] (option -eva-hit-log), a call that mentions an
     allocated block is stored and looked up in numbered form (#120, section
@@ -117,6 +151,23 @@ type heap = {
     that frees, which memexec does not store: no key is built from these
     outputs. The dependencies that option -calldeps prints for a call reused
     there, and the inout of its callers, do not hold these cells.
+    With [~snapshot:true], a call that allocates, given with its heap
+    effects [heap], is stored in numbered form only (#127). Its key holds the
+    candidates of its allocations: for each stack on which it allocates, the
+    blocks that the policy [by_stack] made on this stack before it, present
+    in its start state or not. The blocks it creates are not in its key:
+    they are numbered after every other block, in the order of their
+    creation, the creation symbols, have no snapshot, and are copied on a
+    reuse. Its start state is numbered with the strength of each block at
+    its start, its exits with the strength at its end. A lookup reads the
+    candidates of the call from the lists of the policy on the stacks of
+    the key, extended from the callstack of the call, numbers them after the
+    content of the key, and checks the candidate condition: the candidates
+    of each stack have the numbers that the stored call recorded, in the
+    same order. On a reuse, the allocations of the stored call are replayed
+    in their order, after the preconditions of the function are evaluated:
+    see [Replayed_hit]. Then its sweeps, its exits and its removals are
+    applied as for a call that frees.
     The statistic [hit-log-snapshot-misses] counts, per function, the calls
     that are not reused although a call stored in numbered form has their
     input state, because the snapshot of a block differs. The statistic
@@ -152,15 +203,26 @@ module Make
       (** The same, for a call stored in numbered form, with the renaming
           from the blocks of the matching call to those of this call, when
           it is not the identity. *)
+      | Replayed_hit of
+          (unit -> (Partition.key * Domain.t) list * renaming) * int
+      (** The same, for a heap call that allocates, stored in numbered form
+          (#127): the function replays its allocations on the callstack of
+          the call, which creates blocks, resizes blocks and extends the
+          tables of the allocated blocks, then returns the results and the
+          renaming, which maps the blocks that the matching call created to
+          those that the replay created. Nothing is replayed until it is
+          applied, once. *)
 
     (** [reuse_previous_call kf init_state args] searches amongst the previous
         analyzes of [kf] one that matches the initial state [init_state] and the
         values of arguments [args]. If none is found, [None] is returned.
         Otherwise, the results of the analysis are returned, together with the
         index of the matching call, and with the renaming if it is not the
-        identity, which may happen only with [~snapshot:true]. *)
+        identity, which may happen only with [~snapshot:true]. [callstack] is
+        the callstack of the call, from which a lookup with [~snapshot:true]
+        reads the candidates of the allocations of a stored heap call. *)
     val reuse_previous_call:
-      snapshot:bool ->
+      snapshot:bool -> callstack:Callstack.t ->
       kernel_function -> Domain.t -> Value.t or_bottom list ->
       hit option
 

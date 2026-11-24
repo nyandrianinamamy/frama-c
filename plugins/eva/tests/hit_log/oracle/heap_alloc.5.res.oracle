@@ -11,12 +11,13 @@ Calls:
   malloc :: heap_alloc.c:124 <- branchy :: heap_alloc.c:130 <- branch_main: builtin
   branchy :: heap_alloc.c:130 <- branch_main: analysed, cache entry 7
   Frama_C_interval :: heap_alloc.c:131 <- branch_main: specification
-  malloc :: heap_alloc.c:124 <- branchy :: heap_alloc.c:131 <- branch_main: builtin
-  malloc :: heap_alloc.c:124 <- branchy :: heap_alloc.c:131 <- branch_main: builtin
-  branchy :: heap_alloc.c:131 <- branch_main: analysed, cache entry 8
-  branch_main: analysed, cache entry 9
-Heap calls, not stored by memexec: branch_main 1, branchy 2.
-Heap calls whose answers come from full states: none.
+  branchy :: heap_alloc.c:131 <- branch_main: hit of cache entry 7
+  branch_main: analysed, cache entry 8
+Heap calls, not stored by memexec: branch_main 1.
+Heap calls stored by memexec: branchy 1.
+Heap calls whose answers come from full states: branch_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  branch_main 1.
 Hits not made because memexec does not store the heap calls: none.
 branchy, start:
   joined: last ∈ {0}
@@ -235,6 +236,8 @@ branch_main, after heap_alloc.c:133 `return;`:
                hold ∈ {0}
                __malloc_branchy_l124_3 ∈ {1; 2}
                __malloc_branchy_l124_4 ∈ {1; 2}
+Hits against the analysed call of their cache entry:
+  branchy :: heap_alloc.c:131 <- branch_main, hit of cache entry 7, against branchy :: heap_alloc.c:130 <- branch_main: differs on __malloc_branchy_l124_3, __malloc_branchy_l124_4, a, p, tmp_0, tmp_1, at 15 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 729 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

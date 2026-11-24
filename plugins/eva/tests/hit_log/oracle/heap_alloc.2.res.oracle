@@ -10,13 +10,14 @@ Calls:
   make :: heap_alloc.c:72 <- live_main: analysed, cache entry 14
   malloc :: heap_alloc.c:57 <- make :: heap_alloc.c:72 <- live_main: builtin
   make :: heap_alloc.c:72 <- live_main: analysed, cache entry 15
-  malloc :: heap_alloc.c:57 <- make :: heap_alloc.c:72 <- live_main: builtin
-  make :: heap_alloc.c:72 <- live_main: analysed, cache entry 16
-  malloc :: heap_alloc.c:57 <- make :: heap_alloc.c:72 <- live_main: builtin
-  make :: heap_alloc.c:72 <- live_main: analysed, cache entry 17
-  live_main: analysed, cache entry 18
-Heap calls, not stored by memexec: live_main 1, make 5.
-Heap calls whose answers come from full states: none.
+  make :: heap_alloc.c:72 <- live_main: hit of cache entry 15
+  make :: heap_alloc.c:72 <- live_main: hit of cache entry 15
+  live_main: analysed, cache entry 16
+Heap calls, not stored by memexec: live_main 1.
+Heap calls stored by memexec: make 3.
+Heap calls whose answers come from full states: live_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  live_main 1.
 Hits not made because memexec does not store the heap calls: none.
 make, start:
   joined: q ∈ {{ &__malloc_w_make_l57_1 }} or UNINITIALIZED
@@ -120,6 +121,7 @@ live_main, after heap_alloc.c:74 `return;`:
              rs ∈ {0}
              hold ∈ {0}
              __malloc_w_make_l57_1 ∈ {1} or UNINITIALIZED
+Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 702 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

@@ -60,6 +60,7 @@ type discovery =
   | Content of Base.t
   | Candidate
   | No_root
+  | Creation
 
 exception Unknown_targets
 
@@ -82,34 +83,38 @@ let is_allocated = function
 
 let by_identifier bases = List.sort Base.compare (Base.Hptset.elements bases)
 
-let add_block discovery t base =
+(* The strength of each block is [weak base] when it is numbered. *)
+let add_block ~weak discovery t base =
   if not (is_allocated base) || Base.Map.mem base t.numbers then t
   else
     let n = t.next in
     { t with
       next = n + 1;
       numbers = Base.Map.add base n t.numbers;
-      blocks = IntMap.add n (base, Base.is_weak base, discovery) t.blocks }
+      blocks = IntMap.add n (base, weak base, discovery) t.blocks }
 
-let add discovery bases t = List.fold_left (add_block discovery) t bases
+let add ?(weak = Base.is_weak) discovery bases t =
+  List.fold_left (add_block ~weak discovery) t bases
 
 (* Numbers the allocated targets of [v], by increasing identifier. *)
-let add_targets discovery t v =
+let add_targets ~weak discovery t v =
   match Cvalue.V.get_bases v with
   | Base.SetLattice.Top -> raise Unknown_targets
-  | Base.SetLattice.Set bases -> add discovery (by_identifier bases) t
+  | Base.SetLattice.Set bases -> add ~weak discovery (by_identifier bases) t
 
-let arguments args t =
+let arguments_with ~weak args t =
   let add_argument (i, t) = function
     | `Bottom -> i + 1, t
-    | `Value v -> i + 1, add_targets (Argument i) t v
+    | `Value v -> i + 1, add_targets ~weak (Argument i) t v
   in
   snd (List.fold_left add_argument (0, t) args)
 
+let arguments args t = arguments_with ~weak:Base.is_weak args t
+
 (* Walks the content of [base] in [state]: its values by increasing offset. *)
-let walk state t base =
+let walk ~weak state t base =
   let add_value _interval (v, _size, _offset) t =
-    add_targets (Content base) t (Cvalue.V_Or_Uninitialized.get_v v)
+    add_targets ~weak (Content base) t (Cvalue.V_Or_Uninitialized.get_v v)
   in
   match state with
   | Cvalue.Model.Top -> raise Unknown_targets
@@ -121,31 +126,40 @@ let walk state t base =
     | `Top -> raise Unknown_targets
     | exception Not_found -> t
 
-let roots bases state t = List.fold_left (walk state) t (by_identifier bases)
+let roots_with ~weak bases state t =
+  List.fold_left (walk ~weak state) t (by_identifier bases)
 
-let rec drain ~is_key state t =
+let roots bases state t = roots_with ~weak:Base.is_weak bases state t
+
+let rec drain_with ~weak ~is_key state t =
   if t.examined >= t.next then t
   else
     let n = t.examined in
     let base, _, _ = IntMap.find n t.blocks in
     let t = { t with examined = n + 1 } in
-    let t = if is_key n base then walk state t base else t in
-    drain ~is_key state t
+    let t = if is_key n base then walk ~weak state t base else t in
+    drain_with ~weak ~is_key state t
+
+let drain ~is_key state t = drain_with ~weak:Base.is_weak ~is_key state t
+
+let of_key_with ~weak ~is_key ~others ~candidates ~no_root state t =
+  t
+  |> roots_with ~weak others state
+  |> drain_with ~weak ~is_key state
+  |> add ~weak Candidate candidates
+  |> drain_with ~weak ~is_key state
+  |> add ~weak No_root no_root
+  |> drain_with ~weak ~is_key state
 
 let of_key ~is_key ~others ~candidates ~no_root state t =
-  t
-  |> roots others state
-  |> drain ~is_key state
-  |> add Candidate candidates
-  |> drain ~is_key state
-  |> add No_root no_root
-  |> drain ~is_key state
+  of_key_with ~weak:Base.is_weak ~is_key ~others ~candidates ~no_root state t
 
-let of_entry ~candidates ~args ~key state =
+let of_entry ?(weak = Base.is_weak) ~candidates ~args ~key state =
   let is_key _ base = Base.Hptset.mem base key in
   let allocated, others = Base.Hptset.partition is_allocated key in
-  arguments args empty
-  |> of_key ~is_key ~others ~candidates ~no_root:(by_identifier allocated) state
+  arguments_with ~weak args empty
+  |> of_key_with ~weak ~is_key ~others ~candidates
+    ~no_root:(by_identifier allocated) state
 
 let blocks t = List.map snd (IntMap.bindings t.blocks)
 
@@ -158,12 +172,23 @@ let number t base = Base.Map.find_opt base t.numbers
 
 (* ----- Rewriting -------------------------------------------------------- *)
 
-let to_numbers t =
-  let add n (base, weak, _) acc = (base, placeholder ~weak n) :: acc in
+(* The strength of the placeholder of each block: [weak base] if given, the
+   strength recorded when the block was numbered otherwise. *)
+let strength weak base recorded =
+  match weak with
+  | None -> recorded
+  | Some weak -> weak base
+
+let to_numbers ?weak t =
+  let add n (base, recorded, _) acc =
+    (base, placeholder ~weak:(strength weak base recorded) n) :: acc
+  in
   Base.substitution_from_list (IntMap.fold add t.blocks [])
 
-let of_numbers t =
-  let add n (base, weak, _) acc = (placeholder ~weak n, base) :: acc in
+let of_numbers ?weak t =
+  let add n (base, recorded, _) acc =
+    (placeholder ~weak:(strength weak base recorded) n, base) :: acc
+  in
   Base.substitution_from_list (IntMap.fold add t.blocks [])
 
 type entry = {
@@ -171,6 +196,7 @@ type entry = {
   key: Base.Hptset.t;
   start: Cvalue.Model.t * Locals_scoping.clobbered_set;
   exits: (Cvalue.Model.t * Locals_scoping.clobbered_set) list;
+  created: Base.t list;
 }
 
 let rewrite_bases substitution bases =
@@ -218,7 +244,12 @@ let rewrite substitution entry =
   { args = List.map rewrite_argument entry.args;
     key = rewrite_bases substitution entry.key;
     start = rewrite_state entry.start;
-    exits = List.map rewrite_state entry.exits; }
+    exits = List.map rewrite_state entry.exits;
+    created =
+      List.map
+        (fun base ->
+           try Base.Hptshape.find base substitution with Not_found -> base)
+        entry.created; }
 
 (* ----- Checks ----------------------------------------------------------- *)
 
@@ -279,6 +310,7 @@ let number_entry ~candidates entry =
   with
   | exception Unknown_targets -> Error Unknown
   | t ->
+    let t = add Creation entry.created t in
     let numbered = rewrite (to_numbers t) entry in
     let left = unnumbered numbered in
     if Base.Hptset.is_empty left then Ok (t, numbered)

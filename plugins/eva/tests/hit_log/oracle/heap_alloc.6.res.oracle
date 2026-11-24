@@ -15,12 +15,14 @@ Calls:
   malloc :: heap_alloc.c:144 <- grow :: heap_alloc.c:151 <- resize_main: builtin
   grow :: heap_alloc.c:151 <- resize_main: analysed, cache entry 13
   free :: heap_alloc.c:151 <- resize_main: builtin
-  malloc :: heap_alloc.c:144 <- grow :: heap_alloc.c:151 <- resize_main: builtin
-  grow :: heap_alloc.c:151 <- resize_main: analysed, cache entry 14
+  grow :: heap_alloc.c:151 <- resize_main: hit of cache entry 12
   free :: heap_alloc.c:151 <- resize_main: builtin
-  resize_main: analysed, cache entry 15
-Heap calls, not stored by memexec: grow 4, resize_main 1.
-Heap calls whose answers come from full states: none.
+  resize_main: analysed, cache entry 14
+Heap calls, not stored by memexec: resize_main 1.
+Heap calls stored by memexec: grow 3.
+Heap calls whose answers come from full states: resize_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  resize_main 1.
 Hits not made because memexec does not store the heap calls: none.
 grow, start:
   joined: last ∈ {0}
@@ -148,6 +150,8 @@ resize_main, after heap_alloc.c:153 `return;`:
                rc ∈ {0}
                rs ∈ ESCAPINGADDR
                hold ∈ {0}
+Hits against the analysed call of their cache entry:
+  grow :: heap_alloc.c:151 <- resize_main, hit of cache entry 12, against grow :: heap_alloc.c:150 <- resize_main: differs on __malloc_grow_l144_3, __malloc_grow_l144_4, i, i_0, rs, at 9 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 733 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

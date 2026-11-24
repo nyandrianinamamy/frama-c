@@ -9,7 +9,8 @@ Calls:
   p94_1 :: below_known_issues.c:88 <- issue94_1: analysed, cache entry 12
   Frama_C_show_each_equal :: below_known_issues.c:89 <- issue94_1: builtin
   issue94_1: analysed, cache entry 13
-Heap calls, not stored by memexec: issue94_1 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: issue94_1 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 equal_live, start:

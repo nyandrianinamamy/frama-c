@@ -34,9 +34,34 @@ val freeable: Cvalue.V.t -> Abstract_interp.truth
     the C function free. Note that \freeable(\null) does not hold, despite NULL
     being a valid argument to the C function free. *)
 
+(** {2 Tables of the policy [by_stack], and replay of its decisions} *)
+
 (** Folds over the lists of the blocks that the policy [by_stack] made, by
     stack, the first block made first. A stack is the callstack of a call of
     an allocation builtin, whose innermost call is removed while the two
     innermost calls are both calls of functions of option
     [-eva-alloc-functions]. For the tests. *)
 val fold_malloced_by_stack: (Callstack.t -> Base.t list -> 'a -> 'a) -> 'a -> 'a
+
+(** [malloced_on stack] is the list of the blocks that the policy [by_stack]
+    made on the stack [stack], the first one made first, as
+    [fold_malloced_by_stack] gives it; the empty list if it made none. *)
+val malloced_on: Callstack.t -> Base.t list
+
+(** With option [-eva-hit-log], memexec stores and reuses a call that
+    allocates with [malloc] under the policy [by_stack] (#127). A reuse
+    replays each decision of the policy that the analysis of the stored call
+    took, in the order it took them, on the callstack [stack] of the
+    allocation in the call that reuses it, without running the policy again
+    and without emitting a heap effect. Both functions return the block:
+    - [replay_creation ~stack ~rank size] creates the block of rank [rank]
+      on [stack] for a request of [size] bytes, as the builtin does when the
+      list of the blocks of [stack] has [rank] blocks, and adds it to the
+      tables of the allocated blocks. Fails if the list has another length.
+    - [replay_reuse ~stack ~rank ~weakened size] reuses the block of rank
+      [rank] on [stack], weakened if [weakened], and resizes it to [size]
+      bytes, as the builtin does, which changes its type as well. Fails if
+      the list has no block of this rank. *)
+val replay_creation: stack:Callstack.t -> rank:int -> Cvalue.V.t -> Base.t
+val replay_reuse:
+  stack:Callstack.t -> rank:int -> weakened:bool -> Cvalue.V.t -> Base.t

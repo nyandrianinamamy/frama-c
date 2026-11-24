@@ -12,11 +12,13 @@ Calls:
   keep_one :: heap_alloc.c:91 <- cand_main: analysed, cache entry 12
   malloc :: heap_alloc.c:85 <- keep_one :: heap_alloc.c:92 <- cand_main: builtin
   keep_one :: heap_alloc.c:92 <- cand_main: analysed, cache entry 13
-  malloc :: heap_alloc.c:85 <- keep_one :: heap_alloc.c:92 <- cand_main: builtin
-  keep_one :: heap_alloc.c:92 <- cand_main: analysed, cache entry 14
-  cand_main: analysed, cache entry 15
-Heap calls, not stored by memexec: cand_main 1, keep_one 4.
-Heap calls whose answers come from full states: none.
+  keep_one :: heap_alloc.c:92 <- cand_main: hit of cache entry 12
+  cand_main: analysed, cache entry 14
+Heap calls, not stored by memexec: cand_main 1.
+Heap calls stored by memexec: keep_one 3.
+Heap calls whose answers come from full states: cand_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  cand_main 1.
 Hits not made because memexec does not store the heap calls: none.
 keep_one, start:
   joined: last ∈
@@ -165,6 +167,8 @@ cand_main, after heap_alloc.c:94 `return;`:
              hold ∈ {0}
              __malloc_w_keep_one_l85_3 ∈ {1} or UNINITIALIZED
              __malloc_w_keep_one_l85_4 ∈ {1} or UNINITIALIZED
+Hits against the analysed call of their cache entry:
+  keep_one :: heap_alloc.c:92 <- cand_main, hit of cache entry 12, against keep_one :: heap_alloc.c:91 <- cand_main: differs on __malloc_w_keep_one_l85_3, __malloc_w_keep_one_l85_4, i, i_0, last, saved, at 9 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 729 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

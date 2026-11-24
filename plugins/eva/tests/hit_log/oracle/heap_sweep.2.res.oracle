@@ -20,9 +20,9 @@ Calls:
   recur_cond :: heap_sweep.c:67 <- recur_cond :: heap_sweep.c:70 <- stale_cond_main: analysed, cache entry 25
   recur_cond :: heap_sweep.c:70 <- stale_cond_main: analysed, cache entry 26
   stale_cond_main: analysed, cache entry 27
-Heap calls, not stored by memexec: cond_worker 2, recur_cond 4,
-  stale_cond_main 1.
-Heap calls stored by memexec: withdraw 2.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: cond_worker 2, recur_cond 4, stale_cond_main 1,
+  withdraw 2.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 cond_worker, start:

@@ -7,8 +7,8 @@ Calls:
   rg :: heap_sweep.c:81 <- rf :: heap_sweep.c:83 <- restored_main: analysed, cache entry 13
   rf :: heap_sweep.c:83 <- restored_main: analysed, cache entry 14
   restored_main: analysed, cache entry 15
-Heap calls, not stored by memexec: restored_main 1.
-Heap calls stored by memexec: rf 2, rg 1, rh 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: restored_main 1, rf 2, rg 1, rh 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 rh, start:

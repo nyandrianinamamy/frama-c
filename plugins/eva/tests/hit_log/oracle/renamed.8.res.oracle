@@ -8,7 +8,8 @@ Calls:
   outer :: renamed.c:159 <- composed_main: analysed, cache entry 14
   outer :: renamed.c:160 <- composed_main: hit of cache entry 14
   composed_main: analysed, cache entry 15
-Heap calls, not stored by memexec: composed_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: composed_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls below a hit:

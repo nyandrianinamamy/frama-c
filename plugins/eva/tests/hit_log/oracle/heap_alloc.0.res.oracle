@@ -8,11 +8,13 @@ These are the tables of the run without memexec.
 Calls:
   malloc :: heap_alloc.c:33 <- mk :: heap_alloc.c:39 <- cs_main: builtin
   mk :: heap_alloc.c:39 <- cs_main: analysed, cache entry 7
-  malloc :: heap_alloc.c:33 <- mk :: heap_alloc.c:40 <- cs_main: builtin
-  mk :: heap_alloc.c:40 <- cs_main: analysed, cache entry 8
-  cs_main: analysed, cache entry 9
-Heap calls, not stored by memexec: cs_main 1, mk 2.
-Heap calls whose answers come from full states: none.
+  mk :: heap_alloc.c:40 <- cs_main: hit of cache entry 7
+  cs_main: analysed, cache entry 8
+Heap calls, not stored by memexec: cs_main 1.
+Heap calls stored by memexec: mk 1.
+Heap calls whose answers come from full states: cs_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  cs_main 1.
 Hits not made because memexec does not store the heap calls: none.
 mk, start:
   joined: v ∈ {1}
@@ -156,6 +158,8 @@ cs_main, after heap_alloc.c:42 `return;`:
            hold ∈ {0}
            __malloc_mk_l33_3 ∈ {1}
            __malloc_mk_l33_4 ∈ {1}
+Hits against the analysed call of their cache entry:
+  mk :: heap_alloc.c:40 <- cs_main, hit of cache entry 7, against mk :: heap_alloc.c:39 <- cs_main: differs on __malloc_mk_l33_3, __malloc_mk_l33_4, a, p, at 9 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 701 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

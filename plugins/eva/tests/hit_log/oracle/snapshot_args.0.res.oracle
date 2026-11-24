@@ -5,7 +5,8 @@ Calls:
   malloc :: snapshot_args.c:20 <- unused_main: builtin
   keep_unused :: snapshot_args.c:21 <- unused_main: analysed, cache entry 7
   unused_main: analysed, cache entry 8
-Heap calls, not stored by memexec: unused_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: unused_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 keep_unused, start:

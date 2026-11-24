@@ -104,6 +104,7 @@ let pp_discovery fmt = function
   | Content base -> Format.fprintf fmt "content of %a" Base.pretty base
   | Candidate -> Format.pp_print_string fmt "candidate"
   | No_root -> Format.pp_print_string fmt "key block reached from no root"
+  | Creation -> Format.pp_print_string fmt "creation symbol"
 
 let pp_kind fmt = function
   | Base.Malloc -> Format.pp_print_string fmt "malloc"
@@ -135,7 +136,10 @@ let print_entry (entry: Numbering.entry) =
   print_state "start" entry.start;
   List.iteri
     (fun i state -> print_state (Printf.sprintf "exit %d" (i + 1)) state)
-    entry.exits
+    entry.exits;
+  if entry.created <> [] then
+    Format.printf "  created: %s@."
+      (one_line (pp_list Base.pretty) entry.created)
 
 (* ----- Checks ----------------------------------------------------------- *)
 
@@ -156,6 +160,8 @@ let differences (e1: Numbering.entry) (e2: Numbering.entry) =
   in
   (if List.equal equal_argument e1.args e2.args then [] else [ "arguments" ])
   @ (if Base.Hptset.equal e1.key e2.key then [] else [ "key" ])
+  @ (if List.equal Base.equal e1.created e2.created then []
+     else [ "created blocks" ])
   @ state "start" e1.start e2.start
   @ (if List.compare_lengths e1.exits e2.exits <> 0 then [ "exits" ]
      else
@@ -190,7 +196,8 @@ let bases_of_entry (entry: Numbering.entry) =
   let acc =
     List.fold_left
       (fun acc -> function `Bottom -> acc | `Value v -> of_value v acc)
-      entry.key entry.args
+      (Base.Hptset.union entry.key (Base.Hptset.of_list entry.created))
+      entry.args
   in
   List.fold_left of_state acc (entry.start :: entry.exits)
 
@@ -372,7 +379,7 @@ let check_unknown () =
   let no_state = Cvalue.Model.empty_map, Eva__Locals_scoping.bottom () in
   let entry =
     Numbering.{ args = [ `Value top ]; key = Base.Hptset.empty;
-                start = no_state; exits = [] }
+                start = no_state; exits = []; created = [] }
   in
   let print label = function
     | Ok _ -> Format.printf "%s: numbered form@." label
@@ -394,7 +401,8 @@ let check_unknown () =
   let model = Cvalue.Model.add_base slot offsetmap Cvalue.Model.empty_map in
   let entry =
     Numbering.{ args = []; key = Base.Hptset.singleton slot;
-                start = model, Eva__Locals_scoping.bottom (); exits = [] }
+                start = model, Eva__Locals_scoping.bottom (); exits = [];
+                created = [] }
   in
   print "Numbering of a block of the key that may point to any block"
     (Numbering.number_entry ~candidates:[] entry)

@@ -13,7 +13,8 @@ Calls:
   cmp_r :: snapshot_fields.c:26 <- record_main: analysed, cache entry 7
   free :: snapshot_fields.c:27 <- record_main: builtin
   record_main: analysed, cache entry 8
-Heap calls, not stored by memexec: record_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: record_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:

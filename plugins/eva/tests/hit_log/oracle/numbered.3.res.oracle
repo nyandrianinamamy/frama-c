@@ -36,6 +36,41 @@ Cache entry 8, deref:
   round trip: equal
   new numbered form
   lost hit: same inputs as the cache entry 7 under the permutation #0 -> #1, #1 -> #0
+Cache entry 9, multi_target_main:
+  numbered blocks:
+    #0: __malloc_multi_target_main_l83_1, creation symbol; strong, record Variable [0..31--31], type int, malloc
+    #1: __malloc_multi_target_main_l85_1, creation symbol; strong, record Variable [0..31--31], type int, malloc
+    #2: __malloc_multi_target_main_l89_1, creation symbol; strong, record Variable [0..31--31], type int, malloc
+    #3: __malloc_multi_target_main_l91_1, creation symbol; strong, record Variable [0..31--31], type int, malloc
+  arguments: none
+  key: __fc_heap_status, errno, Frama_C_entropy_source, r_deref, a, b, p, tmp_1, tmp_2, c, d, q, tmp_5, tmp_6
+  start, clobbered set none:
+    __fc_heap_status: [0..31] [--..--]
+    errno: [0..31] [--..--]
+    Frama_C_entropy_source: [0..31] [--..--]
+    r_deref: [0..63] {0}
+  exit 1, clobbered set none:
+    __fc_heap_status: [0..31] [--..--]
+    errno: [0..31] [--..--]
+    Frama_C_entropy_source: [0..31] [--..--]
+    r_deref: [0..63] {1; 2} (size 32, offset 0)
+    a: [0..31] {{ &#0 }}
+    b: [0..31] {{ &#1 }}
+    p: [0..31] {{ &#0 ; &#1 }}
+    tmp_1: [0..31] {0; 1}
+    tmp_2: [0..31] {{ &#0 ; &#1 }}
+    c: [0..31] {{ &#2 }}
+    d: [0..31] {{ &#3 }}
+    q: [0..31] {{ &#2 ; &#3 }}
+    tmp_5: [0..31] {0; 1}
+    tmp_6: [0..31] {{ &#2 ; &#3 }}
+    #0: [0..31] {1}, [32..34359738367] BOTVALUE
+    #1: [0..31] {2}, [32..34359738367] BOTVALUE
+    #2: [0..31] {2}, [32..34359738367] BOTVALUE
+    #3: [0..31] {1}, [32..34359738367] BOTVALUE
+  created: #0, #1, #2, #3
+  round trip: equal
+  new numbered form
 Calls:
   malloc :: numbered.c:83 <- multi_target_main: builtin
   malloc :: numbered.c:85 <- multi_target_main: builtin
@@ -46,7 +81,8 @@ Calls:
   Frama_C_interval :: numbered.c:93 <- multi_target_main: specification
   deref :: numbered.c:94 <- multi_target_main: analysed, cache entry 8
   multi_target_main: analysed, cache entry 9
-Heap calls, not stored by memexec: multi_target_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: multi_target_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Initial state: equal.
@@ -65,4 +101,4 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 317 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1538, 0 alarms, those of the run without memexec.
-Stored entries: 2; with a numbered block: 2; without numbered form: 0; round trips that differ: 0; lost hits: 1; placeholders in the entries given by memexec: 0.
+Stored entries: 3; with a numbered block: 3; without numbered form: 0; round trips that differ: 0; lost hits: 1; placeholders in the entries given by memexec: 0.

@@ -25,7 +25,8 @@ Calls:
   keep_g :: snapshot_grow.c:22 <- grow_main: hit of cache entry 18
   free :: snapshot_grow.c:23 <- grow_main: builtin
   grow_main: analysed, cache entry 19
-Heap calls, not stored by memexec: grow_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: grow_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:

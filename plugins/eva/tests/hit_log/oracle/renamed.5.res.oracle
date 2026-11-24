@@ -9,7 +9,8 @@ Calls:
   same_global :: renamed.c:108 <- compare_main: analysed, cache entry 17
   same_global :: renamed.c:110 <- compare_main: hit of cache entry 17
   compare_main: analysed, cache entry 18
-Heap calls, not stored by memexec: compare_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: compare_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 same, start:

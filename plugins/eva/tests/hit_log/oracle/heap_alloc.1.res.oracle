@@ -10,15 +10,16 @@ Calls:
   malloc :: heap_alloc.c:57 <- make :: heap_alloc.c:64 <- freed_main: builtin
   make :: heap_alloc.c:64 <- freed_main: analysed, cache entry 12
   free :: heap_alloc.c:65 <- freed_main: builtin
-  malloc :: heap_alloc.c:57 <- make :: heap_alloc.c:64 <- freed_main: builtin
-  make :: heap_alloc.c:64 <- freed_main: analysed, cache entry 13
+  make :: heap_alloc.c:64 <- freed_main: hit of cache entry 12
   free :: heap_alloc.c:65 <- freed_main: builtin
-  malloc :: heap_alloc.c:57 <- make :: heap_alloc.c:64 <- freed_main: builtin
-  make :: heap_alloc.c:64 <- freed_main: analysed, cache entry 14
+  make :: heap_alloc.c:64 <- freed_main: hit of cache entry 12
   free :: heap_alloc.c:65 <- freed_main: builtin
-  freed_main: analysed, cache entry 15
-Heap calls, not stored by memexec: freed_main 1, make 4.
-Heap calls whose answers come from full states: none.
+  freed_main: analysed, cache entry 13
+Heap calls, not stored by memexec: freed_main 1.
+Heap calls stored by memexec: make 2.
+Heap calls whose answers come from full states: freed_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  freed_main 1.
 Hits not made because memexec does not store the heap calls: none.
 make, start:
   joined: i ∈ {0; 1; 2; 3}
@@ -106,6 +107,7 @@ freed_main, after heap_alloc.c:68 `return;`:
               rc ∈ {0}
               rs ∈ {0}
               hold ∈ {0}
+Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 706 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

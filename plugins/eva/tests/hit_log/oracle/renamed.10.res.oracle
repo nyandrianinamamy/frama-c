@@ -9,7 +9,8 @@ Calls:
   inner :: renamed.c:136 <- outer :: renamed.c:192 <- differ_main: analysed, cache entry 15
   outer :: renamed.c:192 <- differ_main: analysed, cache entry 16
   differ_main: analysed, cache entry 17
-Heap calls, not stored by memexec: differ_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: differ_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 inner, start:

@@ -14,8 +14,9 @@ Calls:
   recur_guarded :: heap_sweep.c:101 <- recur_guarded :: heap_sweep.c:103 <- guarded_main: analysed, cache entry 13
   recur_guarded :: heap_sweep.c:103 <- guarded_main: analysed, cache entry 14
   guarded_main: analysed, cache entry 15
-Heap calls, not stored by memexec: guarded_main 1.
-Heap calls stored by memexec: guarded 1, mid 1, recur_guarded 2.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: guarded 1, guarded_main 1, mid 1,
+  recur_guarded 2.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 guarded, start:

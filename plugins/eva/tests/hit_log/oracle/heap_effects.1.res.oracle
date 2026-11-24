@@ -11,7 +11,8 @@ Calls:
   malloc :: heap_effects.c:38 <- two :: heap_effects.c:39 <- two_states_main: builtin
   two :: heap_effects.c:39 <- two_states_main: analysed, cache entry 5
   two_states_main: analysed, cache entry 6
-Heap calls, not stored by memexec: two 1, two_states_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: two 1, two_states_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Initial state: equal.
