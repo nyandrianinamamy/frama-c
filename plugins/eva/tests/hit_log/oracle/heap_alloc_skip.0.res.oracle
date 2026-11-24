@@ -1,0 +1,45 @@
+[kernel] Parsing heap_alloc_skip.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_alloc_skip.c:25 <- bare :: heap_alloc_skip.c:30 <- skip_main: 0: strong, record Variable [0..31--31], type int, malloc; 1: strong, record Variable [0..31--31], type int, malloc
+  block 0 of malloc :: heap_alloc_skip.c:25 <- bare :: heap_alloc_skip.c:30 <- skip_main: owned by bare :: heap_alloc_skip.c:30 <- skip_main
+  block 1 of malloc :: heap_alloc_skip.c:25 <- bare :: heap_alloc_skip.c:30 <- skip_main: owned by bare :: heap_alloc_skip.c:30 <- skip_main
+These are the tables of the run without memexec.
+Calls:
+  malloc :: heap_alloc_skip.c:25 <- bare :: heap_alloc_skip.c:30 <- skip_main: builtin
+  bare :: heap_alloc_skip.c:30 <- skip_main: analysed, cache entry 13
+  malloc :: heap_alloc_skip.c:25 <- bare :: heap_alloc_skip.c:30 <- skip_main: builtin
+  bare :: heap_alloc_skip.c:30 <- skip_main: analysed, cache entry 14
+  free :: heap_alloc_skip.c:35 <- skip_main: builtin
+  malloc :: heap_alloc_skip.c:25 <- bare :: heap_alloc_skip.c:30 <- skip_main: builtin
+  bare :: heap_alloc_skip.c:30 <- skip_main: analysed, cache entry 15
+  free :: heap_alloc_skip.c:35 <- skip_main: builtin
+  free :: heap_alloc_skip.c:37 <- skip_main: builtin
+  malloc :: heap_alloc_skip.c:25 <- bare :: heap_alloc_skip.c:30 <- skip_main: builtin
+  bare :: heap_alloc_skip.c:30 <- skip_main: analysed, cache entry 16
+  free :: heap_alloc_skip.c:35 <- skip_main: builtin
+  bare :: heap_alloc_skip.c:30 <- skip_main: hit of cache entry 16
+  free :: heap_alloc_skip.c:35 <- skip_main: builtin
+  skip_main: analysed, cache entry 17
+Heap calls, not stored by memexec: skip_main 1.
+Heap calls stored by memexec: bare 4.
+Heap calls whose answers come from full states: skip_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  skip_main 1.
+Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 108 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 36 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 36 points.
+Filtered requests that reject one callstack: 0.
+Requests made: 180; reported by the trap: 180, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 36 requests, 68 reads of the legacy store in them, 73 reads outside any request.
+  with -eva-hit-log: 36 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 18 requests
+    statistics: 16 requests
+    summary: 2 requests
+Statuses of the properties: those of the run without memexec, for 92 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.
