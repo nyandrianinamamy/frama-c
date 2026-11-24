@@ -141,10 +141,8 @@
     states that the analysis of the body computes and that the legacy store
     saves, taken when the analysis of the body ends. A request at a point of
     a refused heap call is answered by these full states; the rule is not
-    applied. The entry of a marked call holds full states too, whether it
-    is a heap call or not. The statistic [hit-log-heap-calls] counts the
-    heap calls, and [hit-log-full-states] those of them whose entries hold
-    full states.
+    applied. The statistic [hit-log-heap-calls] counts the heap calls, and
+    [hit-log-full-states] those of them whose entries hold full states.
 
     With memexec, the hits that memexec no longer makes are counted per
     function: the statistic [hit-log-lost-hits] counts the calls that it
@@ -224,10 +222,10 @@ val footprint_of_call: id:int -> (unit -> unit) -> footprint option
     tells the edges through which its analysis propagated a state. For a
     heap call, the Inner part, and the start states of the calls made by the
     body, also cover the blocks of its heap effects, with the sweep map,
-    computed on the paths of the edges [fired]. A refused heap call and a
-    marked call, with a footprint, keep their states before and after each
-    statement whole, and no call made by the body. Without footprint, as when the
-    results of the call are not saved, its body points are unavailable. *)
+    computed on the paths of the edges [fired]. A refused heap call, with a
+    footprint, keeps its states before and after each statement whole, and
+    no call made by the body. Without footprint, as when the results of
+    the call are not saved, its body points are unavailable. *)
 val record_analysed_call:
   id:int -> Callstack.t ->
   automaton:Eva_automata.automaton -> fired:(Eva_automata.edge -> bool) ->
