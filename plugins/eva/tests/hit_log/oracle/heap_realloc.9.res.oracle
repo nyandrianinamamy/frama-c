@@ -1,0 +1,50 @@
+[kernel] Parsing heap_realloc.c (with preprocessing)
+[eva:alarm] heap_realloc.c:46: Warning: 
+  function realloc: precondition 'freeable' got status invalid.
+[eva:alarm] heap_realloc.c:46: Warning: 
+  function realloc: precondition 'freeable' got status invalid.
+[eva:alarm] heap_realloc.c:46: Warning: 
+  function realloc: precondition 'freeable' got status invalid.
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_realloc.c:211 <- invalid_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  block 0 of malloc :: heap_realloc.c:211 <- invalid_main: owned by invalid_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on malloc :: heap_realloc.c:211 <- invalid_main: 0: __malloc_invalid_main_l211
+These are the names of the run without memexec.
+Calls:
+  malloc :: heap_realloc.c:211 <- invalid_main: builtin
+  Frama_C_interval :: heap_realloc.c:213 <- invalid_main: specification
+  realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:213 <- invalid_main: builtin
+  rs :: heap_realloc.c:213 <- invalid_main: analysed, cache entry 9
+  Frama_C_interval :: heap_realloc.c:214 <- invalid_main: specification
+  rs :: heap_realloc.c:214 <- invalid_main: hit of cache entry 9
+  Frama_C_interval :: heap_realloc.c:216 <- invalid_main: specification
+  realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:216 <- invalid_main: builtin
+  rs :: heap_realloc.c:216 <- invalid_main: analysed, cache entry 10
+  Frama_C_interval :: heap_realloc.c:217 <- invalid_main: specification
+  rs :: heap_realloc.c:217 <- invalid_main: hit of cache entry 10
+  invalid_main: analysed, cache entry 11
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: invalid_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  rs :: heap_realloc.c:214 <- invalid_main, hit of cache entry 9, against rs :: heap_realloc.c:213 <- invalid_main: differs on p, q, tmp_0, tmp_2, at 5 points.
+  rs :: heap_realloc.c:217 <- invalid_main, hit of cache entry 10, against rs :: heap_realloc.c:216 <- invalid_main: differs on p_0, q_0, tmp_4, tmp_6, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 1145 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 553 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 553 points.
+Filtered requests that reject one callstack: 2.
+Requests made: 2251; reported by the trap: 2251, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 313 requests, 97 reads of the legacy store in them, 91 reads outside any request.
+  with -eva-hit-log: 313 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 272 requests
+    statistics: 22 requests
+    summary: 19 requests
+Statuses of the properties: those of the run without memexec, for 403 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 0.7727, function coverage 0.0870, 0 alarms, those of the run without memexec.

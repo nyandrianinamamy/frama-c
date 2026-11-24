@@ -41,7 +41,8 @@ Each was broken once, and the test named beside it is its regression.
    blocks unresolved. A block that a hit on a call that allocates creates
    takes its key from the block of the stored call that the renaming of the
    hit maps to it (`record_replayed`); `heap_alloc.ml` checks the tables of
-   the allocated blocks apart from the renaming. Tests: `alloc_sites`,
+   the allocated blocks apart from the renaming, and `heap_names.ml` the
+   names that the policy `by_stack` gives them. Tests: `alloc_sites`,
    `alloc_pairwise`, `alloc_unresolved`, `heap_alloc`.
 2. **Strength is kept.** A weak base summarises several blocks; renaming
    erases the difference (`rename`). Strong in the source and weak in the

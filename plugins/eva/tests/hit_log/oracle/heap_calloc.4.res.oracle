@@ -1,0 +1,43 @@
+[kernel] Parsing heap_calloc.c (with preprocessing)
+[eva] heap_calloc.c:85: Warning: 
+  calloc out of bounds: assert(nmemb * size <= SIZE_MAX)
+[eva] heap_calloc.c:85: Warning: 
+  calloc out of bounds: assert(nmemb * size <= SIZE_MAX)
+[eva] heap_calloc.c:85: Warning: 
+  calloc out of bounds: assert(nmemb * size <= SIZE_MAX)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of calloc :: heap_calloc.c:85 <- maybe :: heap_calloc.c:92 <- maybe_main: 0: strong, record Variable [0..524287--34359738367], type int [], malloc
+  list of calloc :: heap_calloc.c:85 <- maybe :: heap_calloc.c:93 <- maybe_main: 0: strong, record Variable [0..524287--34359738367], type int [], malloc
+  block 0 of calloc :: heap_calloc.c:85 <- maybe :: heap_calloc.c:92 <- maybe_main: owned by maybe :: heap_calloc.c:92 <- maybe_main
+  block 0 of calloc :: heap_calloc.c:85 <- maybe :: heap_calloc.c:93 <- maybe_main: owned by maybe :: heap_calloc.c:93 <- maybe_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on calloc :: heap_calloc.c:85 <- maybe :: heap_calloc.c:92 <- maybe_main: 0: __calloc_maybe_l85
+  names on calloc :: heap_calloc.c:85 <- maybe :: heap_calloc.c:93 <- maybe_main: 0: __calloc_maybe_l85
+These are the names of the run without memexec.
+Calls:
+  Frama_C_unsigned_int_interval :: heap_calloc.c:91 <- maybe_main: specification
+  calloc :: heap_calloc.c:85 <- maybe :: heap_calloc.c:92 <- maybe_main: builtin
+  maybe :: heap_calloc.c:92 <- maybe_main: analysed, cache entry 7
+  calloc :: heap_calloc.c:85 <- maybe :: heap_calloc.c:93 <- maybe_main: builtin
+  maybe :: heap_calloc.c:93 <- maybe_main: analysed, cache entry 8
+  maybe_main: analysed, cache entry 9
+Heap calls, not stored by memexec: maybe 2, maybe_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 263 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 115 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 115 points.
+Filtered requests that reject one callstack: 9.
+Requests made: 493; reported by the trap: 493, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 68 requests, 47 reads of the legacy store in them, 58 reads outside any request.
+  with -eva-hit-log: 68 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 55 requests
+    statistics: 10 requests
+    summary: 3 requests
+Statuses of the properties: those of the run without memexec, for 294 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.2222, 0 alarms, those of the run without memexec.

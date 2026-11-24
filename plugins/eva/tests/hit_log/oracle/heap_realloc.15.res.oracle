@@ -1,0 +1,95 @@
+[kernel] Parsing heap_realloc.c (with preprocessing)
+[eva] heap_realloc.c:290: Warning: 
+  reallocarray out of bounds: assert(nmemb * size <= SIZE_MAX)
+[eva] heap_realloc.c:286: Warning: 
+  reallocarray out of bounds: assert(nmemb * size <= SIZE_MAX)
+[eva] heap_realloc.c:290: Warning: 
+  reallocarray out of bounds: assert(nmemb * size <= SIZE_MAX)
+[eva] heap_realloc.c:286: Warning: 
+  reallocarray out of bounds: assert(nmemb * size <= SIZE_MAX)
+[eva] heap_realloc.c:290: Warning: 
+  reallocarray out of bounds: assert(nmemb * size <= SIZE_MAX)
+[eva] heap_realloc.c:286: Warning: 
+  reallocarray out of bounds: assert(nmemb * size <= SIZE_MAX)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_realloc.c:294 <- array_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc.c:296 <- array_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc.c:299 <- array_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc.c:304 <- array_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc.c:306 <- array_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:295 <- array_main: 0: strong, record Variable [0..63--63], type char [8], malloc
+  list of reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:297 <- array_main: 0: strong, record Variable [0..63--63], type char [8], malloc
+  list of reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:305 <- array_main: 0: strong, record Variable [0..15--34359738367], type char [], malloc
+  list of reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:307 <- array_main: 0: strong, record Variable [0..15--34359738367], type char [], malloc
+  block 0 of malloc :: heap_realloc.c:294 <- array_main: owned by array_main
+  block 0 of malloc :: heap_realloc.c:296 <- array_main: owned by array_main
+  block 0 of malloc :: heap_realloc.c:299 <- array_main: owned by array_main
+  block 0 of malloc :: heap_realloc.c:304 <- array_main: owned by array_main
+  block 0 of malloc :: heap_realloc.c:306 <- array_main: owned by array_main
+  block 0 of reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:295 <- array_main: owned by ra :: heap_realloc.c:295 <- array_main
+  block 0 of reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:297 <- array_main: owned by ra :: heap_realloc.c:297 <- array_main
+  block 0 of reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:305 <- array_main: owned by ra :: heap_realloc.c:305 <- array_main
+  block 0 of reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:307 <- array_main: owned by ra :: heap_realloc.c:307 <- array_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on malloc :: heap_realloc.c:294 <- array_main: 0: __malloc_array_main_l294
+  names on malloc :: heap_realloc.c:296 <- array_main: 0: __malloc_array_main_l296
+  names on malloc :: heap_realloc.c:299 <- array_main: 0: __malloc_array_main_l299
+  names on malloc :: heap_realloc.c:304 <- array_main: 0: __malloc_array_main_l304
+  names on malloc :: heap_realloc.c:306 <- array_main: 0: __malloc_array_main_l306
+  names on reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:295 <- array_main: 0: __realloc_ra_l286
+  names on reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:297 <- array_main: 0: __realloc_ra_l286
+  names on reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:305 <- array_main: 0: __realloc_ra_l286
+  names on reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:307 <- array_main: 0: __realloc_ra_l286
+These are the names of the run without memexec.
+Calls:
+  malloc :: heap_realloc.c:294 <- array_main: builtin
+  fill :: heap_realloc.c:294 <- array_main: analysed, cache entry 26
+  reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:295 <- array_main: builtin
+  ra :: heap_realloc.c:295 <- array_main: analysed, cache entry 27
+  malloc :: heap_realloc.c:296 <- array_main: builtin
+  fill :: heap_realloc.c:296 <- array_main: hit of cache entry 26
+  reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:297 <- array_main: builtin
+  ra :: heap_realloc.c:297 <- array_main: analysed, cache entry 28
+  malloc :: heap_realloc.c:299 <- array_main: builtin
+  fill :: heap_realloc.c:299 <- array_main: hit of cache entry 26
+  reallocarray :: heap_realloc.c:290 <- big_ra :: heap_realloc.c:300 <- array_main: builtin
+  big_ra :: heap_realloc.c:300 <- array_main: analysed, cache entry 29
+  reallocarray :: heap_realloc.c:290 <- big_ra :: heap_realloc.c:301 <- array_main: builtin
+  big_ra :: heap_realloc.c:301 <- array_main: analysed, cache entry 30
+  big_ra :: heap_realloc.c:302 <- array_main: hit of cache entry 30
+  Frama_C_unsigned_int_interval :: heap_realloc.c:303 <- array_main: specification
+  malloc :: heap_realloc.c:304 <- array_main: builtin
+  fill :: heap_realloc.c:304 <- array_main: hit of cache entry 26
+  reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:305 <- array_main: builtin
+  ra :: heap_realloc.c:305 <- array_main: analysed, cache entry 31
+  malloc :: heap_realloc.c:306 <- array_main: builtin
+  fill :: heap_realloc.c:306 <- array_main: hit of cache entry 26
+  reallocarray :: heap_realloc.c:286 <- ra :: heap_realloc.c:307 <- array_main: builtin
+  ra :: heap_realloc.c:307 <- array_main: analysed, cache entry 32
+  array_main: analysed, cache entry 33
+Heap calls, not stored by memexec: array_main 1, ra 4.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  fill :: heap_realloc.c:296 <- array_main, hit of cache entry 26, against fill :: heap_realloc.c:294 <- array_main: differs on __malloc_array_main_l294_1, __malloc_array_main_l296_1, __realloc_ra_l286_7, g, p, at 11 points.
+  fill :: heap_realloc.c:299 <- array_main, hit of cache entry 26, against fill :: heap_realloc.c:294 <- array_main: differs on __malloc_array_main_l294_1, __malloc_array_main_l299_1, __realloc_ra_l286_7, __realloc_ra_l286_8, g, p, q, x, at 11 points.
+  big_ra :: heap_realloc.c:302 <- array_main, hit of cache entry 30, against big_ra :: heap_realloc.c:301 <- array_main: differs on t, at 5 points.
+  fill :: heap_realloc.c:304 <- array_main, hit of cache entry 26, against fill :: heap_realloc.c:294 <- array_main: differs on __malloc_array_main_l294_1, __malloc_array_main_l299_1, __malloc_array_main_l304_1, __realloc_ra_l286_7, __realloc_ra_l286_8, g, n, p, q, r, t, w, x, at 11 points.
+  fill :: heap_realloc.c:306 <- array_main, hit of cache entry 26, against fill :: heap_realloc.c:294 <- array_main: differs on __malloc_array_main_l294_1, __malloc_array_main_l299_1, __malloc_array_main_l304_1, __malloc_array_main_l306_1, __realloc_ra_l286_7, __realloc_ra_l286_8, __realloc_ra_l286_9, g, n, p, q, r, t, u, w, x, at 11 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 1239 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 553 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 553 points.
+Filtered requests that reject one callstack: 21.
+Requests made: 2345; reported by the trap: 2345, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 322 requests, 151 reads of the legacy store in them, 204 reads outside any request.
+  with -eva-hit-log: 322 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 274 requests
+    statistics: 29 requests
+    summary: 19 requests
+Statuses of the properties: those of the run without memexec, for 404 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1739, 0 alarms, those of the run without memexec.

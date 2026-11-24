@@ -1,0 +1,53 @@
+[kernel] Parsing heap_realloc.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_realloc.c:56 <- strong_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc.c:60 <- strong_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc.c:67 <- strong_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:59 <- strong_main: 0: strong, record Variable [0..63--63], type char [8], malloc
+  list of realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:63 <- strong_main: 0: strong, record Variable [0..63--63], type char [8], malloc
+  list of realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:70 <- strong_main: 0: strong, record Variable [0..63--63], type char [8], malloc
+  block 0 of malloc :: heap_realloc.c:56 <- strong_main: owned by strong_main
+  block 0 of malloc :: heap_realloc.c:60 <- strong_main: owned by strong_main
+  block 0 of malloc :: heap_realloc.c:67 <- strong_main: owned by strong_main
+  block 0 of realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:59 <- strong_main: owned by rs :: heap_realloc.c:59 <- strong_main
+  block 0 of realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:63 <- strong_main: owned by rs :: heap_realloc.c:63 <- strong_main
+  block 0 of realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:70 <- strong_main: owned by rs :: heap_realloc.c:70 <- strong_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on malloc :: heap_realloc.c:56 <- strong_main: 0: __malloc_strong_main_l56
+  names on malloc :: heap_realloc.c:60 <- strong_main: 0: __malloc_strong_main_l60
+  names on malloc :: heap_realloc.c:67 <- strong_main: 0: __malloc_strong_main_l67
+  names on realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:59 <- strong_main: 0: __realloc_rs_l46
+  names on realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:63 <- strong_main: 0: __realloc_rs_l46
+  names on realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:70 <- strong_main: 0: __realloc_rs_l46
+These are the names of the run without memexec.
+Calls:
+  malloc :: heap_realloc.c:56 <- strong_main: builtin
+  realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:59 <- strong_main: builtin
+  rs :: heap_realloc.c:59 <- strong_main: analysed, cache entry 9
+  malloc :: heap_realloc.c:60 <- strong_main: builtin
+  realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:63 <- strong_main: builtin
+  rs :: heap_realloc.c:63 <- strong_main: analysed, cache entry 10
+  malloc :: heap_realloc.c:67 <- strong_main: builtin
+  realloc :: heap_realloc.c:46 <- rs :: heap_realloc.c:70 <- strong_main: builtin
+  rs :: heap_realloc.c:70 <- strong_main: analysed, cache entry 11
+  strong_main: analysed, cache entry 12
+Heap calls, not stored by memexec: rs 3, strong_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 1190 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 553 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 553 points.
+Filtered requests that reject one callstack: 5.
+Requests made: 2296; reported by the trap: 2296, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 326 requests, 149 reads of the legacy store in them, 162 reads outside any request.
+  with -eva-hit-log: 326 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 272 requests
+    statistics: 35 requests
+    summary: 19 requests
+Statuses of the properties: those of the run without memexec, for 405 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0870, 0 alarms, those of the run without memexec.

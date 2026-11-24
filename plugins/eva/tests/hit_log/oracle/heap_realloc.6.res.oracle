@@ -1,0 +1,44 @@
+[kernel] Parsing heap_realloc.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_realloc.c:196 <- self_main: 0: strong, record Variable [0..31--31], type void *, malloc
+  list of malloc :: heap_realloc.c:199 <- self_main: 0: strong, record Variable [0..31--31], type void *, malloc
+  list of realloc :: heap_realloc.c:192 <- rself :: heap_realloc.c:198 <- self_main: 0: strong, record Variable [0..63--63], type void *[2], malloc
+  list of realloc :: heap_realloc.c:192 <- rself :: heap_realloc.c:201 <- self_main: 0: strong, record Variable [0..63--63], type void *[2], malloc
+  block 0 of malloc :: heap_realloc.c:196 <- self_main: owned by self_main
+  block 0 of malloc :: heap_realloc.c:199 <- self_main: owned by self_main
+  block 0 of realloc :: heap_realloc.c:192 <- rself :: heap_realloc.c:198 <- self_main: owned by rself :: heap_realloc.c:198 <- self_main
+  block 0 of realloc :: heap_realloc.c:192 <- rself :: heap_realloc.c:201 <- self_main: owned by rself :: heap_realloc.c:201 <- self_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on malloc :: heap_realloc.c:196 <- self_main: 0: __malloc_self_main_l196
+  names on malloc :: heap_realloc.c:199 <- self_main: 0: __malloc_self_main_l199
+  names on realloc :: heap_realloc.c:192 <- rself :: heap_realloc.c:198 <- self_main: 0: __realloc_rself_l192
+  names on realloc :: heap_realloc.c:192 <- rself :: heap_realloc.c:201 <- self_main: 0: __realloc_rself_l192
+These are the names of the run without memexec.
+Calls:
+  malloc :: heap_realloc.c:196 <- self_main: builtin
+  realloc :: heap_realloc.c:192 <- rself :: heap_realloc.c:198 <- self_main: builtin
+  rself :: heap_realloc.c:198 <- self_main: analysed, cache entry 7
+  malloc :: heap_realloc.c:199 <- self_main: builtin
+  realloc :: heap_realloc.c:192 <- rself :: heap_realloc.c:201 <- self_main: builtin
+  rself :: heap_realloc.c:201 <- self_main: analysed, cache entry 8
+  self_main: analysed, cache entry 9
+Heap calls, not stored by memexec: rself 2, self_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 1135 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 553 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 553 points.
+Filtered requests that reject one callstack: 5.
+Requests made: 2241; reported by the trap: 2241, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 301 requests, 45 reads of the legacy store in them, 55 reads outside any request.
+  with -eva-hit-log: 301 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 272 requests
+    statistics: 10 requests
+    summary: 19 requests
+Statuses of the properties: those of the run without memexec, for 406 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.0870, 0 alarms, those of the run without memexec.

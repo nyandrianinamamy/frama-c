@@ -1,0 +1,37 @@
+[kernel] Parsing heap_calloc.c (with preprocessing)
+[eva] heap_calloc.c:73: Warning: 
+  calloc out of bounds: assert(nmemb * size <= SIZE_MAX)
+[eva] heap_calloc.c:73: Warning: 
+  calloc out of bounds: assert(nmemb * size <= SIZE_MAX)
+[eva] heap_calloc.c:73: Warning: 
+  calloc out of bounds: assert(nmemb * size <= SIZE_MAX)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+These are the names of the run without memexec.
+Calls:
+  calloc :: heap_calloc.c:73 <- big :: heap_calloc.c:77 <- overflow_main: builtin
+  big :: heap_calloc.c:77 <- overflow_main: analysed, cache entry 6
+  big :: heap_calloc.c:78 <- overflow_main: hit of cache entry 6
+  overflow_main: analysed, cache entry 7
+Heap calls, not stored by memexec: none.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  big :: heap_calloc.c:78 <- overflow_main, hit of cache entry 6, against big :: heap_calloc.c:77 <- overflow_main: differs on a, at 5 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 261 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 115 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 115 points.
+Filtered requests that reject one callstack: 5.
+Requests made: 491; reported by the trap: 491, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 71 requests, 54 reads of the legacy store in them, 55 reads outside any request.
+  with -eva-hit-log: 71 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 55 requests
+    statistics: 13 requests
+    summary: 3 requests
+Statuses of the properties: those of the run without memexec, for 295 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 0.8462, function coverage 0.2222, 0 alarms, those of the run without memexec.

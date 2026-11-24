@@ -1,0 +1,54 @@
+[kernel] Parsing heap_realloc_paths.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_realloc_paths.c:60 <- two_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc_paths.c:61 <- two_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc_paths.c:68 <- two_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc_paths.c:69 <- two_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:67 <- two_main: 0: strong, record Variable [0..63--63], type char [8], malloc
+  list of realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:75 <- two_main: 0: strong, record Variable [0..63--63], type char [8], malloc
+  block 0 of malloc :: heap_realloc_paths.c:60 <- two_main: owned by two_main
+  block 0 of malloc :: heap_realloc_paths.c:61 <- two_main: owned by two_main
+  block 0 of malloc :: heap_realloc_paths.c:68 <- two_main: owned by two_main
+  block 0 of malloc :: heap_realloc_paths.c:69 <- two_main: owned by two_main
+  block 0 of realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:67 <- two_main: owned by rs :: heap_realloc_paths.c:67 <- two_main
+  block 0 of realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:75 <- two_main: owned by rs :: heap_realloc_paths.c:75 <- two_main
+These are the tables of the run without memexec.
+Names of the blocks of the policy by_stack after the analysis with -eva-hit-log:
+  names on malloc :: heap_realloc_paths.c:60 <- two_main: 0: __malloc_two_main_l60
+  names on malloc :: heap_realloc_paths.c:61 <- two_main: 0: __malloc_two_main_l61
+  names on malloc :: heap_realloc_paths.c:68 <- two_main: 0: __malloc_two_main_l68
+  names on malloc :: heap_realloc_paths.c:69 <- two_main: 0: __malloc_two_main_l69
+  names on realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:67 <- two_main: 0: __realloc_rs_l29
+  names on realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:75 <- two_main: 0: __realloc_rs_l29
+These are the names of the run without memexec.
+Calls:
+  malloc :: heap_realloc_paths.c:60 <- two_main: builtin
+  malloc :: heap_realloc_paths.c:61 <- two_main: builtin
+  Frama_C_interval :: heap_realloc_paths.c:65 <- two_main: specification
+  realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:67 <- two_main: builtin
+  rs :: heap_realloc_paths.c:67 <- two_main: analysed, cache entry 7
+  malloc :: heap_realloc_paths.c:68 <- two_main: builtin
+  malloc :: heap_realloc_paths.c:69 <- two_main: builtin
+  Frama_C_interval :: heap_realloc_paths.c:73 <- two_main: specification
+  realloc :: heap_realloc_paths.c:29 <- rs :: heap_realloc_paths.c:75 <- two_main: builtin
+  rs :: heap_realloc_paths.c:75 <- two_main: analysed, cache entry 8
+  two_main: analysed, cache entry 9
+Heap calls, not stored by memexec: rs 2, two_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 583 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 234 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 234 points.
+Filtered requests that reject one callstack: 5.
+Requests made: 1051; reported by the trap: 1051, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 172 requests, 219 reads of the legacy store in them, 232 reads outside any request.
+  with -eva-hit-log: 172 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 115 requests
+    statistics: 53 requests
+    summary: 4 requests
+Statuses of the properties: those of the run without memexec, for 311 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.3333, 0 alarms, those of the run without memexec.
