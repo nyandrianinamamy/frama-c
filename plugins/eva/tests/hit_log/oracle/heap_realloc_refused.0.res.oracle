@@ -1,0 +1,65 @@
+[kernel] Parsing heap_realloc_refused.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of calloc :: heap_realloc_refused.c:32 <- c_annot :: heap_realloc_refused.c:49 <- annot_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of calloc :: heap_realloc_refused.c:32 <- c_annot :: heap_realloc_refused.c:50 <- annot_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:51 <- annot_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:53 <- annot_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:55 <- annot_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:57 <- annot_main: 0: strong, record Variable [0..31--31], type char [4], malloc
+  list of realloc :: heap_realloc_refused.c:38 <- r_annot :: heap_realloc_refused.c:52 <- annot_main: 0: strong, record Variable [0..63--63], type char [8], malloc
+  list of realloc :: heap_realloc_refused.c:38 <- r_annot :: heap_realloc_refused.c:54 <- annot_main: 0: strong, record Variable [0..63--63], type char [8], malloc
+  block 0 of calloc :: heap_realloc_refused.c:32 <- c_annot :: heap_realloc_refused.c:49 <- annot_main: owned by c_annot :: heap_realloc_refused.c:49 <- annot_main
+  block 0 of calloc :: heap_realloc_refused.c:32 <- c_annot :: heap_realloc_refused.c:50 <- annot_main: owned by c_annot :: heap_realloc_refused.c:50 <- annot_main
+  block 0 of malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:51 <- annot_main: owned by mk :: heap_realloc_refused.c:51 <- annot_main
+  block 0 of malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:53 <- annot_main: owned by mk :: heap_realloc_refused.c:53 <- annot_main
+  block 0 of malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:55 <- annot_main: owned by mk :: heap_realloc_refused.c:55 <- annot_main
+  block 0 of malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:57 <- annot_main: owned by mk :: heap_realloc_refused.c:57 <- annot_main
+  block 0 of realloc :: heap_realloc_refused.c:38 <- r_annot :: heap_realloc_refused.c:52 <- annot_main: owned by r_annot :: heap_realloc_refused.c:52 <- annot_main
+  block 0 of realloc :: heap_realloc_refused.c:38 <- r_annot :: heap_realloc_refused.c:54 <- annot_main: owned by r_annot :: heap_realloc_refused.c:54 <- annot_main
+  block strong, record Variable [0..63--63], type char [8], malloc: owned by ra_annot :: heap_realloc_refused.c:56 <- annot_main
+  block strong, record Variable [0..63--63], type char [8], malloc: owned by ra_annot :: heap_realloc_refused.c:58 <- annot_main
+These are the tables of the run without memexec.
+Calls:
+  calloc :: heap_realloc_refused.c:32 <- c_annot :: heap_realloc_refused.c:49 <- annot_main: builtin
+  c_annot :: heap_realloc_refused.c:49 <- annot_main: analysed, cache entry 23
+  calloc :: heap_realloc_refused.c:32 <- c_annot :: heap_realloc_refused.c:50 <- annot_main: builtin
+  c_annot :: heap_realloc_refused.c:50 <- annot_main: analysed, cache entry 24
+  malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:51 <- annot_main: builtin
+  mk :: heap_realloc_refused.c:51 <- annot_main: analysed, cache entry 25
+  realloc :: heap_realloc_refused.c:38 <- r_annot :: heap_realloc_refused.c:52 <- annot_main: builtin
+  r_annot :: heap_realloc_refused.c:52 <- annot_main: analysed, cache entry 26
+  malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:53 <- annot_main: builtin
+  mk :: heap_realloc_refused.c:53 <- annot_main: analysed, cache entry 27
+  realloc :: heap_realloc_refused.c:38 <- r_annot :: heap_realloc_refused.c:54 <- annot_main: builtin
+  r_annot :: heap_realloc_refused.c:54 <- annot_main: analysed, cache entry 28
+  mk :: heap_realloc_refused.c:55 <- annot_main: hit of cache entry 27
+  reallocarray :: heap_realloc_refused.c:44 <- ra_annot :: heap_realloc_refused.c:56 <- annot_main: builtin
+  ra_annot :: heap_realloc_refused.c:56 <- annot_main: analysed, cache entry 29
+  mk :: heap_realloc_refused.c:57 <- annot_main: hit of cache entry 27
+  reallocarray :: heap_realloc_refused.c:44 <- ra_annot :: heap_realloc_refused.c:58 <- annot_main: builtin
+  ra_annot :: heap_realloc_refused.c:58 <- annot_main: analysed, cache entry 30
+  annot_main: analysed, cache entry 31
+Heap calls, not stored by memexec: annot_main 1, c_annot 2, r_annot 2,
+  ra_annot 2.
+Heap calls stored by memexec: mk 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  mk :: heap_realloc_refused.c:55 <- annot_main, hit of cache entry 27, against mk :: heap_realloc_refused.c:53 <- annot_main: differs on __malloc_mk_l24_8, __malloc_mk_l24_9, __realloc_r_annot_l38_4, d, g, at 13 points.
+  mk :: heap_realloc_refused.c:57 <- annot_main, hit of cache entry 27, against mk :: heap_realloc_refused.c:53 <- annot_main: differs on __malloc_mk_l24_10, __malloc_mk_l24_8, __realloc_r_annot_l38_4, __realloc_ra_annot_l44_3, d, e, g, at 13 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 289 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 91 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 91 points.
+Filtered requests that reject one callstack: 28.
+Requests made: 471; reported by the trap: 471, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 75 requests, 126 reads of the legacy store in them, 170 reads outside any request.
+  with -eva-hit-log: 75 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 48 requests
+    statistics: 23 requests
+    summary: 4 requests
+Statuses of the properties: those of the run without memexec, for 179 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.5556, 0 alarms, those of the run without memexec.

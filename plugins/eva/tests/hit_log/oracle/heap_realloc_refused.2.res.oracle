@@ -1,0 +1,55 @@
+[kernel] Parsing heap_realloc_refused.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  block strong, record Variable [0..63--63], type char [8], malloc: owned by r_plain :: heap_realloc_refused.c:79 <- plain_main
+  block strong, record Variable [0..63--63], type char [8], malloc: owned by r_plain :: heap_realloc_refused.c:81 <- plain_main
+  block strong, record Variable [0..63--63], type char [8], malloc: owned by ra_plain :: heap_realloc_refused.c:83 <- plain_main
+  block strong, record Variable [0..63--63], type char [8], malloc: owned by ra_plain :: heap_realloc_refused.c:85 <- plain_main
+  block weak, record Variable [0..31--31], type char [], malloc: owned by c_plain :: heap_realloc_refused.c:76 <- plain_main
+  block weak, record Variable [0..31--31], type char [], malloc: owned by c_plain :: heap_realloc_refused.c:77 <- plain_main
+  block weak, record Variable [0..31--31], type char [], malloc: owned by mk :: heap_realloc_refused.c:78 <- plain_main
+  block weak, record Variable [0..31--31], type char [], malloc: owned by mk :: heap_realloc_refused.c:80 <- plain_main
+  block weak, record Variable [0..31--31], type char [], malloc: owned by mk :: heap_realloc_refused.c:82 <- plain_main
+  block weak, record Variable [0..31--31], type char [], malloc: owned by mk :: heap_realloc_refused.c:84 <- plain_main
+These are the tables of the run without memexec.
+Calls:
+  calloc :: heap_realloc_refused.c:64 <- c_plain :: heap_realloc_refused.c:76 <- plain_main: builtin
+  c_plain :: heap_realloc_refused.c:76 <- plain_main: analysed, cache entry 23
+  calloc :: heap_realloc_refused.c:64 <- c_plain :: heap_realloc_refused.c:77 <- plain_main: builtin
+  c_plain :: heap_realloc_refused.c:77 <- plain_main: analysed, cache entry 24
+  malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:78 <- plain_main: builtin
+  mk :: heap_realloc_refused.c:78 <- plain_main: analysed, cache entry 25
+  realloc :: heap_realloc_refused.c:68 <- r_plain :: heap_realloc_refused.c:79 <- plain_main: builtin
+  r_plain :: heap_realloc_refused.c:79 <- plain_main: analysed, cache entry 26
+  malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:80 <- plain_main: builtin
+  mk :: heap_realloc_refused.c:80 <- plain_main: analysed, cache entry 27
+  realloc :: heap_realloc_refused.c:68 <- r_plain :: heap_realloc_refused.c:81 <- plain_main: builtin
+  r_plain :: heap_realloc_refused.c:81 <- plain_main: analysed, cache entry 28
+  malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:82 <- plain_main: builtin
+  mk :: heap_realloc_refused.c:82 <- plain_main: analysed, cache entry 29
+  reallocarray :: heap_realloc_refused.c:72 <- ra_plain :: heap_realloc_refused.c:83 <- plain_main: builtin
+  ra_plain :: heap_realloc_refused.c:83 <- plain_main: analysed, cache entry 30
+  malloc :: heap_realloc_refused.c:24 <- mk :: heap_realloc_refused.c:84 <- plain_main: builtin
+  mk :: heap_realloc_refused.c:84 <- plain_main: analysed, cache entry 31
+  reallocarray :: heap_realloc_refused.c:72 <- ra_plain :: heap_realloc_refused.c:85 <- plain_main: builtin
+  ra_plain :: heap_realloc_refused.c:85 <- plain_main: analysed, cache entry 32
+  plain_main: analysed, cache entry 33
+Heap calls, not stored by memexec: c_plain 2, mk 4, plain_main 1, r_plain 2,
+  ra_plain 2.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 289 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 91 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 91 points.
+Filtered requests that reject one callstack: 28.
+Requests made: 471; reported by the trap: 471, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 75 requests, 123 reads of the legacy store in them, 170 reads outside any request.
+  with -eva-hit-log: 75 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 48 requests
+    statistics: 23 requests
+    summary: 4 requests
+Statuses of the properties: those of the run without memexec, for 179 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.5556, 0 alarms, those of the run without memexec.
