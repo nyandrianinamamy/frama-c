@@ -8,11 +8,9 @@ Calls:
   malloc :: heap_hit.c:132 <- outer_main: builtin
   top :: heap_hit.c:135 <- outer_main: hit of cache entry 17
   outer_main: analysed, cache entry 18
-Heap calls, not stored by memexec: outer_main 1.
-Heap calls stored by memexec: leaf 1, mid 1, top 1.
-Heap calls whose answers come from full states: outer_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  outer_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: leaf 1, mid 1, outer_main 1, top 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls below a hit:
   leaf :: heap_hit.c:112 <- mid :: heap_hit.c:113 <- top :: heap_hit.c:135 <- outer_main

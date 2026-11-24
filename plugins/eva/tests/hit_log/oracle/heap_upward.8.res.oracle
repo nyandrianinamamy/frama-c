@@ -8,18 +8,16 @@ Calls:
   rec_rel :: heap_upward.c:172 <- rec_parent :: heap_upward.c:179 <- rec_main: hit of cache entry 20
   rec_parent :: heap_upward.c:179 <- rec_main: analysed, cache entry 21
   malloc :: heap_upward.c:180 <- rec_main: builtin
-  rec_rel :: heap_upward.c:172 <- rec_parent :: heap_upward.c:182 <- rec_main: hit of cache entry 20
-  rec_parent :: heap_upward.c:182 <- rec_main: analysed, cache entry 22
-  rec_main: analysed, cache entry 23
-Heap calls, not stored by memexec: rec_main 1.
-Heap calls stored by memexec: rec_rel 2.
-Heap calls whose answers come from full states: rec_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  rec_main 1, rec_parent 2.
+  rec_parent :: heap_upward.c:182 <- rec_main: hit of cache entry 21
+  rec_main: analysed, cache entry 22
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: rec_main 1, rec_parent 1, rec_rel 2.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls below a hit:
   rec_rel :: heap_upward.c:171 <- rec_rel :: heap_upward.c:172 <- rec_parent :: heap_upward.c:179 <- rec_main
   rec_rel :: heap_upward.c:171 <- rec_rel :: heap_upward.c:172 <- rec_parent :: heap_upward.c:182 <- rec_main
+  rec_rel :: heap_upward.c:172 <- rec_parent :: heap_upward.c:182 <- rec_main
 rec_rel, start:
   joined: cur ∈
              {{ &__malloc_rec_main_l175_1 ; &__malloc_rec_main_l177_1 ;
@@ -281,7 +279,7 @@ rec_main, after heap_upward.c:184 `return;`:
             mode ∈ {0}
 Hits against the analysed call of their cache entry:
   rec_rel :: heap_upward.c:172 <- rec_parent :: heap_upward.c:179 <- rec_main, hit of cache entry 20, against rec_rel :: heap_upward.c:176 <- rec_main: differs on __malloc_rec_main_l175_1, __malloc_rec_main_l177_1, cur, k, keep, unavailable at 8 points, at 11 points.
-  rec_rel :: heap_upward.c:172 <- rec_parent :: heap_upward.c:182 <- rec_main, hit of cache entry 20, against rec_rel :: heap_upward.c:176 <- rec_main: differs on __malloc_rec_main_l175_1, __malloc_rec_main_l180_1, cur, k, keep, unavailable at 8 points, at 11 points.
+  rec_parent :: heap_upward.c:182 <- rec_main, hit of cache entry 21, against rec_parent :: heap_upward.c:179 <- rec_main: differs on __malloc_rec_main_l177_1, __malloc_rec_main_l180_1, cur, keep, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
   rec_rel, before heap_upward.c:171 `if (n)`, joined: unavailable
@@ -417,18 +415,12 @@ rec_parent :: heap_upward.c:179 <- rec_main, analysed:
   outputs on return: cur{[0..31]}; keep{[0..31]}
   sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
-    none
-  not stored by memexec
-  before RP: full states
-rec_rel :: heap_upward.c:172 <- rec_parent :: heap_upward.c:182 <- rec_main, hit:
+    heap_upward.c:172, in rec_rel: removal of block 0 of malloc :: heap_upward.c:177 <- rec_main
+    heap_upward.c:172, in rec_rel: sweep of block 0 of malloc :: heap_upward.c:177 <- rec_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:177 <- rec_main, cur, keep
+  created: none
+  before RP: covers block 0 of malloc :: heap_upward.c:177 <- rec_main; does not bind block 0 of malloc :: heap_upward.c:177 <- rec_main; swept on every path: block 0 of malloc :: heap_upward.c:177 <- rec_main; on some path only: none
+rec_parent :: heap_upward.c:182 <- rec_main, hit:
   outputs: cur{[0..31]}; keep{[0..31]}
   outputs on return: cur{[0..31]}; keep{[0..31]}
   sure outputs: cur{[0..31]}; keep{[0..31]}
-rec_parent :: heap_upward.c:182 <- rec_main, analysed:
-  outputs: cur{[0..31]}; keep{[0..31]}
-  outputs on return: cur{[0..31]}; keep{[0..31]}
-  sure outputs: cur{[0..31]}; keep{[0..31]}
-  heap effects:
-    none
-  not stored by memexec
-  before RP: full states

@@ -369,9 +369,8 @@ type exit =
    which it is made, and overall; how the call ends, set when its body has
    been analysed; for a builtin, the number of states it returns; whether
    it is refused: it calls, or a call nested in it calls, a builtin that
-   reads every allocated block; whether it is a hit on the entry of a heap
-   call, or a call nested in it is, see [record_hit]; and whether its entry,
-   or the entry of a call nested in it, holds full states, see [storage]. *)
+   reads every allocated block; and whether its entry, or the entry of a
+   call nested in it, holds full states, see [storage]. *)
 type frame = {
   mutable calls:
     (Cil_types.stmt * Cil_types.kernel_function * Cvalue.Model.t * int option
@@ -387,7 +386,6 @@ type frame = {
   mutable exit: exit;
   mutable outputs: int option;
   mutable refused: bool;
-  mutable heap_hit: bool;
   mutable full_below: bool;
 }
 
@@ -400,9 +398,14 @@ type running = {
   (* The number of calls being analysed that memexec would have reused if it
      stored the heap calls, see [lost_hit]. *)
   mutable lost: int;
+  (* The heap effects and the exit of the analysed call of each cache entry
+     that memexec may store as a heap call, by number, for its hits, see
+     [record_hit]. *)
+  stored: (effects * exit) Int_table.t;
 }
 
-let new_running () = { frames = []; slot = Closed; lost = 0 }
+let new_running () =
+  { frames = []; slot = Closed; lost = 0; stored = Int_table.create 7 }
 
 module Running =
   State_builder.Ref
@@ -648,14 +651,13 @@ let current_frame () =
    ends after the analyses of the calls it makes, and after the automatic
    release at the end of each of them: the effects of a call analysed by its
    body are final when [record_analysed_call] records it, and when memexec
-   decides whether to store the call. A hit receives no effect. The
-   specifications neither allocate nor release memory in the cvalue
-   domain. *)
+   decides whether to store the call. A hit on the entry of a heap call
+   receives the effects of the analysed call of the entry, through its
+   renaming, see [record_hit]. The specifications neither allocate nor
+   release memory in the cvalue domain. *)
 
 let heap_calls = Statistics.(register_function_stat "hit-log-heap-calls" Int)
 let full_states = Statistics.(register_function_stat "hit-log-full-states" Int)
-let above_heap_hits =
-  Statistics.(register_function_stat "hit-log-above-heap-hits" Int)
 let lost_hits = Statistics.(register_function_stat "hit-log-lost-hits" Int)
 let lost_hits_below =
   Statistics.(register_function_stat "hit-log-lost-hits-below" Int)
@@ -752,11 +754,10 @@ let lost_hit kf f =
   running.lost <- running.lost + 1;
   Fun.protect ~finally:(fun () -> running.lost <- running.lost - 1) f
 
-(* A call that is not a heap call makes no heap call: [call] passes the mark
-   of a heap call to its caller. A call that encloses a hit on the entry of a
-   heap call keeps full states, and memexec does not store it, see
-   [record_hit]. Checked on the calls made by the body of any other call
-   that used a cache entry. *)
+(* A call that is not a heap call makes no heap call: [call] passes the
+   effects of a heap call to its caller, those of a hit on the entry of a
+   heap call included, see [record_hit]. Checked on the calls made by the
+   body of any other call that used a cache entry. *)
 let check_no_heap_child store calls =
   List.iter
     (fun (_, callee, _, child, _) ->
@@ -1041,10 +1042,6 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
   let heap =
     Option.fold ~none:false ~some:(fun frame -> frame.effects <> []) frame
   in
-  let marked =
-    Option.fold ~none:false ~some:(fun frame -> frame.heap_hit) frame
-  in
-  if marked then Statistics.incr above_heap_hits kf;
   let unknown () =
     let below =
       List.rev_map
@@ -1061,8 +1058,7 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
     Full { before = Lazy.force before; after = Lazy.force after }, []
   in
   (* The sweeps of a heap call are computed for its caller, even when it
-     keeps full states. A call that encloses a hit on the entry of a heap
-     call keeps full states. *)
+     keeps full states. *)
   let inner, below =
     match frame with
     | Some frame when heap ->
@@ -1071,7 +1067,7 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
       frame.exit <- exit_sweeps kf automaton paths ~body_entry ~before;
       begin match footprint with
         | None -> Unknown, []
-        | Some _ when refused frame || marked -> full ()
+        | Some _ when refused frame -> full ()
         | Some footprint ->
           try
             let heap_before, heap_after =
@@ -1084,8 +1080,6 @@ let record_analysed_call ~id callstack ~automaton ~fired ~footprint ~start
     | Some _ | None ->
       Option.iter (fun frame -> frame.exit <- Exit Heap_paths.no_sweep) frame;
       match footprint with
-      | None when marked -> Unknown, []
-      | Some _ when marked -> full ()
       | None -> check_no_heap_child store calls; unknown ()
       | Some footprint ->
         check_no_heap_child store calls;
@@ -1135,11 +1129,86 @@ let record_mentioned mentioned =
       (Int_table.find_opt (Store.get ()).entries id)
   | _ -> ()
 
-(* A hit on the entry of a heap call emits no heap effect to the call that
-   makes it: the effects of the entry do not go up. The frame of the hit is
-   marked, and [call] passes the mark to its caller, up to the entry point:
-   each of these calls keeps full states, and memexec does not store it, see
-   [storage]. *)
+(* The image of a heap effect [e] of the analysed call of an entry, by
+   [rename] on its blocks, [size] on the size of an allocation and [stack] on
+   the stack of an allocation. *)
+let rename_effect ~rename ~size ~stack (e: Heap_effects.t) : Heap_effects.t =
+  match e with
+  | Allocation a ->
+    Allocation
+      { a with block = rename a.block; size = size a.size;
+               stack = stack a.stack }
+  | Mutation m -> Mutation { m with block = rename m.block }
+  | Removal block -> Removal (rename block)
+  | Sweep s -> Sweep { s with block = rename s.block }
+
+let rec rename_received f = function
+  | Here (point, e) -> Here (point, f e)
+  | Through (site, kf, received) ->
+    Through (site, kf, List.map (rename_received f) received)
+
+(* The image of [sweeps] by [rename]: a block swept on every path has its
+   image swept on every path, and so on. *)
+let rename_sweeps rename (sweeps: Heap_paths.sweeps) =
+  let add ~exact block acc =
+    Heap_paths.sequence acc (Heap_paths.sweep ~exact (rename block))
+  in
+  Base.Hptset.fold (add ~exact:true) sweeps.every
+    (Base.Hptset.fold (add ~exact:false) sweeps.some Heap_paths.no_sweep)
+
+(* The hit on [callstack] of the entry [id] of a heap call, [entry], through
+   [renaming], receives in [frame] the heap effects of the analysed call of
+   the entry, in their order, and its exit. The blocks of the effects and of
+   the exit are renamed through [renaming], and so are the pointers that the
+   size of an allocation may hold. The statements of the effects are those
+   of the body of the same function. The stack of an allocation is the
+   callstack of the hit extended by the calls of the stack of the analysed
+   call below its callstack: the policy [by_stack] made the blocks of the
+   replay on these stacks, see [Mem_exec]. Every block that the effects
+   name is a block that memexec numbered in the entry, or a block that the
+   analysed call created: the renaming, if not the identity, maps each of
+   them. *)
+let receive_entry_effects ~id ~renaming callstack entry frame =
+  match Int_table.find_opt (Running.get ()).stored id with
+  | None ->
+    Self.fatal "hit log: hit of the cache entry %d of a heap call, whose \
+                effects were not kept" id
+  | Some (effects, exit) ->
+    let rename block =
+      match renaming with
+      | [] -> block
+      | _ ->
+        match List.find_opt (fun (b, _) -> Base.equal b block) renaming with
+        | Some (_, image) -> image
+        | None ->
+          Self.fatal "hit log: block %a of the cache entry %d not renamed by \
+                      a hit" Base.pretty block id
+    in
+    let size =
+      match renaming with
+      | [] -> Fun.id
+      | _ ->
+        let substitution = Base.substitution_from_list renaming in
+        fun v -> snd (Cvalue.V.replace_base substitution v)
+    in
+    let stack s =
+      match Mem_exec.suffix_below ~callstack:entry.analysed.callstack s with
+      | Some suffix -> Mem_exec.extend callstack suffix
+      | None ->
+        Self.fatal "hit log: allocation of the cache entry %d not below its \
+                    analysed call" id
+    in
+    let f = rename_effect ~rename ~size ~stack in
+    frame.effects <- List.map (rename_received f) effects @ frame.effects;
+    frame.exit <-
+      match exit with
+      | Exit sweeps -> Exit (rename_sweeps rename sweeps)
+      | No_return | Unset -> exit
+
+(* A hit on the entry of a heap call passes the heap effects of the entry
+   to the call that makes it, through its renaming, as the analysed call of
+   the entry did, see [receive_entry_effects]: [call] passes them to the
+   caller. *)
 let record_hit ~id ~renaming callstack ~start ~body_entry =
   let store = Store.get () in
   let frame = current_frame () in
@@ -1152,7 +1221,8 @@ let record_hit ~id ~renaming callstack ~start ~body_entry =
     Self.fatal "hit log: hit of the cache entry %d, which holds full states"
       id
   | Some entry ->
-    if entry.heap then Option.iter (fun frame -> frame.heap_hit <- true) frame;
+    if entry.heap then
+      Option.iter (receive_entry_effects ~id ~renaming callstack entry) frame;
     add_state entry.hit_starts callstack start;
     add_state (group_states entry renaming) callstack body_entry
 
@@ -1274,7 +1344,8 @@ let candidates_and_created ~callstack allocations =
 (* A heap call that is not refused, whose entry holds an Inner part, and
    whose effects memexec can store, see [heap_effects_of], is stored by
    memexec, with its sweeps from the start of its body to its return and
-   its allocations. The sweeps of the automatic release at the end of the
+   its allocations. Its effects and its exit are kept for its hits, see
+   [record_hit]. The sweeps of the automatic release at the end of the
    call go to its caller. A call whose entry, or the entry of a call nested
    in it, holds full states is not stored: the full states of an entry
    answer the requests on the callstack of its analysed call only, and a
@@ -1284,7 +1355,7 @@ let candidates_and_created ~callstack allocations =
 let storage ~callstack =
   match current_frame () with
   | None -> Plain
-  | Some frame when frame.heap_hit || frame.full_below -> Refused
+  | Some frame when frame.full_below -> Refused
   | Some { effects = []; _ } -> Plain
   | Some frame ->
     let known =
@@ -1306,6 +1377,11 @@ let storage ~callstack =
             | Exit sweeps -> sweeps
             | No_return | Unset -> Heap_paths.no_sweep
           in
+          Option.iter
+            (fun id ->
+               Int_table.replace (Running.get ()).stored id
+                 (frame.effects, frame.exit))
+            frame.used;
           Heap { Mem_exec.removed; swept; exit; mutations; allocations;
                  candidates; created }
 
@@ -1326,7 +1402,7 @@ let call callstack ~start f =
     site_sweeps = Stmt_table.create 1; last = None;
     released = Stmt_table.create 1; withdrawn_at = Stmt_table.create 1;
     withdrawn = Base.Hptset.empty; exit = Unset; outputs = None;
-    refused = false; heap_hit = false; full_below = false;
+    refused = false; full_below = false;
   } in
   running.frames <- frame :: running.frames;
   let finally () =
@@ -1338,7 +1414,6 @@ let call callstack ~start f =
       if frame.effects <> [] then
         caller.effects <- Through (site, kf, frame.effects) :: caller.effects;
       if frame.refused then caller.refused <- true;
-      if frame.heap_hit then caller.heap_hit <- true;
       if frame.full_below then caller.full_below <- true;
       add_withdrawn caller site frame.withdrawn;
       add_evaluation caller site frame;
@@ -1422,12 +1497,15 @@ let join_groups groups =
 (* The renaming of the call [below] made by a member that uses the entry of
    its caller through [sigma], [below] having used its own entry through
    [rho]. [sigma], if not the identity, has a pair for each block that
-   memexec numbered in the entry of the caller; so has [rho] for the entry
-   of the callee. The images by [rho] are blocks of the analysed call of the
-   caller that its entry numbers: the caller receives no heap effect, and
-   its key holds the key of the callee, renamed through [rho] by the inout
-   plugin, so that every allocated block that the callee mentions is
-   mentioned by the caller. If [rho] is the identity, the callee mentions
+   memexec numbered in the entry of the caller, the blocks that the caller
+   created included; so has [rho] for the entry of the callee. The images
+   by [rho] are blocks of the analysed call of the caller that its entry
+   numbers: the key of the caller holds the key of the callee, renamed
+   through [rho] by the inout plugin, so that every allocated block that
+   the callee mentions is mentioned by the caller, and the caller receives
+   the heap effects of the entry of the callee through [rho], see
+   [record_hit], so that a block that the callee created is a block that
+   the caller created. If [rho] is the identity, the callee mentions
    blocks of the analysed call of the caller, and [sigma] renames them: the
    result is [sigma] restricted to the blocks that the entry of the callee
    mentions, the identity if it mentions none. A block of this entry that

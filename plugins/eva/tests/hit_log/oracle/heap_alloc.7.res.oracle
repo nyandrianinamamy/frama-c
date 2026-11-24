@@ -17,11 +17,9 @@ Calls:
   malloc :: heap_alloc.c:165 <- alloc_two :: heap_alloc.c:172 <- after_main: builtin
   alloc_two :: heap_alloc.c:172 <- after_main: analysed, cache entry 15
   after_main: analysed, cache entry 16
-Heap calls, not stored by memexec: after_main 1.
-Heap calls stored by memexec: alloc_two 3.
-Heap calls whose answers come from full states: after_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  after_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: after_main 1, alloc_two 3.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 alloc_two, start:
   joined: last ∈ {0}

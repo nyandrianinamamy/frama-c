@@ -17,11 +17,9 @@ Calls:
   malloc :: heap_upward.c:210 <- stop_main: builtin
   parent_stop :: heap_upward.c:212 <- stop_main: hit of cache entry 12
   stop_main: analysed, cache entry 13
-Heap calls, not stored by memexec: stop_main 1.
-Heap calls stored by memexec: child_stop 1, parent_stop 1.
-Heap calls whose answers come from full states: stop_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  stop_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: child_stop 1, parent_stop 1, stop_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls below a hit:
   child_stop :: heap_upward.c:199 <- parent_stop :: heap_upward.c:212 <- stop_main

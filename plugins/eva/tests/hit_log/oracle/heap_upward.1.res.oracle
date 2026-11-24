@@ -5,11 +5,9 @@ Calls:
   parent_alloc :: heap_upward.c:55 <- alloc_main: analysed, cache entry 12
   parent_alloc :: heap_upward.c:56 <- alloc_main: hit of cache entry 12
   alloc_main: analysed, cache entry 13
-Heap calls, not stored by memexec: alloc_main 1.
-Heap calls stored by memexec: child_mk 1, parent_alloc 1.
-Heap calls whose answers come from full states: alloc_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  alloc_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: alloc_main 1, child_mk 1, parent_alloc 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls below a hit:
   child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main

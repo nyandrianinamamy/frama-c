@@ -85,11 +85,11 @@
     heap call keeps the calls made by the body, projected as above and on
     the blocks covered by the heap effects before the call statement: a hit
     on the entry of a call that frees has calls below it. A hit on the entry
-    of a heap call emits no heap effect into the call that makes it: this
-    call, and each call that encloses it up to the entry point, is marked.
-    Memexec does not store a marked call, and its entry holds full states,
-    see below. The statistic [hit-log-above-heap-hits] counts the marked
-    calls analysed by their body, per function.
+    of a heap call passes to the call that makes it the heap effects of the
+    analysed call of the entry, in their order, and its sweeps from the
+    start of its body to its return, through the renaming of the hit (#128):
+    the call that makes the hit is a heap call, stored by memexec as if the
+    call it made were analysed, see [record_hit].
 
     The Inner part of a heap call also covers the blocks that its heap
     effects allocate, mutate or remove, from the point where the effect
@@ -253,8 +253,14 @@ val record_mentioned: Base.t list option -> unit
 
 (** [record_hit ~id ~renaming callstack ~start ~body_entry] records a hit of
     the cache entry [id] on [callstack], through [renaming]. If [id] is the
-    entry of a heap call, the call that makes the hit is marked. Fails if
-    the entry of [id] holds full states, which memexec does not store. *)
+    entry of a heap call, the hit receives the heap effects of the analysed
+    call of the entry and its sweeps from the start of its body to its
+    return, renamed through [renaming], with the stack of each allocation
+    moved from the callstack of the analysed call to [callstack]: the
+    innermost [call] passes them to the caller. Fails if the entry of [id]
+    holds full states, which memexec does not store, if the effects of the
+    entry of a heap call were not kept, or if they name a block that
+    [renaming], when it is not the identity, does not map. *)
 val record_hit:
   id:int -> renaming:renaming -> Callstack.t ->
   start:Cvalue.Model.t -> body_entry:Cvalue.Model.t -> unit
@@ -266,8 +272,8 @@ val builtin_outputs: int -> unit
 (** How memexec stores the call on [callstack] analysed by its body whose
     analysis the innermost [call] runs, once [record_analysed_call] has
     recorded it:
-    - [Plain]: the call is not a heap call and encloses no hit on the entry
-      of a heap call; memexec stores it as without heap effects;
+    - [Plain]: the call is not a heap call; memexec stores it as without
+      heap effects;
     - [Heap heap]: a heap call, not refused, whose entry holds an Inner
       part, see {!Mem_exec.heap}, whose heap effects are removals, sweeps,
       and allocations by [malloc] under the policy [by_stack] at sites
@@ -275,9 +281,9 @@ val builtin_outputs: int -> unit
       reuses, and whose stack, without the allocation wrappers, ends below
       the call;
     - [Refused]: any other heap call, among them a call with another
-      allocation or with a validity mutation by the widening of a loop, any
-      call that encloses a hit on the entry of a heap call, and any call
-      whose entry, or the entry of a call nested in it, holds full states.
+      allocation or with a validity mutation by the widening of a loop, and
+      any call whose entry, or the entry of a call nested in it, holds full
+      states.
       Memexec does not store it. The allocation builtins let memexec store
       no call that allocates by [calloc], [realloc], [alloca], a
       variable-length array, or by [malloc] under another policy or at an

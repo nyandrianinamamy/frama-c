@@ -20,11 +20,9 @@ Calls:
   bare :: heap_alloc_skip.c:30 <- skip_main: hit of cache entry 16
   free :: heap_alloc_skip.c:35 <- skip_main: builtin
   skip_main: analysed, cache entry 17
-Heap calls, not stored by memexec: skip_main 1.
-Heap calls stored by memexec: bare 4.
-Heap calls whose answers come from full states: skip_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  skip_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: bare 4, skip_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Hits against the analysed call of their cache entry:
 Initial state: equal.

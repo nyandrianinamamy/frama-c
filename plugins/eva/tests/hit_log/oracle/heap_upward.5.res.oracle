@@ -7,16 +7,15 @@ Calls:
   child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main: hit of cache entry 19
   drop :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main: hit of cache entry 20
   pair :: heap_upward.c:122 <- pair_main: analysed, cache entry 21
-  child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main: hit of cache entry 19
-  drop :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main: hit of cache entry 20
-  pair :: heap_upward.c:123 <- pair_main: analysed, cache entry 22
-  pair_main: analysed, cache entry 23
-Heap calls, not stored by memexec: pair_main 1.
-Heap calls stored by memexec: child_mk 1, drop 1.
-Heap calls whose answers come from full states: pair_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  pair 2, pair_main 1.
-Hits not made because memexec does not store the heap calls: pair 1.
+  pair :: heap_upward.c:123 <- pair_main: hit of cache entry 21
+  pair_main: analysed, cache entry 22
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: child_mk 1, drop 1, pair 1, pair_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main
+  drop :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main
 child_mk, start:
   joined: cur ∈ {0}
           keep ∈ {0}
@@ -274,8 +273,7 @@ pair_main, after heap_upward.c:125 `return;`:
 Hits against the analysed call of their cache entry:
   child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main, hit of cache entry 19, against child_mk :: heap_upward.c:120 <- pair_main: differs on __malloc_child_mk_l47_5, __malloc_child_mk_l47_6, p, slot, v, at 9 points.
   drop :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main, hit of cache entry 20, against drop :: heap_upward.c:121 <- pair_main: differs on __malloc_child_mk_l47_5, __malloc_child_mk_l47_6, slot, v, at 7 points.
-  child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main, hit of cache entry 19, against child_mk :: heap_upward.c:120 <- pair_main: differs on __malloc_child_mk_l47_5, __malloc_child_mk_l47_7, p, slot, v, at 9 points.
-  drop :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main, hit of cache entry 20, against drop :: heap_upward.c:121 <- pair_main: differs on __malloc_child_mk_l47_5, __malloc_child_mk_l47_7, slot, v, at 7 points.
+  pair :: heap_upward.c:123 <- pair_main, hit of cache entry 21, against pair :: heap_upward.c:122 <- pair_main: differs on __malloc_child_mk_l47_6, __malloc_child_mk_l47_7, slot, at 9 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 721 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
@@ -289,6 +287,7 @@ Passes after the iteration:
     unreachable statements: 150 requests
     statistics: 17 requests
     summary: 8 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
 Statuses of the properties: those of the run without memexec, for 301 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1538, 0 alarms, those of the run without memexec.
@@ -325,22 +324,13 @@ pair :: heap_upward.c:122 <- pair_main, analysed:
   outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
   sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
   heap effects:
-    none
-  not stored by memexec
-  before Y: full states
-child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main, hit:
-  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
-  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
-  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main{[0..31]}; errno{[0..31]}; p{[0..31]}
-drop :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main, hit:
-  outputs: slot{[0..31]}
-  outputs on return: slot{[0..31]}
-  sure outputs: slot{[0..31]}
-pair :: heap_upward.c:123 <- pair_main, analysed:
+    heap_upward.c:117, in child_mk: allocation of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main, suffix malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117, rank 0, created
+    heap_upward.c:117, in drop: removal of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main
+    heap_upward.c:117, in drop: sweep of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main, exact
+  stored by memexec, key: __fc_heap_status, errno, slot, v
+  created: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main
+  before Y: covers block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main; does not bind block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main; swept on every path: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:122 <- pair_main; on some path only: none
+pair :: heap_upward.c:123 <- pair_main, hit:
   outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
   outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
   sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:117 <- pair :: heap_upward.c:123 <- pair_main{[0..31]}; errno{[0..31]}; slot{[0..31]}
-  heap effects:
-    none
-  not stored by memexec
-  before Y: full states

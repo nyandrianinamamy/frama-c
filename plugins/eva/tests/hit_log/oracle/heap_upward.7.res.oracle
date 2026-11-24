@@ -8,20 +8,18 @@ Calls:
   fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main: analysed, cache entry 24
   fgrand :: heap_upward.c:161 <- frames_main: analysed, cache entry 25
   malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main: builtin
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main: hit of cache entry 23
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main: analysed, cache entry 26
-  fgrand :: heap_upward.c:162 <- frames_main: analysed, cache entry 27
-  malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:163 <- frames_main: builtin
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main: hit of cache entry 23
-  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main: analysed, cache entry 28
-  fgrand :: heap_upward.c:163 <- frames_main: analysed, cache entry 29
-  frames_main: analysed, cache entry 30
-Heap calls, not stored by memexec: fgrand 3, frames_main 1.
-Heap calls stored by memexec: frel 1.
-Heap calls whose answers come from full states: fgrand 3, frames_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  fgrand 3, fparent 3, frames_main 1.
-Hits not made because memexec does not store the heap calls: fgrand 1.
+  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main: hit of cache entry 24
+  fgrand :: heap_upward.c:162 <- frames_main: analysed, cache entry 26
+  fgrand :: heap_upward.c:163 <- frames_main: hit of cache entry 26
+  frames_main: analysed, cache entry 27
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: fgrand 2, fparent 1, frames_main 1, frel 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main
+  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main
+  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main
 frel, start:
   joined: cur ∈
              {{ &__malloc_frames_main_l159_1 ; &__malloc_fgrand_l152_5 ;
@@ -347,8 +345,8 @@ frames_main, after heap_upward.c:165 `return;`:
                mode ∈ {0}
 Hits against the analysed call of their cache entry:
   frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main, hit of cache entry 23, against frel :: heap_upward.c:160 <- frames_main: differs on __malloc_fgrand_l152_5, __malloc_frames_main_l159_1, cur, gk, k, pk, at 7 points.
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main, hit of cache entry 23, against frel :: heap_upward.c:160 <- frames_main: differs on __malloc_fgrand_l152_6, __malloc_frames_main_l159_1, cur, gk, k, pk, at 7 points.
-  frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main, hit of cache entry 23, against frel :: heap_upward.c:160 <- frames_main: differs on __malloc_fgrand_l152_7, __malloc_frames_main_l159_1, cur, gk, k, pk, at 7 points.
+  fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main, hit of cache entry 24, against fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main: differs on __malloc_fgrand_l152_5, __malloc_fgrand_l152_6, cur, gk, k, pk, at 9 points.
+  fgrand :: heap_upward.c:163 <- frames_main, hit of cache entry 26, against fgrand :: heap_upward.c:162 <- frames_main: differs on __malloc_fgrand_l152_6, __malloc_fgrand_l152_7, cur, gk, at 13 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 753 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
@@ -362,6 +360,7 @@ Passes after the iteration:
     unreachable statements: 150 requests
     statistics: 21 requests
     summary: 8 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
 Statuses of the properties: those of the run without memexec, for 301 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1538, 0 alarms, those of the run without memexec.
@@ -385,54 +384,38 @@ fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main, anal
   outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   heap effects:
-    none
-  not stored by memexec
-  before FP: full states
+    heap_upward.c:150, in frel: removal of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main
+    heap_upward.c:150, in frel: sweep of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main, cur, gk, pk
+  created: none
+  before FP: covers block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main; does not bind block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main; swept on every path: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main; on some path only: none
 fgrand :: heap_upward.c:161 <- frames_main, analysed:
   outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
   outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
   sure outputs: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
   heap effects:
     heap_upward.c:152, in malloc: allocation of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main, suffix malloc :: heap_upward.c:152, rank 0, created
-  not stored by memexec
-  before FG: full states
-frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main, hit:
+    heap_upward.c:154, in fparent: removal of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main
+    heap_upward.c:154, in fparent: sweep of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main, exact
+  stored by memexec, key: __fc_heap_status, cur, errno, gk
+  created: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main
+  before FG: covers block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main; does not bind block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main; swept on every path: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:161 <- frames_main; on some path only: none
+fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main, hit:
   outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
-fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main, analysed:
-  outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
-  outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
-  sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
-  heap effects:
-    none
-  not stored by memexec
-  before FP: full states
 fgrand :: heap_upward.c:162 <- frames_main, analysed:
   outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
   outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
   sure outputs: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
   heap effects:
     heap_upward.c:152, in malloc: allocation of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main, suffix malloc :: heap_upward.c:152, rank 0, created
-  not stored by memexec
-  before FG: full states
-frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main, hit:
-  outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
-  outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
-  sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
-fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main, analysed:
-  outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
-  outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
-  sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
-  heap effects:
-    none
-  not stored by memexec
-  before FP: full states
-fgrand :: heap_upward.c:163 <- frames_main, analysed:
+    heap_upward.c:154, in fparent: removal of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main
+    heap_upward.c:154, in fparent: sweep of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main, exact
+  stored by memexec, key: __fc_heap_status, cur, errno, gk
+  created: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main
+  before FG: covers block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main; does not bind block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main; swept on every path: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:162 <- frames_main; on some path only: none
+fgrand :: heap_upward.c:163 <- frames_main, hit:
   outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:163 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
   outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:163 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
   sure outputs: block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:163 <- frames_main{[0..31]}; cur{[0..31]}; errno{[0..31]}; gk{[0..31]}
-  heap effects:
-    heap_upward.c:152, in malloc: allocation of block 0 of malloc :: heap_upward.c:152 <- fgrand :: heap_upward.c:163 <- frames_main, suffix malloc :: heap_upward.c:152, rank 0, created
-  not stored by memexec
-  before FG: full states

@@ -45,8 +45,8 @@ module Make (Engine: Engine_sig.S) = struct
   module MemExec = Mem_exec.Make (Engine.Val) (Engine.Dom)
 
   (* With -eva-hit-log, the calls that memexec would store but refuses, see
-     [Hit_log.storage]: the heap calls other than those that free, the calls
-     that enclose a hit on the entry of a heap call, and the calls whose
+     [Hit_log.storage]: the heap calls other than those that free or
+     allocate by [malloc] under the policy [by_stack], and the calls whose
      entry, or the entry of a call nested in them, holds full states. They
      are never reused: they only tell which calls memexec would have reused
      if it stored them, with the matching of memexec without the snapshot. *)

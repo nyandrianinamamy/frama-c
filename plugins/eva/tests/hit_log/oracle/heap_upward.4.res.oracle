@@ -12,20 +12,19 @@ Calls:
   top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: analysed, cache entry 36
   outer :: heap_upward.c:102 <- chain_main: analysed, cache entry 37
   malloc :: heap_upward.c:103 <- chain_main: builtin
-  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: hit of cache entry 31
-  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: analysed, cache entry 38
-  top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: analysed, cache entry 39
-  outer :: heap_upward.c:105 <- chain_main: analysed, cache entry 40
+  outer :: heap_upward.c:105 <- chain_main: hit of cache entry 37
   malloc :: heap_upward.c:106 <- chain_main: builtin
-  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:108 <- chain_main: hit of cache entry 31
-  mid :: heap_upward.c:108 <- chain_main: analysed, cache entry 41
-  chain_main: analysed, cache entry 42
-Heap calls, not stored by memexec: chain_main 1.
-Heap calls stored by memexec: leaf 1, mid 1, outer 1, top 1.
-Heap calls whose answers come from full states: chain_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  chain_main 1, mid 3, outer 2, top 2.
+  mid :: heap_upward.c:108 <- chain_main: hit of cache entry 35
+  chain_main: analysed, cache entry 38
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: chain_main 1, leaf 1, mid 2, outer 2, top 2.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:108 <- chain_main
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main
+  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main
+  top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main
 leaf, start:
   joined: cur ∈
              {{ &__malloc_chain_main_l98_1 ; &__malloc_chain_main_l100_1 ;
@@ -478,8 +477,8 @@ chain_main, after heap_upward.c:110 `return;`:
               mode ∈ {0}
 Hits against the analysed call of their cache entry:
   leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main, hit of cache entry 31, against leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: differs on __malloc_chain_main_l100_1, __malloc_chain_main_l98_1, cur, k, keep, at 7 points.
-  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main, hit of cache entry 31, against leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: differs on __malloc_chain_main_l103_1, __malloc_chain_main_l98_1, cur, k, keep, at 7 points.
-  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:108 <- chain_main, hit of cache entry 31, against leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: differs on __malloc_chain_main_l106_1, __malloc_chain_main_l98_1, cur, k, keep, at 7 points.
+  outer :: heap_upward.c:105 <- chain_main, hit of cache entry 37, against outer :: heap_upward.c:102 <- chain_main: differs on __malloc_chain_main_l100_1, __malloc_chain_main_l103_1, cur, keep, at 7 points.
+  mid :: heap_upward.c:108 <- chain_main, hit of cache entry 35, against mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: differs on __malloc_chain_main_l100_1, __malloc_chain_main_l106_1, cur, k, keep, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 775 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
@@ -493,6 +492,7 @@ Passes after the iteration:
     unreachable statements: 151 requests
     statistics: 29 requests
     summary: 8 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
 Statuses of the properties: those of the run without memexec, for 301 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1923, 0 alarms, those of the run without memexec.
@@ -546,62 +546,36 @@ mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102
   outputs on return: cur{[0..31]}; keep{[0..31]}
   sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
-    none
-  not stored by memexec
-  before G: full states
+    heap_upward.c:93, in leaf: removal of block 0 of malloc :: heap_upward.c:100 <- chain_main
+    heap_upward.c:93, in leaf: sweep of block 0 of malloc :: heap_upward.c:100 <- chain_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:100 <- chain_main, cur, keep
+  created: none
+  before G: covers block 0 of malloc :: heap_upward.c:100 <- chain_main; does not bind block 0 of malloc :: heap_upward.c:100 <- chain_main; swept on every path: block 0 of malloc :: heap_upward.c:100 <- chain_main; on some path only: none
 top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main, analysed:
   outputs: cur{[0..31]}; keep{[0..31]}
   outputs on return: cur{[0..31]}; keep{[0..31]}
   sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
-    none
-  not stored by memexec
-  before H: full states
+    heap_upward.c:94, in mid: removal of block 0 of malloc :: heap_upward.c:100 <- chain_main
+    heap_upward.c:94, in mid: sweep of block 0 of malloc :: heap_upward.c:100 <- chain_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:100 <- chain_main, cur, k, keep
+  created: none
+  before H: covers block 0 of malloc :: heap_upward.c:100 <- chain_main; does not bind block 0 of malloc :: heap_upward.c:100 <- chain_main; swept on every path: block 0 of malloc :: heap_upward.c:100 <- chain_main; on some path only: none
 outer :: heap_upward.c:102 <- chain_main, analysed:
   outputs: cur{[0..31]}; keep{[0..31]}
   outputs on return: cur{[0..31]}; keep{[0..31]}
   sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
-    none
-  not stored by memexec
-  before O: full states
-leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main, hit:
+    heap_upward.c:95, in top: removal of block 0 of malloc :: heap_upward.c:100 <- chain_main
+    heap_upward.c:95, in top: sweep of block 0 of malloc :: heap_upward.c:100 <- chain_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:100 <- chain_main, cur, k, keep
+  created: none
+  before O: covers block 0 of malloc :: heap_upward.c:100 <- chain_main; does not bind block 0 of malloc :: heap_upward.c:100 <- chain_main; swept on every path: block 0 of malloc :: heap_upward.c:100 <- chain_main; on some path only: none
+outer :: heap_upward.c:105 <- chain_main, hit:
   outputs: cur{[0..31]}; keep{[0..31]}
   outputs on return: cur{[0..31]}; keep{[0..31]}
   sure outputs: cur{[0..31]}; keep{[0..31]}
-mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main, analysed:
+mid :: heap_upward.c:108 <- chain_main, hit:
   outputs: cur{[0..31]}; keep{[0..31]}
   outputs on return: cur{[0..31]}; keep{[0..31]}
   sure outputs: cur{[0..31]}; keep{[0..31]}
-  heap effects:
-    none
-  not stored by memexec
-  before G: full states
-top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main, analysed:
-  outputs: cur{[0..31]}; keep{[0..31]}
-  outputs on return: cur{[0..31]}; keep{[0..31]}
-  sure outputs: cur{[0..31]}; keep{[0..31]}
-  heap effects:
-    none
-  not stored by memexec
-  before H: full states
-outer :: heap_upward.c:105 <- chain_main, analysed:
-  outputs: cur{[0..31]}; keep{[0..31]}
-  outputs on return: cur{[0..31]}; keep{[0..31]}
-  sure outputs: cur{[0..31]}; keep{[0..31]}
-  heap effects:
-    none
-  not stored by memexec
-  before O: full states
-leaf :: heap_upward.c:93 <- mid :: heap_upward.c:108 <- chain_main, hit:
-  outputs: cur{[0..31]}; keep{[0..31]}
-  outputs on return: cur{[0..31]}; keep{[0..31]}
-  sure outputs: cur{[0..31]}; keep{[0..31]}
-mid :: heap_upward.c:108 <- chain_main, analysed:
-  outputs: cur{[0..31]}; keep{[0..31]}
-  outputs on return: cur{[0..31]}; keep{[0..31]}
-  sure outputs: cur{[0..31]}; keep{[0..31]}
-  heap effects:
-    none
-  not stored by memexec
-  before G: full states

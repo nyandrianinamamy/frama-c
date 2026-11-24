@@ -149,9 +149,9 @@ val suffix_below:
     for a sweep on every path, as a fresh analysis of the call reports them:
     the cells outside the key that point at the start of the call to a
     block that the stored call sweeps at any point are written on some
-    path. The inout of
-    the callers of the reuse holds these cells, and so do the dependencies
-    that option -calldeps gives for the reuse.
+    path. The inout of the callers of the reuse holds these cells, and so
+    do their keys and the dependencies that option -calldeps gives for the
+    reuse.
     With [~snapshot:true], a call that allocates, given with its heap
     effects [heap], is stored in numbered form only (#127). Its key holds the
     candidates of its allocations: for each stack on which it allocates, the

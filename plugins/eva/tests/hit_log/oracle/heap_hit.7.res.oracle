@@ -26,9 +26,7 @@ Calls:
   witness_main: analysed, cache entry 7
 Heap calls, not stored by memexec: witness_main 1.
 Heap calls stored by memexec: wit_release 1.
-Heap calls whose answers come from full states: witness_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  witness_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Created bases whose match with the run without memexec is unresolved:
   __calloc_w_witness_main_l148 (Variable [0..31--34359738367], max allocable 34359738367, weak) -> __calloc_w_witness_main_l148_1 (Variable [0..31--31], max allocable 34359738367, weak)

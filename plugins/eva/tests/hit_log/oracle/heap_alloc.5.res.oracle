@@ -13,11 +13,9 @@ Calls:
   Frama_C_interval :: heap_alloc.c:131 <- branch_main: specification
   branchy :: heap_alloc.c:131 <- branch_main: hit of cache entry 7
   branch_main: analysed, cache entry 8
-Heap calls, not stored by memexec: branch_main 1.
-Heap calls stored by memexec: branchy 1.
-Heap calls whose answers come from full states: branch_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  branch_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: branch_main 1, branchy 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 branchy, start:
   joined: last ∈ {0}

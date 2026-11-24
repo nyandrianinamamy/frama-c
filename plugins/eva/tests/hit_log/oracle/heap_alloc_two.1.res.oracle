@@ -13,11 +13,9 @@ Calls:
   level :: heap_alloc_two.c:54 <- level_main: analysed, cache entry 7
   level :: heap_alloc_two.c:58 <- level_main: hit of cache entry 7
   level_main: analysed, cache entry 8
-Heap calls, not stored by memexec: level_main 1.
-Heap calls stored by memexec: level 1.
-Heap calls whose answers come from full states: level_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  level_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: level 1, level_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 level, start:
   joined: pa ∈ {0}

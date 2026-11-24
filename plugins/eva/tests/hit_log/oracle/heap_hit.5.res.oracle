@@ -10,11 +10,9 @@ Calls:
   mid :: heap_hit.c:113 <- top :: heap_hit.c:122 <- chain_main: analysed, cache entry 18
   top :: heap_hit.c:122 <- chain_main: analysed, cache entry 19
   chain_main: analysed, cache entry 20
-Heap calls, not stored by memexec: chain_main 1.
-Heap calls stored by memexec: leaf 1, mid 1, top 1.
-Heap calls whose answers come from full states: chain_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  chain_main 1, mid 1, top 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: chain_main 1, leaf 1, mid 2, top 2.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 leaf, start:
   joined: cur ∈

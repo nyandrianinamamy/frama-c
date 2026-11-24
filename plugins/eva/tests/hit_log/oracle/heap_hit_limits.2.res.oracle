@@ -19,11 +19,9 @@ Calls:
   malloc :: heap_hit_limits.c:70 <- split_main: builtin
   srel :: heap_hit_limits.c:73 <- split_main: hit of cache entry 7
   split_main: analysed, cache entry 8
-Heap calls, not stored by memexec: split_main 1.
-Heap calls stored by memexec: srel 1.
-Heap calls whose answers come from full states: split_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  split_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: split_main 1, srel 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Hits against the analysed call of their cache entry:
   srel :: heap_hit_limits.c:73 <- split_main, hit of cache entry 7, against srel :: heap_hit_limits.c:69 <- split_main: differs on __malloc_split_main_l67_1, __malloc_split_main_l70_1, kept, p, scur, at 11 points.

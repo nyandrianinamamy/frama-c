@@ -10,8 +10,9 @@ analysis and across two versions of a program.
 **Cache entry**:
 The stored result of analysing one statement from one abstract input. The
 cache entry of a heap call other than a call that frees or a call that
-allocates, or of a call that encloses a hit on the cache entry of a heap
-call, holds full states and no hit uses it.
+allocates holds full states and no hit uses it. A hit on the cache entry of
+a heap call passes the heap effects of the entry to the call that makes it,
+as the analysed call of the entry did.
 _Avoid_: Summary (names Eva's statistics report), memo, record
 
 **Part**:

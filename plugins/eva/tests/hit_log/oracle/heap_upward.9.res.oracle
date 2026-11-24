@@ -7,15 +7,14 @@ Calls:
   child_mk :: heap_upward.c:53 <- alloc_main: analysed, cache entry 13
   child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main: hit of cache entry 13
   parent_alloc :: heap_upward.c:55 <- alloc_main: analysed, cache entry 14
-  child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main: hit of cache entry 13
-  parent_alloc :: heap_upward.c:56 <- alloc_main: analysed, cache entry 15
-  alloc_main: analysed, cache entry 16
-Heap calls, not stored by memexec: alloc_main 1.
-Heap calls stored by memexec: child_mk 1.
-Heap calls whose answers come from full states: alloc_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  alloc_main 1, parent_alloc 2.
+  parent_alloc :: heap_upward.c:56 <- alloc_main: hit of cache entry 14
+  alloc_main: analysed, cache entry 15
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: alloc_main 1, child_mk 1, parent_alloc 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main
 child_mk, start:
   joined: cur ∈ {0}
           keep ∈ {0}
@@ -357,7 +356,7 @@ alloc_main, after heap_upward.c:58 `return;`:
               __malloc_child_mk_l47_7 ∈ {1}
 Hits against the analysed call of their cache entry:
   child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main, hit of cache entry 13, against child_mk :: heap_upward.c:53 <- alloc_main: differs on __malloc_child_mk_l47_5, __malloc_child_mk_l47_6, p, q, v, w, at 9 points.
-  child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main, hit of cache entry 13, against child_mk :: heap_upward.c:53 <- alloc_main: differs on __malloc_child_mk_l47_5, __malloc_child_mk_l47_6, __malloc_child_mk_l47_7, a, p, q, v, w, at 9 points.
+  parent_alloc :: heap_upward.c:56 <- alloc_main, hit of cache entry 14, against parent_alloc :: heap_upward.c:55 <- alloc_main: differs on __malloc_child_mk_l47_6, __malloc_child_mk_l47_7, a, q, at 9 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 726 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
@@ -372,6 +371,7 @@ Passes after the iteration:
     statuses of the properties: 6 requests
     statistics: 13 requests
     summary: 9 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
 Statuses of the properties: those of the run without memexec, for 303 properties.
 Alarms: 1, of which 1 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1154, 1 alarm, those of the run without memexec.
@@ -394,18 +394,11 @@ parent_alloc :: heap_upward.c:55 <- alloc_main, analysed:
   outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main{[0..31]}; errno{[0..31]}; q{[0..31]}
   sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main{[0..31]}; errno{[0..31]}; q{[0..31]}
   heap effects:
-    none
-  not stored by memexec
-  before P: full states
-child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main, hit:
-  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main{[0..31]}; errno{[0..31]}; p{[0..31]}
-  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main{[0..31]}; errno{[0..31]}; p{[0..31]}
-  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main{[0..31]}; errno{[0..31]}; p{[0..31]}
-parent_alloc :: heap_upward.c:56 <- alloc_main, analysed:
+    heap_upward.c:49, in child_mk: allocation of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main, suffix malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49, rank 0, created
+  stored by memexec, key: __fc_heap_status, errno, mode, q, v
+  created: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main
+  before P: covers block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main; does not bind none; swept on every path: none; on some path only: none
+parent_alloc :: heap_upward.c:56 <- alloc_main, hit:
   outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main{[0..31]}; errno{[0..31]}; q{[0..31]}
   outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main{[0..31]}; errno{[0..31]}; q{[0..31]}
   sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main{[0..31]}; errno{[0..31]}; q{[0..31]}
-  heap effects:
-    none
-  not stored by memexec
-  before P: full states

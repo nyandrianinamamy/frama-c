@@ -106,8 +106,8 @@ void two_main(void) {
 
 /* Run 5: a free reached through two intermediate functions. The first call
    of leaf computes its entry. At the second call of top, top and mid are
-   analysed, since k differs, and leaf is a hit: top, mid and chain_main
-   enclose a hit on the entry of a heap call. */
+   analysed, since k differs, and leaf is a hit: its effects go to mid, top
+   and chain_main, which memexec stores (#128). */
 void leaf(int *p) { free(p); F: ; }
 void mid(int *p, int k) { leaf(p); G: ; }
 void top(int *p, int k) { mid(p, k); H: ; }

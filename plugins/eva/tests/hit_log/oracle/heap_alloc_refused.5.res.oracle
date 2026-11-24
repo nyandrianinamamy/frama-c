@@ -11,11 +11,9 @@ Calls:
   use_alloc :: heap_alloc_refused.c:128 <- wrap_main: analysed, cache entry 12
   use_alloc :: heap_alloc_refused.c:129 <- wrap_main: hit of cache entry 12
   wrap_main: analysed, cache entry 13
-Heap calls, not stored by memexec: my_alloc 1, wrap_main 1.
-Heap calls stored by memexec: use_alloc 1.
-Heap calls whose answers come from full states: wrap_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  wrap_main 1.
+Heap calls, not stored by memexec: my_alloc 1.
+Heap calls stored by memexec: use_alloc 1, wrap_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls below a hit:
   my_alloc :: heap_alloc_refused.c:122 <- use_alloc :: heap_alloc_refused.c:129 <- wrap_main

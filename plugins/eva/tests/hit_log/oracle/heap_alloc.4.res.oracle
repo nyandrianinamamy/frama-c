@@ -17,11 +17,9 @@ Calls:
   recycle :: heap_alloc.c:112 <- recycle_main: analysed, cache entry 13
   recycle :: heap_alloc.c:112 <- recycle_main: hit of cache entry 12
   recycle_main: analysed, cache entry 14
-Heap calls, not stored by memexec: recycle_main 1.
-Heap calls stored by memexec: recycle 3.
-Heap calls whose answers come from full states: recycle_main 1.
-Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
-  recycle_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: recycle 3, recycle_main 1.
+Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 recycle, start:
   joined: last ∈ {0}
