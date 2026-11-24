@@ -28,19 +28,19 @@ Calls:
   __fc_vla_alloc :: heap_vla.c:41 <- scoped :: heap_vla.c:58 <- scope_main: builtin
   __fc_vla_free :: heap_vla.c:41 <- scoped :: heap_vla.c:58 <- scope_main: builtin
   scoped :: heap_vla.c:58 <- scope_main: analysed, cache entry 11
-  __fc_vla_alloc :: heap_vla.c:41 <- scoped :: heap_vla.c:59 <- scope_main: builtin
-  __fc_vla_free :: heap_vla.c:41 <- scoped :: heap_vla.c:59 <- scope_main: builtin
-  scoped :: heap_vla.c:59 <- scope_main: analysed, cache entry 12
+  scoped :: heap_vla.c:59 <- scope_main: hit of cache entry 11
   __fc_vla_alloc :: heap_vla.c:51 <- escape :: heap_vla.c:61 <- scope_main: builtin
   __fc_vla_free :: heap_vla.c:51 <- escape :: heap_vla.c:61 <- scope_main: builtin
-  escape :: heap_vla.c:61 <- scope_main: analysed, cache entry 13
-  __fc_vla_alloc :: heap_vla.c:51 <- escape :: heap_vla.c:63 <- scope_main: builtin
-  __fc_vla_free :: heap_vla.c:51 <- escape :: heap_vla.c:63 <- scope_main: builtin
-  escape :: heap_vla.c:63 <- scope_main: analysed, cache entry 14
-  scope_main: analysed, cache entry 15
-Heap calls, not stored by memexec: escape 2, scope_main 1, scoped 2.
+  escape :: heap_vla.c:61 <- scope_main: analysed, cache entry 12
+  escape :: heap_vla.c:63 <- scope_main: hit of cache entry 12
+  scope_main: analysed, cache entry 13
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: escape 1, scope_main 1, scoped 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  scoped :: heap_vla.c:59 <- scope_main, hit of cache entry 11, against scoped :: heap_vla.c:58 <- scope_main: differs on __malloc_scoped_l41_3, __malloc_scoped_l41_4, a, x, at 21 points.
+  escape :: heap_vla.c:63 <- scope_main, hit of cache entry 12, against escape :: heap_vla.c:61 <- scope_main: differs on __malloc_escape_l51_3, __malloc_escape_l51_4, a, gv, at 17 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 849 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

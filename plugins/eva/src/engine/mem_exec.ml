@@ -560,6 +560,13 @@ module Make
     let heap =
       Option.map
         (fun heap ->
+           (* A swept block without a number refuses the call. The
+              automatic release at the end of a call nested in this one
+              sweeps every block of [alloca] and of variable-length array
+              registered for the callstack of that call, including those
+              of earlier calls on the same callstack, already released. If
+              this call does not allocate on their stack, they are not
+              candidates, and nothing else numbers them. *)
            Base.Hptset.iter (fun base -> ignore (number base)) heap.swept;
            let rewrite = Numbering.rewrite_bases to_numbers_end in
            let replay =

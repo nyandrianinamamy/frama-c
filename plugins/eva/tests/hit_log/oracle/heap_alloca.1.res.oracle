@@ -18,10 +18,10 @@ These are the names of the run without memexec.
 Calls:
   alloca :: heap_alloca.c:57 <- ret :: heap_alloca.c:63 <- escape_main: builtin
   ret :: heap_alloca.c:63 <- escape_main: analysed, cache entry 7
-  alloca :: heap_alloca.c:57 <- ret :: heap_alloca.c:64 <- escape_main: builtin
-  ret :: heap_alloca.c:64 <- escape_main: analysed, cache entry 8
-  escape_main: analysed, cache entry 9
-Heap calls, not stored by memexec: escape_main 1, ret 2.
+  ret :: heap_alloca.c:64 <- escape_main: hit of cache entry 7
+  escape_main: analysed, cache entry 8
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: escape_main 1, ret 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 escape_main, start:
@@ -40,6 +40,8 @@ escape_main, before heap_alloca.c:65 `x = *b;` (Escaping):
                b ∈ ESCAPINGADDR
 escape_main, after heap_alloca.c:66 `return;`:
   joined: unreachable
+Hits against the analysed call of their cache entry:
+  ret :: heap_alloca.c:64 <- escape_main, hit of cache entry 7, against ret :: heap_alloca.c:63 <- escape_main: differs on __alloca_ret_l57_3, __alloca_ret_l57_4, a, p, at 7 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 541 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

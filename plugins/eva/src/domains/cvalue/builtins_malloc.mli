@@ -49,8 +49,9 @@ val fold_malloced_by_stack: (Callstack.t -> Base.t list -> 'a -> 'a) -> 'a -> 'a
 val malloced_on: Callstack.t -> Base.t list
 
 (** With option [-eva-hit-log], memexec stores and reuses a call that
-    allocates with [malloc] (#127), [calloc], [realloc] or [reallocarray]
-    (#129) under the policy [by_stack]. A reuse replays each decision of the
+    allocates with [malloc] (#127), [calloc], [realloc], [reallocarray]
+    (#129), [alloca] or the allocation of a variable-length array (#130)
+    under the policy [by_stack]. A reuse replays each decision of the
     policy that the analysis of the stored call took, in the order it took
     them, on the callstack [stack] of the allocation in the call that reuses
     it, without running the policy again and without emitting a heap
@@ -58,8 +59,13 @@ val malloced_on: Callstack.t -> Base.t list
     reuse takes from the states of the stored call. Both return the block:
     - [replay_creation ~stack ~rank ~builtin size] creates the block of rank
       [rank] on [stack] for a request of [size] bytes, as [builtin] does when
-      the list of the blocks of [stack] has [rank] blocks, with the name that
-      [builtin] gives it, and adds it to the tables of the allocated blocks.
+      the list of the blocks of [stack] has [rank] blocks, with the name and
+      the kind that [builtin] gives it, and adds it to the tables of the
+      allocated blocks: to the list of [stack], and to the blocks owned by
+      [stack] without its innermost call, the call of the builtin. A block
+      of [alloca] or of a variable-length array is thus owned by the call
+      that reuses the stored call, or by a call nested in it, and
+      {!free_automatic_bases} releases it at the end of that call.
       Fails if the list has another length.
     - [replay_reuse ~stack ~rank ~weakened size] reuses the block of rank
       [rank] on [stack], weakened if [weakened], and resizes it to [size]

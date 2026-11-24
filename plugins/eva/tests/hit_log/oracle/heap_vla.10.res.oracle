@@ -25,23 +25,18 @@ Calls:
   __fc_vla_alloc :: heap_vla.c:72 <- by_goto :: heap_vla.c:102 <- jump_main: builtin
   __fc_vla_free :: heap_vla.c:72 <- by_goto :: heap_vla.c:102 <- jump_main: builtin
   by_goto :: heap_vla.c:102 <- jump_main: analysed, cache entry 15
-  __fc_vla_alloc :: heap_vla.c:72 <- by_goto :: heap_vla.c:103 <- jump_main: builtin
-  __fc_vla_free :: heap_vla.c:72 <- by_goto :: heap_vla.c:103 <- jump_main: builtin
-  by_goto :: heap_vla.c:103 <- jump_main: analysed, cache entry 16
+  by_goto :: heap_vla.c:103 <- jump_main: hit of cache entry 15
   __fc_vla_alloc :: heap_vla.c:85 <- by_break :: heap_vla.c:104 <- jump_main: builtin
   __fc_vla_free :: heap_vla.c:85 <- by_break :: heap_vla.c:104 <- jump_main: builtin
-  by_break :: heap_vla.c:104 <- jump_main: analysed, cache entry 17
-  __fc_vla_alloc :: heap_vla.c:85 <- by_break :: heap_vla.c:105 <- jump_main: builtin
-  __fc_vla_free :: heap_vla.c:85 <- by_break :: heap_vla.c:105 <- jump_main: builtin
-  by_break :: heap_vla.c:105 <- jump_main: analysed, cache entry 18
+  by_break :: heap_vla.c:104 <- jump_main: analysed, cache entry 16
+  by_break :: heap_vla.c:105 <- jump_main: hit of cache entry 16
   __fc_vla_alloc :: heap_vla.c:95 <- by_return :: heap_vla.c:106 <- jump_main: builtin
   __fc_vla_free :: heap_vla.c:95 <- by_return :: heap_vla.c:106 <- jump_main: builtin
-  by_return :: heap_vla.c:106 <- jump_main: analysed, cache entry 19
-  __fc_vla_alloc :: heap_vla.c:95 <- by_return :: heap_vla.c:107 <- jump_main: builtin
-  __fc_vla_free :: heap_vla.c:95 <- by_return :: heap_vla.c:107 <- jump_main: builtin
-  by_return :: heap_vla.c:107 <- jump_main: analysed, cache entry 20
-  jump_main: analysed, cache entry 21
-Heap calls, not stored by memexec: by_break 2, by_goto 2, by_return 2,
+  by_return :: heap_vla.c:106 <- jump_main: analysed, cache entry 17
+  by_return :: heap_vla.c:107 <- jump_main: hit of cache entry 17
+  jump_main: analysed, cache entry 18
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: by_break 1, by_goto 1, by_return 1,
   jump_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
@@ -81,6 +76,10 @@ by_goto, after heap_vla.c:79 `return r;`:
                                           gv ∈ {0}
                                           n ∈ {2}
                                           r ∈ {2}
+Hits against the analysed call of their cache entry:
+  by_goto :: heap_vla.c:103 <- jump_main, hit of cache entry 15, against by_goto :: heap_vla.c:102 <- jump_main: differs on __malloc_by_goto_l72_3, __malloc_by_goto_l72_4, a, x, at 31 points.
+  by_break :: heap_vla.c:105 <- jump_main, hit of cache entry 16, against by_break :: heap_vla.c:104 <- jump_main: differs on __malloc_by_break_l85_3, __malloc_by_break_l85_4, a, at 23 points.
+  by_return :: heap_vla.c:107 <- jump_main, hit of cache entry 17, against by_return :: heap_vla.c:106 <- jump_main: differs on __malloc_by_return_l95_3, __malloc_by_return_l95_4, a, at 17 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 909 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

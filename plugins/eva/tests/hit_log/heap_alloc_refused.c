@@ -11,10 +11,10 @@
 /* #127: the calls that allocate that memexec does not store. Each function
    that allocates is called twice, from two call sites, with the same input:
    without -eva-hit-log, memexec stores none of them. With -eva-hit-log, it
-   stores the calls that allocate with malloc, calloc, realloc, reallocarray
-   (#129) under the policy by_stack, at a statement without annotation
-   eva_allocate, on a stack that extends the stored call by one call or
-   more. heap_alloc.ml prints the tables of the allocated blocks after each
+   stores the calls of malloc, calloc, realloc, reallocarray (#129), alloca
+   and of variable-length arrays (#130) under the policy by_stack, at a
+   statement without annotation eva_allocate, on a stack below the stored
+   call. heap_alloc.ml prints the tables of the allocated blocks after each
    analysis, and whether they are those of the run without memexec. */
 
 #include <stdlib.h>
@@ -89,7 +89,7 @@ void other_main(void) {
 }
 
 /* Run 4: a block of alloca, and a variable-length array, both released at
-   the end of the call. */
+   the end of the call. Stored since #130: the second calls are hits. */
 int use_alloca(int n) {
   int *p = alloca(n * sizeof *p);
   *p = n;

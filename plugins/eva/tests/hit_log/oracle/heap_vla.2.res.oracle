@@ -35,31 +35,23 @@ Calls:
   __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:136 <- loop_main: builtin
   __fc_vla_free :: heap_vla.c:118 <- vloop :: heap_vla.c:136 <- loop_main: builtin
   vloop :: heap_vla.c:136 <- loop_main: analysed, cache entry 11
-  __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: builtin
-  __fc_vla_free :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: builtin
-  __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: builtin
-  __fc_vla_free :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: builtin
-  __fc_vla_alloc :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: builtin
-  __fc_vla_free :: heap_vla.c:118 <- vloop :: heap_vla.c:137 <- loop_main: builtin
-  vloop :: heap_vla.c:137 <- loop_main: analysed, cache entry 12
+  vloop :: heap_vla.c:137 <- loop_main: hit of cache entry 11
   __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: builtin
   __fc_vla_free :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: builtin
   __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: builtin
   __fc_vla_free :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: builtin
   __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: builtin
   __fc_vla_free :: heap_vla.c:128 <- grow :: heap_vla.c:138 <- loop_main: builtin
-  grow :: heap_vla.c:138 <- loop_main: analysed, cache entry 13
-  __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: builtin
-  __fc_vla_free :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: builtin
-  __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: builtin
-  __fc_vla_free :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: builtin
-  __fc_vla_alloc :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: builtin
-  __fc_vla_free :: heap_vla.c:128 <- grow :: heap_vla.c:139 <- loop_main: builtin
-  grow :: heap_vla.c:139 <- loop_main: analysed, cache entry 14
-  loop_main: analysed, cache entry 15
-Heap calls, not stored by memexec: grow 2, loop_main 1, vloop 2.
+  grow :: heap_vla.c:138 <- loop_main: analysed, cache entry 12
+  grow :: heap_vla.c:139 <- loop_main: hit of cache entry 12
+  loop_main: analysed, cache entry 13
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: grow 1, loop_main 1, vloop 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  vloop :: heap_vla.c:137 <- loop_main, hit of cache entry 11, against vloop :: heap_vla.c:136 <- loop_main: differs on __malloc_vloop_l118_3, __malloc_vloop_l118_4, a, x, at 33 points.
+  grow :: heap_vla.c:139 <- loop_main, hit of cache entry 12, against grow :: heap_vla.c:138 <- loop_main: differs on __malloc_grow_l128_3, __malloc_grow_l128_4, a, x, at 33 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 903 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

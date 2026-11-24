@@ -1,15 +1,16 @@
 [kernel] Parsing heap_effects.c (with preprocessing)
 Heap effects received by az :: heap_effects.c:65 <- alloca_main:
-  heap_effects.c:64, in alloca: allocation of __alloca_az_l64_1: policy by_stack, stack alloca :: heap_effects.c:64 <- az :: heap_effects.c:65 <- alloca_main, rank 0, size {4}, type char, created, suffix alloca :: heap_effects.c:64
+  heap_effects.c:64, in alloca: allocation of __alloca_az_l64_1: policy by_stack, stack alloca :: heap_effects.c:64 <- az :: heap_effects.c:65 <- alloca_main, rank 0, size {4}, type char, created, by alloca, suffix alloca :: heap_effects.c:64
 Heap effects received by alloca_main:
-  heap_effects.c:65, in az: allocation of __alloca_az_l64_1: policy by_stack, stack alloca :: heap_effects.c:64 <- az :: heap_effects.c:65 <- alloca_main, rank 0, size {4}, type char, created, suffix alloca :: heap_effects.c:64 <- az :: heap_effects.c:65
+  heap_effects.c:65, in az: allocation of __alloca_az_l64_1: policy by_stack, stack alloca :: heap_effects.c:64 <- az :: heap_effects.c:65 <- alloca_main, rank 0, size {4}, type char, created, by alloca, suffix alloca :: heap_effects.c:64 <- az :: heap_effects.c:65
   heap_effects.c:65: removal of __alloca_az_l64_1
   heap_effects.c:65: sweep of __alloca_az_l64_1, exact
 Calls:
   alloca :: heap_effects.c:64 <- az :: heap_effects.c:65 <- alloca_main: builtin
   az :: heap_effects.c:65 <- alloca_main: analysed, cache entry 5
   alloca_main: analysed, cache entry 6
-Heap calls, not stored by memexec: alloca_main 1, az 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: alloca_main 1, az 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Initial state: equal.

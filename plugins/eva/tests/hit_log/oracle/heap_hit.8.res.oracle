@@ -8,7 +8,8 @@ Calls:
   maybe :: heap_hit.c:165 <- user :: heap_hit.c:168 <- alloca_main: hit of cache entry 15
   user :: heap_hit.c:168 <- alloca_main: analysed, cache entry 17
   alloca_main: analysed, cache entry 18
-Heap calls, not stored by memexec: alloca_main 1, maybe 1, user 3.
+Heap calls, not stored by memexec: user 2.
+Heap calls stored by memexec: alloca_main 1, maybe 1, user 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: user 1.
 user, start:

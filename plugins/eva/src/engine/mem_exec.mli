@@ -69,8 +69,9 @@ type allocation = {
 
 (** What memexec stores of a heap call (see {!Hit_log}): a call that frees,
     whose heap effects are removals and sweeps only, or a call that also
-    allocates with [malloc] (#127), [calloc], [realloc] or [reallocarray]
-    (#129) under the policy [by_stack].
+    allocates with [malloc] (#127), [calloc], [realloc], [reallocarray]
+    (#129), [alloca] or a variable-length array (#130) under the policy
+    [by_stack].
     [removed], the blocks it removes; [swept], the blocks it sweeps at any
     point of its body; [copied], the blocks whose content its allocations by
     [realloc] copy; [exit], the blocks swept on every path from its start

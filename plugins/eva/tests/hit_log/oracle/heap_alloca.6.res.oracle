@@ -11,14 +11,14 @@ Calls:
   use :: heap_alloca.c:130 <- iter_main: analysed, cache entry 11
   alloca :: heap_alloca.c:40 <- use :: heap_alloca.c:130 <- iter_main: builtin
   use :: heap_alloca.c:130 <- iter_main: analysed, cache entry 12
-  alloca :: heap_alloca.c:40 <- use :: heap_alloca.c:130 <- iter_main: builtin
-  use :: heap_alloca.c:130 <- iter_main: analysed, cache entry 13
-  alloca :: heap_alloca.c:40 <- use :: heap_alloca.c:130 <- iter_main: builtin
-  use :: heap_alloca.c:130 <- iter_main: analysed, cache entry 14
-  iter_main: analysed, cache entry 15
-Heap calls, not stored by memexec: iter_main 1, use 4.
+  use :: heap_alloca.c:130 <- iter_main: hit of cache entry 12
+  use :: heap_alloca.c:130 <- iter_main: hit of cache entry 12
+  iter_main: analysed, cache entry 13
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: iter_main 1, use 2.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 548 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

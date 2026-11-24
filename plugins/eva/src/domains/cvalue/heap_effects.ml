@@ -14,6 +14,8 @@ type builtin =
   | Malloc
   | Calloc
   | Realloc
+  | Alloca
+  | Vla
 
 type record = { min_alloc: Z.t; max_alloc: Z.t }
 
@@ -59,6 +61,8 @@ let pretty_builtin fmt (builtin, copied) =
   match builtin with
   | Malloc -> ()
   | Calloc -> Format.fprintf fmt ",@ by calloc"
+  | Alloca -> Format.fprintf fmt ",@ by alloca"
+  | Vla -> Format.fprintf fmt ",@ by __fc_vla_alloc"
   | Realloc when Base.Hptset.is_empty copied ->
     Format.fprintf fmt ",@ by realloc,@ copying nothing"
   | Realloc ->

@@ -29,7 +29,7 @@ Calls:
   widen_main: analysed, cache entry 9
 Heap calls, not stored by memexec: widen_main 1, wl 2.
 Heap calls whose answers come from full states: none.
-Hits not made because memexec does not store the heap calls: none.
+Hits not made because memexec does not store the heap calls: wl 1.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 299 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

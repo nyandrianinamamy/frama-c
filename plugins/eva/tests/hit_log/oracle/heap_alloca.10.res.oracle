@@ -28,16 +28,17 @@ Calls:
   rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: analysed, cache entry 15
   rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:208 <- rec_main: analysed, cache entry 16
   rec :: heap_alloca.c:208 <- rec_main: analysed, cache entry 17
-  alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:209 <- rec_main: builtin
-  alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: builtin
-  alloca :: heap_alloca.c:201 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: builtin
-  rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: analysed, cache entry 18
-  rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main: analysed, cache entry 19
-  rec :: heap_alloca.c:209 <- rec_main: analysed, cache entry 20
-  rec_main: analysed, cache entry 21
-Heap calls, not stored by memexec: rec 6, rec_main 1.
+  rec :: heap_alloca.c:209 <- rec_main: hit of cache entry 17
+  rec_main: analysed, cache entry 18
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: rec 3, rec_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main
+  rec :: heap_alloca.c:203 <- rec :: heap_alloca.c:209 <- rec_main
+Hits against the analysed call of their cache entry:
+  rec :: heap_alloca.c:209 <- rec_main, hit of cache entry 17, against rec :: heap_alloca.c:208 <- rec_main: differs on x, unavailable at 20 points, at 23 points.
 Initial state: equal.
 Differences with the run without memexec:
   rec, before heap_alloca.c:201 `int *p = alloca(sizeof(int));`, joined: unavailable
@@ -241,6 +242,7 @@ Passes after the iteration:
     unreachable statements: 121 requests
     statistics: 14 requests
     summary: 3 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
 Statuses of the properties: those of the run without memexec, for 298 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.1000, 0 alarms, those of the run without memexec.

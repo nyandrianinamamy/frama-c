@@ -5,7 +5,8 @@ Calls:
   cmp_void :: renamed.c:87 <- kind_main: analysed, cache entry 7
   cmp_void :: renamed.c:88 <- kind_main: analysed, cache entry 8
   kind_main: analysed, cache entry 9
-Heap calls, not stored by memexec: kind_main 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: kind_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 Calls that memexec does not reuse because the snapshot of a block they mention differs:

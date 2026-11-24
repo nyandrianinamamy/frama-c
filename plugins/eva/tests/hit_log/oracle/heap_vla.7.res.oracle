@@ -13,13 +13,14 @@ Calls:
   __fc_vla_alloc :: heap_vla.c:207 <- vstruct :: heap_vla.c:214 <- struct_main: builtin
   __fc_vla_free :: heap_vla.c:207 <- vstruct :: heap_vla.c:214 <- struct_main: builtin
   vstruct :: heap_vla.c:214 <- struct_main: analysed, cache entry 7
-  __fc_vla_alloc :: heap_vla.c:207 <- vstruct :: heap_vla.c:215 <- struct_main: builtin
-  __fc_vla_free :: heap_vla.c:207 <- vstruct :: heap_vla.c:215 <- struct_main: builtin
-  vstruct :: heap_vla.c:215 <- struct_main: analysed, cache entry 8
-  struct_main: analysed, cache entry 9
-Heap calls, not stored by memexec: struct_main 1, vstruct 2.
+  vstruct :: heap_vla.c:215 <- struct_main: hit of cache entry 7
+  struct_main: analysed, cache entry 8
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: struct_main 1, vstruct 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  vstruct :: heap_vla.c:215 <- struct_main, hit of cache entry 7, against vstruct :: heap_vla.c:214 <- struct_main: differs on __malloc_vstruct_l207_3, __malloc_vstruct_l207_4, t, x, at 19 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 805 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

@@ -1249,15 +1249,18 @@ type storage =
    store: the blocks they remove and sweep, the blocks whose content their
    allocations copy, their validity mutations in the order of emission, and
    their allocations, in the order of emission. Among the allocation
-   builtins, those of [malloc], [calloc], [realloc] and [reallocarray] under
-   the policy [by_stack], at a site without annotation, let memexec store
-   their callers; so do the builtins of the policy [imprecise] once their
-   single block exists, whose allocations this function refuses. [None] if
-   an effect refuses the call:
-   - an allocation by another policy than [by_stack], of a block that is not
-     a heap allocation, or whose stack, without the allocation wrappers,
-     ends at or above the call: the call is then an allocation wrapper, or
-     made by one;
+   builtins, those of [malloc], [calloc], [realloc], [reallocarray],
+   [alloca] and of the allocation of a variable-length array under the
+   policy [by_stack], at a site without annotation, let memexec store their
+   callers; so do the builtins of the policy [imprecise] once their single
+   block exists, whose allocations this function refuses. The blocks of
+   [alloca] and of variable-length arrays are released by the end of a call:
+   the releases at the end of the calls nested in the call are among its
+   effects, as removals and sweeps; the release at the end of the call
+   itself is not, see [storage]. [None] if an effect refuses the call:
+   - an allocation by another policy than [by_stack], or whose stack,
+     without the allocation wrappers, ends at or above the call: the call is
+     then an allocation wrapper, or made by one;
    - a validity mutation that is not the resize of the block that the
      allocation emitted just before it reuses, as the widening of a weak
      block in a loop. *)
@@ -1286,8 +1289,7 @@ let heap_effects_of ~callstack effects =
                         decision; _ } ->
         let suffix = Mem_exec.suffix_below ~callstack stack in
         match policy, block, rank, suffix with
-        | Eva_annotations.By_stack, Base.Allocated (_, Base.Malloc, _),
-          Some rank, Some suffix ->
+        | Eva_annotations.By_stack, Base.Allocated _, Some rank, Some suffix ->
           copied := Base.Hptset.union c !copied;
           allocations :=
             { Mem_exec.block; builtin; suffix; rank; size; decision }

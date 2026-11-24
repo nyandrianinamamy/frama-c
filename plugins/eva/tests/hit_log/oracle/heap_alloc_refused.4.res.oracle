@@ -12,16 +12,14 @@ These are the tables of the run without memexec.
 Calls:
   alloca :: heap_alloc_refused.c:94 <- use_alloca :: heap_alloc_refused.c:106 <- stack_main: builtin
   use_alloca :: heap_alloc_refused.c:106 <- stack_main: analysed, cache entry 11
-  alloca :: heap_alloc_refused.c:94 <- use_alloca :: heap_alloc_refused.c:107 <- stack_main: builtin
-  use_alloca :: heap_alloc_refused.c:107 <- stack_main: analysed, cache entry 12
+  use_alloca :: heap_alloc_refused.c:107 <- stack_main: hit of cache entry 11
   __fc_vla_alloc :: heap_alloc_refused.c:100 <- use_vla :: heap_alloc_refused.c:108 <- stack_main: builtin
   __fc_vla_free :: heap_alloc_refused.c:100 <- use_vla :: heap_alloc_refused.c:108 <- stack_main: builtin
-  use_vla :: heap_alloc_refused.c:108 <- stack_main: analysed, cache entry 13
-  __fc_vla_alloc :: heap_alloc_refused.c:100 <- use_vla :: heap_alloc_refused.c:109 <- stack_main: builtin
-  __fc_vla_free :: heap_alloc_refused.c:100 <- use_vla :: heap_alloc_refused.c:109 <- stack_main: builtin
-  use_vla :: heap_alloc_refused.c:109 <- stack_main: analysed, cache entry 14
-  stack_main: analysed, cache entry 15
-Heap calls, not stored by memexec: stack_main 1, use_alloca 2, use_vla 2.
+  use_vla :: heap_alloc_refused.c:108 <- stack_main: analysed, cache entry 12
+  use_vla :: heap_alloc_refused.c:109 <- stack_main: hit of cache entry 12
+  stack_main: analysed, cache entry 13
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: stack_main 1, use_alloca 1, use_vla 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 stack_main, start:
@@ -45,6 +43,9 @@ stack_main, after heap_alloc_refused.c:111 `return;`:
               y ∈ {2}
               z ∈ {2}
               t ∈ {2}
+Hits against the analysed call of their cache entry:
+  use_alloca :: heap_alloc_refused.c:107 <- stack_main, hit of cache entry 11, against use_alloca :: heap_alloc_refused.c:106 <- stack_main: differs on __alloca_use_alloca_l94_3, __alloca_use_alloca_l94_4, p, x, at 9 points.
+  use_vla :: heap_alloc_refused.c:109 <- stack_main, hit of cache entry 12, against use_vla :: heap_alloc_refused.c:108 <- stack_main: differs on __malloc_use_vla_l100_3, __malloc_use_vla_l100_4, a, z, at 17 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 349 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

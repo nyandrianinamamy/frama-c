@@ -21,15 +21,14 @@ Calls:
   alloca :: heap_alloca.c:113 <- lp :: heap_alloca.c:121 <- loop_main: builtin
   alloca :: heap_alloca.c:113 <- lp :: heap_alloca.c:121 <- loop_main: builtin
   lp :: heap_alloca.c:121 <- loop_main: analysed, cache entry 7
-  alloca :: heap_alloca.c:113 <- lp :: heap_alloca.c:122 <- loop_main: builtin
-  alloca :: heap_alloca.c:113 <- lp :: heap_alloca.c:122 <- loop_main: builtin
-  alloca :: heap_alloca.c:113 <- lp :: heap_alloca.c:122 <- loop_main: builtin
-  alloca :: heap_alloca.c:113 <- lp :: heap_alloca.c:122 <- loop_main: builtin
-  lp :: heap_alloca.c:122 <- loop_main: analysed, cache entry 8
-  loop_main: analysed, cache entry 9
-Heap calls, not stored by memexec: loop_main 1, lp 2.
+  lp :: heap_alloca.c:122 <- loop_main: hit of cache entry 7
+  loop_main: analysed, cache entry 8
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: loop_main 1, lp 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  lp :: heap_alloca.c:122 <- loop_main, hit of cache entry 7, against lp :: heap_alloca.c:121 <- loop_main: differs on __alloca_w_lp_l113_3, __alloca_w_lp_l113_4, p, x, at 25 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 579 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

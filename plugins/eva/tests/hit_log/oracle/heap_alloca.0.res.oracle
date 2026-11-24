@@ -12,10 +12,10 @@ These are the names of the run without memexec.
 Calls:
   alloca :: heap_alloca.c:40 <- use :: heap_alloca.c:47 <- direct_main: builtin
   use :: heap_alloca.c:47 <- direct_main: analysed, cache entry 7
-  alloca :: heap_alloca.c:40 <- use :: heap_alloca.c:48 <- direct_main: builtin
-  use :: heap_alloca.c:48 <- direct_main: analysed, cache entry 8
-  direct_main: analysed, cache entry 9
-Heap calls, not stored by memexec: direct_main 1, use 2.
+  use :: heap_alloca.c:48 <- direct_main: hit of cache entry 7
+  direct_main: analysed, cache entry 8
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: direct_main 1, use 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 direct_main, start:
@@ -41,6 +41,8 @@ direct_main, after heap_alloca.c:50 `return;`:
                gp ∈ {0}
                a ∈ {6}
                b ∈ {6}
+Hits against the analysed call of their cache entry:
+  use :: heap_alloca.c:48 <- direct_main, hit of cache entry 7, against use :: heap_alloca.c:47 <- direct_main: differs on __alloca_use_l40_3, __alloca_use_l40_4, a, p, at 11 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 553 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

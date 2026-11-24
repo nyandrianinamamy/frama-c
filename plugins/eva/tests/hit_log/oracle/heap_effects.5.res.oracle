@@ -1,18 +1,18 @@
 [kernel] Parsing heap_effects.c (with preprocessing)
 Heap effects received by vla_scope :: heap_effects.c:81 <- vla_main:
-  heap_effects.c:70, in __fc_vla_alloc: allocation of __malloc_vla_scope_l70_1: policy by_stack, stack __fc_vla_alloc :: heap_effects.c:70 <- vla_scope :: heap_effects.c:81 <- vla_main, rank 0, size {4}, type char, created, suffix __fc_vla_alloc :: heap_effects.c:70
+  heap_effects.c:70, in __fc_vla_alloc: allocation of __malloc_vla_scope_l70_1: policy by_stack, stack __fc_vla_alloc :: heap_effects.c:70 <- vla_scope :: heap_effects.c:81 <- vla_main, rank 0, size {4}, type char, created, by __fc_vla_alloc, suffix __fc_vla_alloc :: heap_effects.c:70
   heap_effects.c:70, in __fc_vla_free: removal of __malloc_vla_scope_l70_1
   heap_effects.c:70, in __fc_vla_free: sweep of __malloc_vla_scope_l70_1, exact
 Heap effects received by vla_jump :: heap_effects.c:81 <- vla_main:
-  heap_effects.c:75, in __fc_vla_alloc: allocation of __malloc_vla_jump_l75_1: policy by_stack, stack __fc_vla_alloc :: heap_effects.c:75 <- vla_jump :: heap_effects.c:81 <- vla_main, rank 0, size {4}, type char, created, suffix __fc_vla_alloc :: heap_effects.c:75
+  heap_effects.c:75, in __fc_vla_alloc: allocation of __malloc_vla_jump_l75_1: policy by_stack, stack __fc_vla_alloc :: heap_effects.c:75 <- vla_jump :: heap_effects.c:81 <- vla_main, rank 0, size {4}, type char, created, by __fc_vla_alloc, suffix __fc_vla_alloc :: heap_effects.c:75
   heap_effects.c:75, in __fc_vla_free: removal of __malloc_vla_jump_l75_1
   heap_effects.c:75, in __fc_vla_free: sweep of __malloc_vla_jump_l75_1, exact
 Heap effects received by vla_main:
-  heap_effects.c:81, in vla_scope: allocation of __malloc_vla_scope_l70_1: policy by_stack, stack __fc_vla_alloc :: heap_effects.c:70 <- vla_scope :: heap_effects.c:81 <- vla_main, rank 0, size {4}, type char, created, suffix __fc_vla_alloc :: heap_effects.c:70 <- vla_scope :: heap_effects.c:81
+  heap_effects.c:81, in vla_scope: allocation of __malloc_vla_scope_l70_1: policy by_stack, stack __fc_vla_alloc :: heap_effects.c:70 <- vla_scope :: heap_effects.c:81 <- vla_main, rank 0, size {4}, type char, created, by __fc_vla_alloc, suffix __fc_vla_alloc :: heap_effects.c:70 <- vla_scope :: heap_effects.c:81
   heap_effects.c:81, in vla_scope: removal of __malloc_vla_scope_l70_1
   heap_effects.c:81, in vla_scope: sweep of __malloc_vla_scope_l70_1, exact
   heap_effects.c:81: sweep of __malloc_vla_scope_l70_1, exact
-  heap_effects.c:81, in vla_jump: allocation of __malloc_vla_jump_l75_1: policy by_stack, stack __fc_vla_alloc :: heap_effects.c:75 <- vla_jump :: heap_effects.c:81 <- vla_main, rank 0, size {4}, type char, created, suffix __fc_vla_alloc :: heap_effects.c:75 <- vla_jump :: heap_effects.c:81
+  heap_effects.c:81, in vla_jump: allocation of __malloc_vla_jump_l75_1: policy by_stack, stack __fc_vla_alloc :: heap_effects.c:75 <- vla_jump :: heap_effects.c:81 <- vla_main, rank 0, size {4}, type char, created, by __fc_vla_alloc, suffix __fc_vla_alloc :: heap_effects.c:75 <- vla_jump :: heap_effects.c:81
   heap_effects.c:81, in vla_jump: removal of __malloc_vla_jump_l75_1
   heap_effects.c:81, in vla_jump: sweep of __malloc_vla_jump_l75_1, exact
   heap_effects.c:81: sweep of __malloc_vla_jump_l75_1, exact
@@ -24,7 +24,8 @@ Calls:
   __fc_vla_free :: heap_effects.c:75 <- vla_jump :: heap_effects.c:81 <- vla_main: builtin
   vla_jump :: heap_effects.c:81 <- vla_main: analysed, cache entry 8
   vla_main: analysed, cache entry 9
-Heap calls, not stored by memexec: vla_jump 1, vla_main 1, vla_scope 1.
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: vla_jump 1, vla_main 1, vla_scope 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 vla_jump, start:

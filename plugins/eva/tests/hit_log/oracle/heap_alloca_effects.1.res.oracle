@@ -1,18 +1,18 @@
 [kernel] Parsing heap_alloca_effects.c (with preprocessing)
 Heap effects received by vz :: heap_alloca_effects.c:58 <- vla_main:
-  heap_alloca_effects.c:48, in __fc_vla_alloc: allocation of __malloc_vz_l48_3: policy by_stack, stack __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:58 <- vla_main, rank 0, size {4}, type char, created, suffix __fc_vla_alloc :: heap_alloca_effects.c:48
+  heap_alloca_effects.c:48, in __fc_vla_alloc: allocation of __malloc_vz_l48_3: policy by_stack, stack __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:58 <- vla_main, rank 0, size {4}, type char, created, by __fc_vla_alloc, suffix __fc_vla_alloc :: heap_alloca_effects.c:48
   heap_alloca_effects.c:48, in __fc_vla_free: removal of __malloc_vz_l48_3
   heap_alloca_effects.c:48, in __fc_vla_free: sweep of __malloc_vz_l48_3, exact
 Heap effects received by vz :: heap_alloca_effects.c:61 <- vla_main:
-  heap_alloca_effects.c:48, in __fc_vla_alloc: allocation of __malloc_vz_l48_4: policy by_stack, stack __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:61 <- vla_main, rank 0, size {4}, type char, created, suffix __fc_vla_alloc :: heap_alloca_effects.c:48
+  heap_alloca_effects.c:48, in __fc_vla_alloc: allocation of __malloc_vz_l48_4: policy by_stack, stack __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:61 <- vla_main, rank 0, size {4}, type char, created, by __fc_vla_alloc, suffix __fc_vla_alloc :: heap_alloca_effects.c:48
   heap_alloca_effects.c:48, in __fc_vla_free: removal of __malloc_vz_l48_4
   heap_alloca_effects.c:48, in __fc_vla_free: sweep of __malloc_vz_l48_4, exact
 Heap effects received by vla_main:
-  heap_alloca_effects.c:58, in vz: allocation of __malloc_vz_l48_3: policy by_stack, stack __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:58 <- vla_main, rank 0, size {4}, type char, created, suffix __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:58
+  heap_alloca_effects.c:58, in vz: allocation of __malloc_vz_l48_3: policy by_stack, stack __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:58 <- vla_main, rank 0, size {4}, type char, created, by __fc_vla_alloc, suffix __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:58
   heap_alloca_effects.c:58, in vz: removal of __malloc_vz_l48_3
   heap_alloca_effects.c:58, in vz: sweep of __malloc_vz_l48_3, exact
   heap_alloca_effects.c:58: sweep of __malloc_vz_l48_3, exact
-  heap_alloca_effects.c:61, in vz: allocation of __malloc_vz_l48_4: policy by_stack, stack __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:61 <- vla_main, rank 0, size {4}, type char, created, suffix __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:61
+  heap_alloca_effects.c:61, in vz: allocation of __malloc_vz_l48_4: policy by_stack, stack __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:61 <- vla_main, rank 0, size {4}, type char, created, by __fc_vla_alloc, suffix __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:61
   heap_alloca_effects.c:61, in vz: removal of __malloc_vz_l48_4
   heap_alloca_effects.c:61, in vz: sweep of __malloc_vz_l48_4, exact
   heap_alloca_effects.c:61: sweep of __malloc_vz_l48_4, exact
@@ -30,11 +30,10 @@ Calls:
   __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:58 <- vla_main: builtin
   __fc_vla_free :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:58 <- vla_main: builtin
   vz :: heap_alloca_effects.c:58 <- vla_main: analysed, cache entry 7
-  __fc_vla_alloc :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:61 <- vla_main: builtin
-  __fc_vla_free :: heap_alloca_effects.c:48 <- vz :: heap_alloca_effects.c:61 <- vla_main: builtin
-  vz :: heap_alloca_effects.c:61 <- vla_main: analysed, cache entry 8
-  vla_main: analysed, cache entry 9
-Heap calls, not stored by memexec: vla_main 1, vz 2.
+  vz :: heap_alloca_effects.c:61 <- vla_main: hit of cache entry 7
+  vla_main: analysed, cache entry 8
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: vla_main 1, vz 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
 vla_main, start:
@@ -52,6 +51,8 @@ vla_main, after heap_alloca_effects.c:63 `return;`:
           gc ∈ ESCAPINGADDR
   vla_main: z ∈ {0}
             gc ∈ ESCAPINGADDR
+Hits against the analysed call of their cache entry:
+  vz :: heap_alloca_effects.c:61 <- vla_main, hit of cache entry 7, against vz :: heap_alloca_effects.c:58 <- vla_main: differs on __malloc_vz_l48_3, __malloc_vz_l48_4, a, gc, at 19 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 189 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
@@ -68,4 +69,4 @@ Passes after the iteration:
 Statuses of the properties: those of the run without memexec, for 64 properties.
 Alarms: 0, of which 0 not proven, those of the run without memexec.
 Summary: statement coverage 1.0000, function coverage 0.5000, 0 alarms, those of the run without memexec.
-Heap effects emitted in the run: 8.
+Heap effects emitted in the run: 5.

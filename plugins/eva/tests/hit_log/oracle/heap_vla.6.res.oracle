@@ -21,15 +21,14 @@ Calls:
   __fc_vla_free :: heap_vla.c:190 <- nested :: heap_vla.c:199 <- nested_main: builtin
   __fc_vla_free :: heap_vla.c:187 <- nested :: heap_vla.c:199 <- nested_main: builtin
   nested :: heap_vla.c:199 <- nested_main: analysed, cache entry 7
-  __fc_vla_alloc :: heap_vla.c:187 <- nested :: heap_vla.c:200 <- nested_main: builtin
-  __fc_vla_alloc :: heap_vla.c:190 <- nested :: heap_vla.c:200 <- nested_main: builtin
-  __fc_vla_free :: heap_vla.c:190 <- nested :: heap_vla.c:200 <- nested_main: builtin
-  __fc_vla_free :: heap_vla.c:187 <- nested :: heap_vla.c:200 <- nested_main: builtin
-  nested :: heap_vla.c:200 <- nested_main: analysed, cache entry 8
-  nested_main: analysed, cache entry 9
-Heap calls, not stored by memexec: nested 2, nested_main 1.
+  nested :: heap_vla.c:200 <- nested_main: hit of cache entry 7
+  nested_main: analysed, cache entry 8
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: nested 1, nested_main 1.
 Heap calls whose answers come from full states: none.
 Hits not made because memexec does not store the heap calls: none.
+Hits against the analysed call of their cache entry:
+  nested :: heap_vla.c:200 <- nested_main, hit of cache entry 7, against nested :: heap_vla.c:199 <- nested_main: differs on __malloc_nested_l187_3, __malloc_nested_l187_4, __malloc_nested_l190_3, __malloc_nested_l190_4, a, b, tmp, x, at 33 points.
 Initial state: equal.
 Differences with the run without memexec:
 Answers: 841 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.

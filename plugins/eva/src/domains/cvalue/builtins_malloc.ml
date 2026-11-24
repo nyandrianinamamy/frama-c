@@ -557,20 +557,41 @@ let fold_malloced_by_stack f init = MallocedByStack.fold f init
 
 (* The replay of the allocations of a call that memexec reuses (#127). Each
    applies a decision that [alloc_by_stack] took for [malloc], [calloc],
-   [realloc] or [reallocarray] in the call that memexec stored, on the stack
-   [stack] of the call that reuses it, without running the policy again and
-   without emitting a heap effect. The content of the block is not written:
-   the reuse takes it from the states of the stored call. *)
+   [realloc], [reallocarray], [alloca] or the allocation of a variable-length
+   array in the call that memexec stored, on the stack [stack] of the call
+   that reuses it, without running the policy again and without emitting a
+   heap effect. The content of the block is not written: the reuse takes it
+   from the states of the stored call. *)
 
 (* The prefix of the names of the blocks that [builtin] creates under the
-   policy [by_stack]: that of [register_malloc] for [malloc], of
-   [calloc_builtin] for [calloc] and of [realloc_alloc_copy] for [realloc]
-   and [reallocarray]. *)
+   policy [by_stack]: that of [register_malloc] for [malloc], [alloca] and
+   the allocation of a variable-length array, of [calloc_builtin] for
+   [calloc] and of [realloc_alloc_copy] for [realloc] and [reallocarray]. *)
 let prefix_of_builtin = function
-  | Heap_effects.Malloc -> "malloc"
+  | Heap_effects.Malloc | Vla -> "malloc"
   | Calloc -> "calloc"
   | Realloc -> "realloc"
+  | Alloca -> "alloca"
 
+(* The kind of the blocks that [builtin] creates. The automatic release at
+   the end of a call releases the blocks of kind [Alloca] and [VLA] that
+   the table of the allocated blocks gives to the callstack of the call. *)
+let region_of_builtin = function
+  | Heap_effects.Malloc | Calloc | Realloc -> Base.Malloc
+  | Alloca -> Base.Alloca
+  | Vla -> Base.VLA
+
+(* The builtin of the allocations of [register_malloc] for [region]. *)
+let builtin_of_region = function
+  | Base.Malloc -> Heap_effects.Malloc
+  | Base.Alloca -> Heap_effects.Alloca
+  | Base.VLA -> Heap_effects.Vla
+
+(* The block is registered in the table of the allocated blocks for the
+   stack [stack] without its innermost call, the call of the builtin, as
+   [alloc_on] does for any allocation: for a block of [alloca] or of a
+   variable-length array, the callstack of the call that reuses the stored
+   call, or of a call nested in it, whose end releases the block. *)
 let replay_creation ~stack ~rank ~builtin sizev =
   let all_vars = malloced_on stack in
   if List.length all_vars <> rank then
@@ -578,8 +599,8 @@ let replay_creation ~stack ~rank ~builtin sizev =
       (List.length all_vars) rank;
   let base, _, _ =
     alloc_on ~stack ~emit:false ~policy:By_stack ~rank ~builtin
-      ~copied:Base.Hptset.empty Strong Base.Malloc (prefix_of_builtin builtin)
-      sizev
+      ~copied:Base.Hptset.empty Strong (region_of_builtin builtin)
+      (prefix_of_builtin builtin) sizev
   in
   MallocedByStack.replace stack (all_vars @ [base]);
   base
@@ -602,10 +623,11 @@ let has_allocation_annotation stmt =
     (Annotations.code_annot stmt)
 
 (* With -eva-hit-log, memexec may store a call that allocates with [malloc]
-   (#127), [calloc], [realloc] or [reallocarray] (#129) under the policy
-   [by_stack], at a site without annotation [eva_allocate]: the builtin lets
-   it, and the hit log decides, see [Hit_log.storage]. Any other allocation
-   keeps its status. *)
+   (#127), [calloc], [realloc], [reallocarray] (#129), [alloca] or the
+   allocation of a variable-length array (#130) under the policy [by_stack],
+   at a site without annotation [eva_allocate]: the builtin lets it, and the
+   hit log decides, see [Hit_log.storage]. Any other allocation keeps its
+   status. *)
 let storable_by_hit_log () =
   Heap_effects.enabled ()
   &&
@@ -623,10 +645,6 @@ let choose_base_allocation () =
       alloc_weakest_base ~builtin ~copied region sizev
 
 let register_malloc ?replace name ?returns_null prefix region =
-  let storable =
-    if name = "malloc" && region = Base.Malloc then storable_by_hit_log
-    else fun () -> false
-  in
   let builtin state args =
     let size = match args with
       | [ _, size ] -> size
@@ -634,11 +652,11 @@ let register_malloc ?replace name ?returns_null prefix region =
     in
     let alloc_base = choose_base_allocation () in
     let new_base, max_alloc, cacheable =
-      alloc_base ~builtin:Heap_effects.Malloc ~copied:Base.Hptset.empty region
-        prefix size state
+      alloc_base ~builtin:(builtin_of_region region) ~copied:Base.Hptset.empty
+        region prefix size state
     in
     let cacheable =
-      if storable () then Builtins.Cacheable else cacheable
+      if storable_by_hit_log () then Builtins.Cacheable else cacheable
     in
     let new_state = add_uninitialized state new_base max_alloc in
     let ret = V.inject new_base Ival.zero in

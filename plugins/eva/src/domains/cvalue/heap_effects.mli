@@ -36,16 +36,22 @@ type decision =
   | Reused of { weakened: bool }
 
 (** The builtin that makes an allocation, which gives the name of the block
-    it creates and what it writes in the block. *)
+    it creates, its kind, and what it writes in the block. *)
 type builtin =
-  | Malloc
-  (** [malloc], [alloca] and the allocation of a variable-length array: the
-      block is uninitialized. *)
+  | Malloc (** [malloc]: the block is uninitialized. *)
   | Calloc (** [calloc]: the block is filled with zeroes. *)
   | Realloc
   (** [realloc] and [reallocarray]: the block receives a copy of the
       content of the blocks that the allocation copies, which the builtin
       releases after it. *)
+  | Alloca
+  (** [alloca]: the block is uninitialized, and released at the end of the
+      call of the function that calls [alloca]. *)
+  | Vla
+  (** The allocation of a variable-length array, [__fc_vla_alloc]: the
+      block is uninitialized, released when the scope of the array is left,
+      and again, already released, at the end of the call of the function
+      that declares the array. *)
 
 (** The validity record of an allocated block, in bits. *)
 type record = { min_alloc: Z.t; max_alloc: Z.t }
