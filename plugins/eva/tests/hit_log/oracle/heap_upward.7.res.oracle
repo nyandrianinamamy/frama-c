@@ -377,13 +377,13 @@ frel :: heap_upward.c:160 <- frames_main, analysed:
   created: none
   before E: covers block 0 of malloc :: heap_upward.c:159 <- frames_main; does not bind block 0 of malloc :: heap_upward.c:159 <- frames_main; swept on every path: block 0 of malloc :: heap_upward.c:159 <- frames_main; on some path only: none
 frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main, hit:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
+  outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
+  sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
 fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:161 <- frames_main, analysed:
-  outputs: cur{[0..31]}; pk{[0..31]}
-  outputs on return: cur{[0..31]}; pk{[0..31]}
-  sure outputs: cur{[0..31]}; pk{[0..31]}
+  outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
+  outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
+  sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   heap effects:
     none
   not stored by memexec
@@ -397,13 +397,13 @@ fgrand :: heap_upward.c:161 <- frames_main, analysed:
   not stored by memexec
   before FG: full states
 frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main, hit:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
+  outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
+  sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
 fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:162 <- frames_main, analysed:
-  outputs: cur{[0..31]}; pk{[0..31]}
-  outputs on return: cur{[0..31]}; pk{[0..31]}
-  sure outputs: cur{[0..31]}; pk{[0..31]}
+  outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
+  outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
+  sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   heap effects:
     none
   not stored by memexec
@@ -417,13 +417,13 @@ fgrand :: heap_upward.c:162 <- frames_main, analysed:
   not stored by memexec
   before FG: full states
 frel :: heap_upward.c:150 <- fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main, hit:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
+  outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
+  sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
 fparent :: heap_upward.c:154 <- fgrand :: heap_upward.c:163 <- frames_main, analysed:
-  outputs: cur{[0..31]}; pk{[0..31]}
-  outputs on return: cur{[0..31]}; pk{[0..31]}
-  sure outputs: cur{[0..31]}; pk{[0..31]}
+  outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
+  outputs on return: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
+  sure outputs: cur{[0..31]}; gk{[0..31]}; pk{[0..31]}
   heap effects:
     none
   not stored by memexec

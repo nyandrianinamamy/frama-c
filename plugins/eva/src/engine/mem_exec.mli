@@ -144,13 +144,14 @@ val suffix_below:
     start, and the reuse sweeps the cells outside the key that point to them
     at the start of the call that reuses it. On a reuse, the call-results
     hooks receive the results of the stored call: for the inout plugin, its
-    inputs and outputs, through the renaming. A fresh analysis of the call
-    would also report as written the cells outside the key that the reuse
-    sweeps, weakly for a sweep on some path only; the outputs of a reuse do
-    not hold them. The hit log marks the calls that enclose a hit on a call
-    that frees, which memexec does not store: no key is built from these
-    outputs. The dependencies that option -calldeps prints for a call reused
-    there, and the inout of its callers, do not hold these cells.
+    inputs and outputs, through the renaming, and the cells outside the key
+    that the reuse sweeps, see {!Cvalue_callbacks.swept}, as written, surely
+    for a sweep on every path, as a fresh analysis of the call reports them:
+    the cells outside the key that point at the start of the call to a
+    block that the stored call sweeps at any point are written on some
+    path. The inout of
+    the callers of the reuse holds these cells, and so do the dependencies
+    that option -calldeps gives for the reuse.
     With [~snapshot:true], a call that allocates, given with its heap
     effects [heap], is stored in numbered form only (#127). Its key holds the
     candidates of its allocations: for each stack on which it allocates, the
@@ -204,14 +205,18 @@ module Make
           from the blocks of the matching call to those of this call, when
           it is not the identity. *)
       | Replayed_hit of
-          (unit -> (Partition.key * Domain.t) list * renaming) * int
-      (** The same, for a heap call that allocates, stored in numbered form
-          (#127): the function replays its allocations on the callstack of
-          the call, which creates blocks, resizes blocks and extends the
-          tables of the allocated blocks, then returns the results and the
-          renaming, which maps the blocks that the matching call created to
-          those that the replay created. Nothing is replayed until it is
-          applied, once. *)
+          (unit ->
+           (Partition.key * Domain.t) list * renaming * Cvalue_callbacks.swept)
+          * int
+      (** The same, for a heap call stored in numbered form: the function
+          replays the allocations of a call that allocates (#127) on the
+          callstack of the call, which creates blocks, resizes blocks and
+          extends the tables of the allocated blocks, sweeps the state and
+          copies the exits, then returns the results, the renaming, which
+          also maps the blocks that the matching call created to those that
+          the replay created, the empty list if it is the identity, and the
+          cells swept outside the exits. Nothing is run until it is applied,
+          once. *)
 
     (** [reuse_previous_call kf init_state args] searches amongst the previous
         analyzes of [kf] one that matches the initial state [init_state] and the

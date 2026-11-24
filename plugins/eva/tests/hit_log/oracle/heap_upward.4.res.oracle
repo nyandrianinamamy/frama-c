@@ -538,69 +538,69 @@ outer :: heap_upward.c:99 <- chain_main, analysed:
   created: none
   before O: covers block 0 of malloc :: heap_upward.c:98 <- chain_main; does not bind block 0 of malloc :: heap_upward.c:98 <- chain_main; swept on every path: block 0 of malloc :: heap_upward.c:98 <- chain_main; on some path only: none
 leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main, hit:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
 mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main, analysed:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
     none
   not stored by memexec
   before G: full states
 top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main, analysed:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
     none
   not stored by memexec
   before H: full states
 outer :: heap_upward.c:102 <- chain_main, analysed:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
     none
   not stored by memexec
   before O: full states
 leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main, hit:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
 mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main, analysed:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
     none
   not stored by memexec
   before G: full states
 top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main, analysed:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
     none
   not stored by memexec
   before H: full states
 outer :: heap_upward.c:105 <- chain_main, analysed:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
     none
   not stored by memexec
   before O: full states
 leaf :: heap_upward.c:93 <- mid :: heap_upward.c:108 <- chain_main, hit:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
 mid :: heap_upward.c:108 <- chain_main, analysed:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
     none
   not stored by memexec

@@ -409,25 +409,25 @@ rec_rel :: heap_upward.c:176 <- rec_main, analysed:
   created: none
   before RR: covers block 0 of malloc :: heap_upward.c:175 <- rec_main; does not bind block 0 of malloc :: heap_upward.c:175 <- rec_main; swept on every path: block 0 of malloc :: heap_upward.c:175 <- rec_main; on some path only: none
 rec_rel :: heap_upward.c:172 <- rec_parent :: heap_upward.c:179 <- rec_main, hit:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
 rec_parent :: heap_upward.c:179 <- rec_main, analysed:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
     none
   not stored by memexec
   before RP: full states
 rec_rel :: heap_upward.c:172 <- rec_parent :: heap_upward.c:182 <- rec_main, hit:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
 rec_parent :: heap_upward.c:182 <- rec_main, analysed:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
     none
   not stored by memexec

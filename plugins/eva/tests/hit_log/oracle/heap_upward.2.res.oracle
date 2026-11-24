@@ -191,25 +191,25 @@ child_rel :: heap_upward.c:74 <- free_main, analysed:
   created: none
   before R: covers block 0 of malloc :: heap_upward.c:73 <- free_main; does not bind block 0 of malloc :: heap_upward.c:73 <- free_main; swept on every path: block 0 of malloc :: heap_upward.c:73 <- free_main; on some path only: none
 child_rel :: heap_upward.c:69 <- parent_free :: heap_upward.c:78 <- free_main, hit:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
 parent_free :: heap_upward.c:78 <- free_main, analysed:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
     none
   not stored by memexec
   before Q: full states
 child_rel :: heap_upward.c:69 <- parent_free :: heap_upward.c:81 <- free_main, hit:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
 parent_free :: heap_upward.c:81 <- free_main, analysed:
-  outputs: cur{[0..31]}
-  outputs on return: cur{[0..31]}
-  sure outputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
   heap effects:
     none
   not stored by memexec

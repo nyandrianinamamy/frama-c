@@ -374,7 +374,8 @@ let () =
        if !observing_calls && suite then begin
          match results with
          | `Body (states, id) -> record_footprint id state states
-         | `Reuse _ | `Renamed_reuse _ | `Spec _ | `Builtin _ -> ()
+         | `Reuse _ | `Renamed_reuse _ | `Swept_reuse _ | `Spec _
+         | `Builtin _ -> ()
        end;
        if !observing_calls then
          events :=
@@ -383,7 +384,8 @@ let () =
          let kind =
            match results with
            | `Body (_, id) -> Analysed id
-           | `Reuse id | `Renamed_reuse (id, _) -> Hit id
+           | `Reuse id | `Renamed_reuse (id, _) | `Swept_reuse (id, _, _) ->
+             Hit id
            | `Spec _ -> Other "specification"
            | `Builtin _ -> Other "builtin"
          in
@@ -400,7 +402,8 @@ let () =
            | `Body (states, id) ->
              Hashtbl.replace made_by_entry id made;
              Hashtbl.replace reached_by_entry id (reached states)
-           | `Reuse _ | `Renamed_reuse _ | `Spec _ | `Builtin _ -> ()
+           | `Reuse _ | `Renamed_reuse _ | `Swept_reuse _ | `Spec _
+           | `Builtin _ -> ()
          end;
          match p.calls with
          | call :: calls ->
@@ -951,7 +954,8 @@ let () =
        match !analysing, results with
        | Some run, `Body (_, id) ->
          Hashtbl.replace entry_callstacks (run, id) (portable callstack)
-       | Some run, `Renamed_reuse (id, subst) ->
+       | Some run,
+         (`Renamed_reuse (id, subst) | `Swept_reuse (id, subst, _)) ->
          record_replayed run (allocations_of run) callstack id subst
        | Some run, `Builtin (states, _) ->
          let a = allocations_of run in
@@ -971,7 +975,8 @@ let () =
          |> Base.Hptset.elements
          |> List.sort (fun b b' -> Int.compare (Base.id b) (Base.id b'))
          |> List.iter (record_origin a site)
-       | _, (`Builtin _ | `Spec _ | `Body _ | `Reuse _ | `Renamed_reuse _) ->
+       | _, (`Builtin _ | `Spec _ | `Body _ | `Reuse _ | `Renamed_reuse _
+            | `Swept_reuse _) ->
          ())
 
 (* Fold over bindings and pointer values. A zero-sized block may occur

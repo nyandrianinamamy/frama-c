@@ -73,8 +73,11 @@ module Make (Engine: Engine_sig.S) = struct
   (* The results of [call] in [init_state] from the cache entry [i], whose
      states at the exits are [states], used through [renaming], once the
      preconditions have given [body_entry_states]. Without renaming, the
-     hooks receive [`Reuse i], as without -eva-hit-log. *)
-  let reused ~record call init_state body_entry_states states i renaming =
+     hooks receive [`Reuse i], as without -eva-hit-log. A reuse whose sweeps
+     change cells outside the exits of the entry, [swept], gives them to the
+     hooks. *)
+  let reused ~record ?swept call init_state body_entry_states states i
+      renaming =
     if record then begin
       let start = Engine.Dom.get_cvalue_or_top init_state in
       let body_entry =
@@ -87,9 +90,12 @@ module Make (Engine: Engine_sig.S) = struct
     Self.feedback ~current:true ~mkey:Log_key.progress
       "Reusing old results for call to %a" Kernel_function.pretty call.kf;
     let results =
-      match renaming with
-      | [] -> `Reuse i
-      | _ -> `Renamed_reuse (i, Base.substitution_from_list renaming)
+      match swept, renaming with
+      | Some (swept: Cvalue_callbacks.swept), _
+        when not (Memory_zone.is_bottom swept.written) ->
+        `Swept_reuse (i, Base.substitution_from_list renaming, swept)
+      | _, [] -> `Reuse i
+      | _, _ -> `Renamed_reuse (i, Base.substitution_from_list renaming)
     in
     apply_call_results_hooks call init_state results;
     (* call can be cached since it was cached once *)
@@ -99,13 +105,14 @@ module Make (Engine: Engine_sig.S) = struct
     let body_entry_states = check_preconditions call init_state in
     reused ~record call init_state body_entry_states states i renaming
 
-  (* The same, for a heap call that allocates (#127): [replay] replays its
-     allocations and gives its states and renaming. It runs once the
-     preconditions are evaluated, as the body of the call would run. *)
+  (* The same, for a heap call: [replay] replays its allocations, if any,
+     sweeps the state and gives its states, its renaming and the cells
+     swept outside its exits. It runs once the preconditions are evaluated,
+     as the body of the call would run. *)
   let replay_call ~record call init_state replay i =
     let body_entry_states = check_preconditions call init_state in
-    let states, renaming = replay () in
-    reused ~record call init_state body_entry_states states i renaming
+    let states, renaming, swept = replay () in
+    reused ~record ~swept call init_state body_entry_states states i renaming
 
   let compute_and_cache_call compute call init_state =
     let args =

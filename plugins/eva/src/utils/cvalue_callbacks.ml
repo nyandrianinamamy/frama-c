@@ -38,12 +38,15 @@ type call_assigns = (Assigns.t * Memory_zone.t) option
 type state_by_stmt = (state Cil_datatype.Stmt.Hashtbl.t) Lazy.t
 type results = { before_stmts: state_by_stmt; after_stmts: state_by_stmt }
 
+type swept = { written: Memory_zone.t; sure: Memory_zone.t }
+
 type call_results =
   [ `Builtin of state list * call_assigns
   | `Spec of state list
   | `Body of results * int
   | `Reuse of int
   | `Renamed_reuse of int * Base.substitution
+  | `Swept_reuse of int * Base.substitution * swept
   ]
 
 type call_results_hook =

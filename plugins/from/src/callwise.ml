@@ -138,6 +138,19 @@ let record_for_individual_froms callstack kf pre_state value_res =
          of a call that reuses a previous call on other allocated blocks name
          the blocks of the previous call. *)
       | `Renamed_reuse (counter, _substitution) -> MemExec.find counter
+      (* The cells that the sweeps of the reuse change depend on nothing, as
+         [free] reports them in a call analysed by its body. *)
+      | `Swept_reuse
+          (counter, _substitution, (swept: Eva.Cvalue_callbacks.swept)) ->
+        let froms = MemExec.find counter in
+        let add ~exact zone memory =
+          Eva.Assigns.Memory.add_binding ~exact memory zone Eva.Deps.bottom
+        in
+        let memory =
+          add ~exact:false swept.written froms.memory
+          |> add ~exact:true swept.sure
+        in
+        { froms with memory }
       | `Builtin (_states, Some (result,_)) -> result
       | `Builtin (_states, None)
       | `Spec _states ->

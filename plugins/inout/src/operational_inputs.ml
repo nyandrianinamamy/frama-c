@@ -805,6 +805,23 @@ module Callwise = struct
       | `Renamed_reuse (counter, substitution) ->
         let rename zone = snd (Memory_zone.replace_base substitution zone) in
         Inout_type.map rename (MemExec.find counter)
+      | `Swept_reuse
+          (counter, substitution, (swept: Eva.Cvalue_callbacks.swept)) ->
+        (* The cells that the sweeps of the reuse change are written, as
+           [free] reports them in a call analysed by its body. They are
+           written on termination too: the outputs of a statement whose
+           state before it is not bottom go to its successors, whatever the
+           state after it, and reach the return of a call analysed by its
+           body through any path of reachable statements. *)
+        let rename zone = snd (Memory_zone.replace_base substitution zone) in
+        let inout = Inout_type.map rename (MemExec.find counter) in
+        let join = Memory_zone.join in
+        { inout with
+          over_outputs = join inout.over_outputs swept.written;
+          over_outputs_if_termination =
+            join inout.over_outputs_if_termination swept.written;
+          under_outputs_if_termination =
+            join inout.under_outputs_if_termination swept.sure }
       | `Spec _states
       | `Builtin (_states, None) -> compute_using_spec pre_state kf
       | `Builtin (_states, Some (froms,sure_out)) ->

@@ -174,16 +174,28 @@ let binds model base =
 
 (* The pointers to the blocks [every] in [model] become escaping addresses,
    and those to the blocks [some] are joined with escaping addresses, as the
-   releases of a call do. *)
+   releases of a call do. Returns the swept model, the cells that the first
+   sweep changes, and those that the second one changes, as [free] gives
+   them. *)
 let sweep_model ~every ~some model =
   let sweep ~exact escaping model =
-    if Base.Hptset.is_empty escaping then model
+    if Base.Hptset.is_empty escaping then model, Memory_zone.bottom
     else
-      let on_escaping ~b:_ ~itv:_ ~v:_ = () in
-      Locals_scoping.make_escaping ~exact ~escaping ~on_escaping
-        ~within:Base.SetLattice.top model
+      let changed = ref Memory_zone.bottom in
+      let on_escaping ~b ~itv ~v:_ =
+        let zone = Memory_zone.inject b (Int_Intervals.inject_itv itv) in
+        changed := Memory_zone.join !changed zone
+      in
+      let model =
+        Locals_scoping.make_escaping ~exact ~escaping ~on_escaping
+          ~within:Base.SetLattice.top model
+      in
+      model, !changed
   in
-  sweep ~exact:true every model |> sweep ~exact:false some
+  let model, exact = sweep ~exact:true every model in
+  let model, joined = sweep ~exact:false some model in
+  model, exact, joined
+
 
 let is_allocated = function
   | Base.Allocated _ -> true
@@ -292,10 +304,12 @@ module Make
   }
 
   (* What memexec keeps of a heap call, numbered: the blocks it removes, those
-     it swept on every path from its start to its return and on some path
-     only, and its allocations, in their order, which a reuse replays. *)
+     it sweeps at any point of its body, those it swept on every path from
+     its start to its return and on some path only, and its allocations, in
+     their order, which a reuse replays. *)
   type numbered_heap = {
     removed_numbers: Base.Hptset.t;
+    swept_numbers: Base.Hptset.t;
     every: Base.Hptset.t;
     some: Base.Hptset.t;
     replay: replayed list;
@@ -553,6 +567,7 @@ module Make
                heap.allocations
            in
            { removed_numbers = rewrite heap.removed;
+             swept_numbers = rewrite heap.swept;
              every = rewrite heap.exit.Heap_paths.every;
              some = rewrite heap.exit.Heap_paths.some;
              replay; })
@@ -781,14 +796,16 @@ module Make
      whose value has the size it had before the renaming. *)
   exception Renamed_result_found of CallOutput.t * int * renaming
 
-  (* A heap call stored in numbered form whose allocations a reuse replays:
-     the replay is deferred, see [Replayed_hit]. *)
-  exception Replayed_result_found of (unit -> CallOutput.t * renaming) * int
+  (* A heap call stored in numbered form: the reuse, which replays its
+     allocations and sweeps the state, is deferred, see [Replayed_hit]. *)
+  exception Replayed_result_found of
+      (unit -> CallOutput.t * renaming * Cvalue_callbacks.swept) * int
 
   type hit =
     | Hit of CallOutput.t * int
     | Renamed_hit of CallOutput.t * int * renaming
-    | Replayed_hit of (unit -> CallOutput.t * renaming) * int
+    | Replayed_hit of
+        (unit -> CallOutput.t * renaming * Cvalue_callbacks.swept) * int
 
   (** Find a previous execution in [map_inputs] that matches [st].
       raise [Result_found] when this execution exists, or do nothing. This is
@@ -835,7 +852,15 @@ module Make
      release sweeps every pointer to the block it removes, and a block
      created by the call does not exist in [state]; the sweep of the block
      on every path or on some path then gives the same state. The state is
-     swept once for the exits that sweep the same blocks. *)
+     swept once for the exits that sweep the same blocks.
+     Also returns the cells outside [bases] that the sweeps change, which
+     the exits do not replace, see [Cvalue_callbacks.swept]: those changed
+     for some exit or that point to a block that the stored call swept at
+     any point, and those changed for every exit by a sweep on every path.
+     The cells of [bases] are those of the exit. Before the sweep of a block
+     on a path, the call writes no cell outside [bases]: these cells point
+     to the block there as at the start of the call, and a call analysed by
+     its body reports them as written by the sweep. *)
   let reuse_heap of_numbers heap bases state outputs =
     let get =
       match get_cvalue_state with
@@ -848,25 +873,31 @@ module Make
     let rewrite = Numbering.rewrite_bases of_numbers in
     let removed = rewrite heap.removed_numbers in
     let every = rewrite heap.every and some = rewrite heap.some in
+    let outside =
+      Memory_zone.filter_base (fun b -> not (Base.Hptset.mem b bases))
+    in
     let swept = ref [] in
     let sweep_state every some =
       let same (e, s, _) =
         Base.Hptset.equal e every && Base.Hptset.equal s some
       in
       match List.find_opt same !swept with
-      | Some (_, _, state) -> state
+      | Some (_, _, result) -> result
       | None ->
         let model, clobbered = get state in
-        let state = set (sweep_model ~every ~some model) clobbered state in
-        swept := (every, some, state) :: !swept;
-        state
+        let model, exact, joined = sweep_model ~every ~some model in
+        let result =
+          set model clobbered state, outside exact, outside joined
+        in
+        swept := (every, some, result) :: !swept;
+        result
     in
     let process (key, output) =
       let output = rewrite_state of_numbers output in
       let unbound b = not (binds (fst (get output)) b) in
       let gone = Base.Hptset.filter unbound removed in
       let promoted = Base.Hptset.inter some gone in
-      let input =
+      let input, exact, joined =
         sweep_state (Base.Hptset.union every promoted)
           (Base.Hptset.diff some promoted)
       in
@@ -874,10 +905,35 @@ module Make
         Domain.reuse bases ~current_input:input ~previous_output:output
       in
       let model, clobbered = get result in
-      key, set (Base.Hptset.fold Cvalue.Model.remove_base gone model)
-        clobbered result
+      (key, set (Base.Hptset.fold Cvalue.Model.remove_base gone model)
+         clobbered result),
+      (exact, joined)
     in
-    List.map process outputs
+    let results = List.map process outputs in
+    let written, sure =
+      match List.map snd results with
+      | [] -> Memory_zone.bottom, Memory_zone.bottom
+      | (exact, joined) :: rest ->
+        List.fold_left
+          (fun (written, sure) (exact, joined) ->
+             Memory_zone.(join written (join exact joined)),
+             Memory_zone.narrow sure exact)
+          (Memory_zone.join exact joined, exact) rest
+    in
+    (* The blocks swept on a path that does not return. *)
+    let beyond =
+      Base.Hptset.diff (rewrite heap.swept_numbers)
+        (Base.Hptset.union every some)
+    in
+    let written =
+      if Base.Hptset.is_empty beyond then written
+      else
+        let _, _, changed =
+          sweep_model ~every:Base.Hptset.empty ~some:beyond (fst (get state))
+        in
+        Memory_zone.join written (outside changed)
+    in
+    List.map fst results, { Cvalue_callbacks.written; sure }
 
   (* Replays the allocation [a] of a stored heap call in a call on
      [callstack] that reuses it, [numbering] being the numbering of the
@@ -923,14 +979,17 @@ module Make
      clobbered sets and its output bases are rewritten back through the
      numbering. Raises [Renamed_result_found] with the renaming from the
      blocks of the call that computed the result to those of this call, by
-     number, or [Result_found] if it is the identity. For a result with
-     allocations, raises [Replayed_result_found] with the replay instead,
-     which nothing has run: it replays the allocations in their order, then
-     rewrites the exits through the numbering extended by the blocks of the
-     replay, with the strength of each block after the replay, and gives
-     the renaming, which maps the blocks that the stored call created to
-     those of the replay. Returns whether a result has the numbered input
-     state of the call but no snapshot that holds.
+     number, or [Result_found] if it is the identity. For a result of a
+     heap call, raises [Replayed_result_found] with the reuse instead, which
+     nothing has run: it replays the allocations in their order, if any,
+     then rewrites the exits through the numbering extended by the blocks of
+     the replay, with the strength of each block after the replay, sweeps
+     the state and copies the exits, see [reuse_heap], and gives the
+     renaming, which also maps the blocks that the stored call created to
+     those of the replay, the empty list if it is the identity, and the
+     cells that the sweeps change outside the exits. Returns whether a
+     result has the numbered input state of the call but no snapshot that
+     holds.
      A result whose snapshot fails is kept: it is no longer tied to one
      block, and can hold at a later lookup on other blocks. *)
   let find_numbered ~callstack keys numbering state =
@@ -991,19 +1050,23 @@ module Make
                       (Numbering.blocks numbering)
                   in
                   match r.heap with
-                  | Some ({ replay = _ :: _; _ } as heap) ->
+                  | Some heap ->
                     let replay () =
-                      let numbering =
-                        List.fold_left (replay_allocation callstack) numbering
-                          heap.replay
-                      in
-                      let of_numbers =
-                        Numbering.of_numbers ~weak:Base.is_weak numbering
+                      let numbering, of_numbers =
+                        match heap.replay with
+                        | [] -> numbering, Numbering.of_numbers numbering
+                        | replay ->
+                          let numbering =
+                            List.fold_left (replay_allocation callstack)
+                              numbering replay
+                          in
+                          numbering,
+                          Numbering.of_numbers ~weak:Base.is_weak numbering
                       in
                       let bases =
                         Numbering.rewrite_bases of_numbers r.output_bases
                       in
-                      let outputs =
+                      let outputs, swept =
                         reuse_heap of_numbers heap bases state r.outputs
                       in
                       let replayed =
@@ -1015,27 +1078,28 @@ module Make
                                None)
                           (Numbering.blocks numbering)
                       in
+                      let renaming =
+                        List.combine r.analysed blocks
+                        @ List.combine r.created replayed
+                      in
+                      let identity (b, image) = Base.equal b image in
                       outputs,
-                      List.combine r.analysed blocks
-                      @ List.combine r.created replayed
+                      (if List.for_all identity renaming then [] else renaming),
+                      swept
                     in
                     raise (Replayed_result_found (replay, r.call_number))
-                  | Some { replay = []; _ } | None ->
+                  | None ->
                     let of_numbers = Numbering.of_numbers numbering in
                     let bases =
                       Numbering.rewrite_bases of_numbers r.output_bases
                     in
                     let outputs =
-                      match r.heap with
-                      | None ->
-                        let process (key, output) =
-                          key,
-                          Domain.reuse bases ~current_input:state
-                            ~previous_output:(rewrite_state of_numbers output)
-                        in
-                        List.map process r.outputs
-                      | Some heap ->
-                        reuse_heap of_numbers heap bases state r.outputs
+                      let process (key, output) =
+                        key,
+                        Domain.reuse bases ~current_input:state
+                          ~previous_output:(rewrite_state of_numbers output)
+                      in
+                      List.map process r.outputs
                     in
                     if List.equal Base.equal r.analysed blocks
                     then raise (Result_found (outputs, r.call_number))

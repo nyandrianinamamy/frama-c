@@ -69,7 +69,7 @@ let () =
            let kind, id =
              match results with
              | `Body (_, id) -> "analysed", Some id
-             | `Reuse _ | `Renamed_reuse _ -> "hit", None
+             | `Reuse _ | `Renamed_reuse _ | `Swept_reuse _ -> "hit", None
              | `Builtin _ -> "builtin", None
              | `Spec _ -> "specification", None
            in

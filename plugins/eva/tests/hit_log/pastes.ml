@@ -12,7 +12,7 @@ let main () =
   Cvalue_callbacks.register_call_results_hook
     (fun _callstack kf _state results ->
        match results with
-       | (`Reuse _ | `Renamed_reuse _)
+       | (`Reuse _ | `Renamed_reuse _ | `Swept_reuse _)
          when Kernel_function.get_name kf = "parent" -> incr hits
        | _ -> ());
   Analysis.compute ();

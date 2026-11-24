@@ -41,6 +41,12 @@ module type API = sig
   type state_by_stmt = (state Cil_datatype.Stmt.Hashtbl.t) Lazy.t
   type results = { before_stmts: state_by_stmt; after_stmts: state_by_stmt }
 
+  (** The cells that the reuse of a call that frees changes by its sweeps,
+      outside the inputs and outputs of the previous call it reuses: on some
+      path, and on every path that returns. A call analysed by its body
+      reports them as written, as [free] does. *)
+  type swept = { written: Memory_zone.t; sure: Memory_zone.t }
+
   (** Results of a function call. *)
   type call_results =
     [ `Builtin of state list * call_assigns
@@ -54,10 +60,15 @@ module type API = sig
     (** The results are the same as a previous call with the given integer id,
         previously recorded with the [`Body] constructor. *)
     | `Renamed_reuse of int * Base.substitution
-      (** The results are the same as a previous call with the given integer
-          id, previously recorded with the [`Body] constructor, with its
-          allocated blocks replaced through the substitution, which is not
-          empty. Only with option [-eva-hit-log]. *)
+    (** The results are the same as a previous call with the given integer
+        id, previously recorded with the [`Body] constructor, with its
+        allocated blocks replaced through the substitution, which is not
+        empty. Only with option [-eva-hit-log]. *)
+    | `Swept_reuse of int * Base.substitution * swept
+      (** The same, for the reuse of a call that frees, whose sweeps also
+          change cells that the previous call neither read nor wrote. The
+          substitution is empty if the blocks are not replaced. Only with
+          option [-eva-hit-log]. *)
     ]
 
   (** Signature of a hook to be called after the analysis of each function call.
