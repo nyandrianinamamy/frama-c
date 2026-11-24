@@ -511,13 +511,16 @@ let alloc_by_stack ~builtin ~copied region prefix sizev state =
     try MallocedByStack.find stack
     with Not_found -> []
   in
-  let reuse ~weakened rank b =
+  (* [builtin] and [copied] are arguments of the local functions, not
+     variables of their closures, which then take no more memory than
+     without them. *)
+  let reuse ~builtin ~copied ~weakened rank b =
     if Heap_effects.enabled () then
       emit_allocation ~builtin ~copied ~policy:By_stack ~stack ~rank ~sizev
         (Reused { weakened }) b;
     update_variable_validity ~make_weak:weakened b sizev
   in
-  let rec aux nb vars =
+  let rec aux ~builtin ~copied nb vars =
     match vars with
     | [] -> (* must allocate a new variable *)
       let b, _, _ as r =
@@ -530,13 +533,13 @@ let alloc_by_stack ~builtin ~copied region prefix sizev state =
       try
         ignore (Model.find_base b state);
         if nb = max_level then begin (* variable already used *)
-          reuse ~weakened:true nb b
+          reuse ~builtin ~copied ~weakened:true nb b
         end
-        else aux (nb+1) q
+        else aux ~builtin ~copied (nb+1) q
       with Not_found -> (* Can reuse this (strong) variable *)
-        reuse ~weakened:false nb b
+        reuse ~builtin ~copied ~weakened:false nb b
   in
-  aux 0 all_vars
+  aux ~builtin ~copied 0 all_vars
 
 let malloced_on stack =
   try MallocedByStack.find stack
