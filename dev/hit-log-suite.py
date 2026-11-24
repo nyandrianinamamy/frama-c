@@ -1607,7 +1607,8 @@ def write_summary(outdir, runs, results, elapsed, unread=()):
                 lost_rows.append([o["name"], h[1], h[2]])
     emit(
         "Heap calls, of which memexec stores only those whose heap effects "
-        "are removals and sweeps; those of them whose "
+        "are removals, sweeps, and allocations by malloc under the policy "
+        "by_stack; those of them whose "
         "cache entries hold full states, which answer the requests at the "
         "points of their bodies instead of the rule; and the calls analysed "
         "by their body that memexec would have answered from the entry of a "

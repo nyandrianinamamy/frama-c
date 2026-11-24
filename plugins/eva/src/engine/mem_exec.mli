@@ -138,7 +138,7 @@ val suffix_below:
     swept on every path for this exit. The exit is then copied, and the
     blocks that the stored call removed and that the exit does not bind are
     removed. The statistic [hit-log-stored-heap-calls] counts, per function,
-    the calls that free stored by memexec.
+    the heap calls stored by memexec.
     [free] reports the cells that its sweep changes as written: the key of a
     call that frees holds the cells that point to the blocks it frees at its
     start, and the reuse sweeps the cells outside the key that point to them

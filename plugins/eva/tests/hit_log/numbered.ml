@@ -7,7 +7,9 @@
      is a block of the key, and its strength, validity record, type and
      kind at the store;
    - the numbered form of the entry: its arguments, its key, its start state
-     on the key and its states at the exits, each with its clobbered set.
+     on the key and its states at the exits, each with its clobbered set,
+     and the blocks that the call creates, numbered after the others as
+     creation symbols (#127), if any.
      A memory map is printed interval by interval, in bits, with the size
      and the offset of the value when the value does not fill the interval
      exactly once and is not isotropic; nothing reads the type of a block

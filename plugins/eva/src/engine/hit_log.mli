@@ -78,8 +78,9 @@
     call that reads or writes an allocated block and receives no heap effect
     is not a heap call.
 
-    Memexec stores a call that frees: a heap call whose heap effects are
-    removals and sweeps only, which is not refused and whose entry holds an
+    Memexec stores a call that frees, a heap call whose heap effects are
+    removals and sweeps only, and a call that allocates by [malloc] under the
+    policy [by_stack] (#127), if it is not refused and its entry holds an
     Inner part, see [storage]. It stores no other heap call. The entry of a
     heap call keeps the calls made by the body, projected as above and on
     the blocks covered by the heap effects before the call statement: a hit
