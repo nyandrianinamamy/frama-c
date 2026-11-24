@@ -2,8 +2,8 @@
 Tables of the allocated blocks after the analysis with -eva-hit-log:
   list of malloc :: heap_alloc_two.c:21 <- mk_pair :: heap_alloc_two.c:29 <- pair_main: 0: strong, record Variable [0..31--31], type int, malloc
   list of malloc :: heap_alloc_two.c:21 <- mk_pair :: heap_alloc_two.c:33 <- pair_main: 0: strong, record Variable [0..31--31], type int, malloc
-  list of malloc :: heap_alloc_two.c:22 <- mk_pair :: heap_alloc_two.c:29 <- pair_main: 0: strong, record Variable [0..31--31], type int, malloc
-  list of malloc :: heap_alloc_two.c:22 <- mk_pair :: heap_alloc_two.c:33 <- pair_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc_two.c:22 <- mk_pair :: heap_alloc_two.c:29 <- pair_main: 0: strong, record Variable [0..63--63], type int [2], malloc
+  list of malloc :: heap_alloc_two.c:22 <- mk_pair :: heap_alloc_two.c:33 <- pair_main: 0: strong, record Variable [0..63--63], type int [2], malloc
   block 0 of malloc :: heap_alloc_two.c:21 <- mk_pair :: heap_alloc_two.c:29 <- pair_main: owned by mk_pair :: heap_alloc_two.c:29 <- pair_main
   block 0 of malloc :: heap_alloc_two.c:21 <- mk_pair :: heap_alloc_two.c:33 <- pair_main: owned by mk_pair :: heap_alloc_two.c:33 <- pair_main
   block 0 of malloc :: heap_alloc_two.c:22 <- mk_pair :: heap_alloc_two.c:29 <- pair_main: owned by mk_pair :: heap_alloc_two.c:29 <- pair_main
@@ -26,11 +26,12 @@ mk_pair, start:
           pb ∈ {0}
           v ∈ {1}
           a ∈ {{ &__malloc_mk_pair_l21_3 }} or UNINITIALIZED
-          b ∈ {{ &__malloc_mk_pair_l22_3 }} or UNINITIALIZED
+          b ∈ {{ &__malloc_mk_pair_l22_3[0] }} or UNINITIALIZED
           l0 ∈ {0}
           l1 ∈ {0}
           __malloc_mk_pair_l21_3 ∈ {1}
-          __malloc_mk_pair_l22_3 ∈ {2}
+          __malloc_mk_pair_l22_3[0] ∈ {2}
+                                [1] ∈ UNINITIALIZED
   mk_pair :: heap_alloc_two.c:29 <- pair_main: pa ∈ {0}
                                                pb ∈ {0}
                                                v ∈ {1}
@@ -44,87 +45,105 @@ mk_pair, start:
                                                a ∈
                                                 {{ &__malloc_mk_pair_l21_3 }}
                                                b ∈
-                                                {{ &__malloc_mk_pair_l22_3 }}
+                                                {{ &__malloc_mk_pair_l22_3[0] }}
                                                l0 ∈ {0}
                                                l1 ∈ {0}
                                                __malloc_mk_pair_l21_3 ∈ {1}
-                                               __malloc_mk_pair_l22_3 ∈ {2}
+                                               __malloc_mk_pair_l22_3
+                                               [0] ∈ {2}
+                                               [1] ∈ UNINITIALIZED
 mk_pair, before heap_alloc_two.c:25 `;` (MP):
   joined: pa ∈ {{ &__malloc_mk_pair_l21_3 ; &__malloc_mk_pair_l21_4 }}
-          pb ∈ {{ &__malloc_mk_pair_l22_3 ; &__malloc_mk_pair_l22_4 }}
+          pb ∈ {{ &__malloc_mk_pair_l22_3[0] ; &__malloc_mk_pair_l22_4[0] }}
           v ∈ {1}
           a ∈ {{ &__malloc_mk_pair_l21_3 }} or UNINITIALIZED
-          b ∈ {{ &__malloc_mk_pair_l22_3 }} or UNINITIALIZED
+          b ∈ {{ &__malloc_mk_pair_l22_3[0] }} or UNINITIALIZED
           l0 ∈ {0}
           l1 ∈ {0}
           __malloc_mk_pair_l21_3 ∈ {1}
-          __malloc_mk_pair_l22_3 ∈ {2}
+          __malloc_mk_pair_l22_3[0] ∈ {2}
+                                [1] ∈ UNINITIALIZED
           __malloc_mk_pair_l21_4 ∈ {1}
-          __malloc_mk_pair_l22_4 ∈ {2}
+          __malloc_mk_pair_l22_4[0] ∈ {2}
+                                [1] ∈ UNINITIALIZED
   mk_pair :: heap_alloc_two.c:29 <- pair_main: pa ∈
                                                  {{ &__malloc_mk_pair_l21_3 }}
                                                pb ∈
-                                                 {{ &__malloc_mk_pair_l22_3 }}
+                                                 {{ &__malloc_mk_pair_l22_3[0] }}
                                                v ∈ {1}
                                                a ∈ UNINITIALIZED
                                                b ∈ UNINITIALIZED
                                                l0 ∈ {0}
                                                l1 ∈ {0}
                                                __malloc_mk_pair_l21_3 ∈ {1}
-                                               __malloc_mk_pair_l22_3 ∈ {2}
+                                               __malloc_mk_pair_l22_3
+                                               [0] ∈ {2}
+                                               [1] ∈ UNINITIALIZED
   mk_pair :: heap_alloc_two.c:33 <- pair_main: pa ∈
                                                  {{ &__malloc_mk_pair_l21_4 }}
                                                pb ∈
-                                                 {{ &__malloc_mk_pair_l22_4 }}
+                                                 {{ &__malloc_mk_pair_l22_4[0] }}
                                                v ∈ {1}
                                                a ∈
                                                 {{ &__malloc_mk_pair_l21_3 }}
                                                b ∈
-                                                {{ &__malloc_mk_pair_l22_3 }}
+                                                {{ &__malloc_mk_pair_l22_3[0] }}
                                                l0 ∈ {0}
                                                l1 ∈ {0}
                                                __malloc_mk_pair_l21_3 ∈ {1}
-                                               __malloc_mk_pair_l22_3 ∈ {2}
+                                               __malloc_mk_pair_l22_3
+                                               [0] ∈ {2}
+                                               [1] ∈ UNINITIALIZED
                                                __malloc_mk_pair_l21_4 ∈ {1}
-                                               __malloc_mk_pair_l22_4 ∈ {2}
+                                               __malloc_mk_pair_l22_4
+                                               [0] ∈ {2}
+                                               [1] ∈ UNINITIALIZED
 mk_pair, after heap_alloc_two.c:26 `return;`:
   joined: pa ∈ {{ &__malloc_mk_pair_l21_3 ; &__malloc_mk_pair_l21_4 }}
-          pb ∈ {{ &__malloc_mk_pair_l22_3 ; &__malloc_mk_pair_l22_4 }}
+          pb ∈ {{ &__malloc_mk_pair_l22_3[0] ; &__malloc_mk_pair_l22_4[0] }}
           v ∈ {1}
           a ∈ {{ &__malloc_mk_pair_l21_3 }} or UNINITIALIZED
-          b ∈ {{ &__malloc_mk_pair_l22_3 }} or UNINITIALIZED
+          b ∈ {{ &__malloc_mk_pair_l22_3[0] }} or UNINITIALIZED
           l0 ∈ {0}
           l1 ∈ {0}
           __malloc_mk_pair_l21_3 ∈ {1}
-          __malloc_mk_pair_l22_3 ∈ {2}
+          __malloc_mk_pair_l22_3[0] ∈ {2}
+                                [1] ∈ UNINITIALIZED
           __malloc_mk_pair_l21_4 ∈ {1}
-          __malloc_mk_pair_l22_4 ∈ {2}
+          __malloc_mk_pair_l22_4[0] ∈ {2}
+                                [1] ∈ UNINITIALIZED
   mk_pair :: heap_alloc_two.c:29 <- pair_main: pa ∈
                                                  {{ &__malloc_mk_pair_l21_3 }}
                                                pb ∈
-                                                 {{ &__malloc_mk_pair_l22_3 }}
+                                                 {{ &__malloc_mk_pair_l22_3[0] }}
                                                v ∈ {1}
                                                a ∈ UNINITIALIZED
                                                b ∈ UNINITIALIZED
                                                l0 ∈ {0}
                                                l1 ∈ {0}
                                                __malloc_mk_pair_l21_3 ∈ {1}
-                                               __malloc_mk_pair_l22_3 ∈ {2}
+                                               __malloc_mk_pair_l22_3
+                                               [0] ∈ {2}
+                                               [1] ∈ UNINITIALIZED
   mk_pair :: heap_alloc_two.c:33 <- pair_main: pa ∈
                                                  {{ &__malloc_mk_pair_l21_4 }}
                                                pb ∈
-                                                 {{ &__malloc_mk_pair_l22_4 }}
+                                                 {{ &__malloc_mk_pair_l22_4[0] }}
                                                v ∈ {1}
                                                a ∈
                                                 {{ &__malloc_mk_pair_l21_3 }}
                                                b ∈
-                                                {{ &__malloc_mk_pair_l22_3 }}
+                                                {{ &__malloc_mk_pair_l22_3[0] }}
                                                l0 ∈ {0}
                                                l1 ∈ {0}
                                                __malloc_mk_pair_l21_3 ∈ {1}
-                                               __malloc_mk_pair_l22_3 ∈ {2}
+                                               __malloc_mk_pair_l22_3
+                                               [0] ∈ {2}
+                                               [1] ∈ UNINITIALIZED
                                                __malloc_mk_pair_l21_4 ∈ {1}
-                                               __malloc_mk_pair_l22_4 ∈ {2}
+                                               __malloc_mk_pair_l22_4
+                                               [0] ∈ {2}
+                                               [1] ∈ UNINITIALIZED
 pair_main, start:
   joined: pa ∈ {0}
           pb ∈ {0}
@@ -136,46 +155,54 @@ pair_main, start:
              l1 ∈ {0}
 pair_main, before heap_alloc_two.c:34 `;` (PM):
   joined: pa ∈ {{ &__malloc_mk_pair_l21_4 }}
-          pb ∈ {{ &__malloc_mk_pair_l22_4 }}
+          pb ∈ {{ &__malloc_mk_pair_l22_4[0] }}
           a ∈ {{ &__malloc_mk_pair_l21_3 }}
-          b ∈ {{ &__malloc_mk_pair_l22_3 }}
+          b ∈ {{ &__malloc_mk_pair_l22_3[0] }}
           l0 ∈ {0}
           l1 ∈ {0}
           __malloc_mk_pair_l21_3 ∈ {1}
-          __malloc_mk_pair_l22_3 ∈ {2}
+          __malloc_mk_pair_l22_3[0] ∈ {2}
+                                [1] ∈ UNINITIALIZED
           __malloc_mk_pair_l21_4 ∈ {1}
-          __malloc_mk_pair_l22_4 ∈ {2}
+          __malloc_mk_pair_l22_4[0] ∈ {2}
+                                [1] ∈ UNINITIALIZED
   pair_main: pa ∈ {{ &__malloc_mk_pair_l21_4 }}
-             pb ∈ {{ &__malloc_mk_pair_l22_4 }}
+             pb ∈ {{ &__malloc_mk_pair_l22_4[0] }}
              a ∈ {{ &__malloc_mk_pair_l21_3 }}
-             b ∈ {{ &__malloc_mk_pair_l22_3 }}
+             b ∈ {{ &__malloc_mk_pair_l22_3[0] }}
              l0 ∈ {0}
              l1 ∈ {0}
              __malloc_mk_pair_l21_3 ∈ {1}
-             __malloc_mk_pair_l22_3 ∈ {2}
+             __malloc_mk_pair_l22_3[0] ∈ {2}
+                                   [1] ∈ UNINITIALIZED
              __malloc_mk_pair_l21_4 ∈ {1}
-             __malloc_mk_pair_l22_4 ∈ {2}
+             __malloc_mk_pair_l22_4[0] ∈ {2}
+                                   [1] ∈ UNINITIALIZED
 pair_main, after heap_alloc_two.c:35 `return;`:
   joined: pa ∈ {{ &__malloc_mk_pair_l21_4 }}
-          pb ∈ {{ &__malloc_mk_pair_l22_4 }}
+          pb ∈ {{ &__malloc_mk_pair_l22_4[0] }}
           a ∈ {{ &__malloc_mk_pair_l21_3 }}
-          b ∈ {{ &__malloc_mk_pair_l22_3 }}
+          b ∈ {{ &__malloc_mk_pair_l22_3[0] }}
           l0 ∈ {0}
           l1 ∈ {0}
           __malloc_mk_pair_l21_3 ∈ {1}
-          __malloc_mk_pair_l22_3 ∈ {2}
+          __malloc_mk_pair_l22_3[0] ∈ {2}
+                                [1] ∈ UNINITIALIZED
           __malloc_mk_pair_l21_4 ∈ {1}
-          __malloc_mk_pair_l22_4 ∈ {2}
+          __malloc_mk_pair_l22_4[0] ∈ {2}
+                                [1] ∈ UNINITIALIZED
   pair_main: pa ∈ {{ &__malloc_mk_pair_l21_4 }}
-             pb ∈ {{ &__malloc_mk_pair_l22_4 }}
+             pb ∈ {{ &__malloc_mk_pair_l22_4[0] }}
              a ∈ {{ &__malloc_mk_pair_l21_3 }}
-             b ∈ {{ &__malloc_mk_pair_l22_3 }}
+             b ∈ {{ &__malloc_mk_pair_l22_3[0] }}
              l0 ∈ {0}
              l1 ∈ {0}
              __malloc_mk_pair_l21_3 ∈ {1}
-             __malloc_mk_pair_l22_3 ∈ {2}
+             __malloc_mk_pair_l22_3[0] ∈ {2}
+                                   [1] ∈ UNINITIALIZED
              __malloc_mk_pair_l21_4 ∈ {1}
-             __malloc_mk_pair_l22_4 ∈ {2}
+             __malloc_mk_pair_l22_4[0] ∈ {2}
+                                   [1] ∈ UNINITIALIZED
 Hits against the analysed call of their cache entry:
   mk_pair :: heap_alloc_two.c:33 <- pair_main, hit of cache entry 7, against mk_pair :: heap_alloc_two.c:29 <- pair_main: differs on __malloc_mk_pair_l21_3, __malloc_mk_pair_l21_4, __malloc_mk_pair_l22_3, __malloc_mk_pair_l22_4, a, b, pa, pb, at 13 points.
 Initial state: equal.

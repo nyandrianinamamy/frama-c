@@ -1,0 +1,62 @@
+[kernel] Parsing heap_alloc_wrappers.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of outer_wrap :: heap_alloc_wrappers.c:21 <- use_wrap :: heap_alloc_wrappers.c:27 <- wrap2_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of outer_wrap :: heap_alloc_wrappers.c:21 <- use_wrap :: heap_alloc_wrappers.c:28 <- wrap2_main: 0: strong, record Variable [0..31--31], type int, malloc
+  block 0 of outer_wrap :: heap_alloc_wrappers.c:21 <- use_wrap :: heap_alloc_wrappers.c:27 <- wrap2_main: owned by use_wrap :: heap_alloc_wrappers.c:27 <- wrap2_main
+  block 0 of outer_wrap :: heap_alloc_wrappers.c:21 <- use_wrap :: heap_alloc_wrappers.c:28 <- wrap2_main: owned by use_wrap :: heap_alloc_wrappers.c:28 <- wrap2_main
+These are the tables of the run without memexec.
+Calls:
+  malloc :: heap_alloc_wrappers.c:17 <- inner_wrap :: heap_alloc_wrappers.c:18 <- outer_wrap :: heap_alloc_wrappers.c:21 <- use_wrap :: heap_alloc_wrappers.c:27 <- wrap2_main: builtin
+  inner_wrap :: heap_alloc_wrappers.c:18 <- outer_wrap :: heap_alloc_wrappers.c:21 <- use_wrap :: heap_alloc_wrappers.c:27 <- wrap2_main: analysed, cache entry 15
+  outer_wrap :: heap_alloc_wrappers.c:21 <- use_wrap :: heap_alloc_wrappers.c:27 <- wrap2_main: analysed, cache entry 16
+  use_wrap :: heap_alloc_wrappers.c:27 <- wrap2_main: analysed, cache entry 17
+  use_wrap :: heap_alloc_wrappers.c:28 <- wrap2_main: hit of cache entry 17
+  wrap2_main: analysed, cache entry 18
+Heap calls, not stored by memexec: inner_wrap 1, outer_wrap 1, wrap2_main 1.
+Heap calls stored by memexec: use_wrap 1.
+Heap calls whose answers come from full states: wrap2_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  wrap2_main 1.
+Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  inner_wrap :: heap_alloc_wrappers.c:18 <- outer_wrap :: heap_alloc_wrappers.c:21 <- use_wrap :: heap_alloc_wrappers.c:28 <- wrap2_main
+  outer_wrap :: heap_alloc_wrappers.c:21 <- use_wrap :: heap_alloc_wrappers.c:28 <- wrap2_main
+wrap2_main, start:
+  joined: 
+  wrap2_main: 
+wrap2_main, before heap_alloc_wrappers.c:29 `;` (W2):
+  joined: a ∈ {{ &__malloc_use_wrap_l21_3 }}
+          b ∈ {{ &__malloc_use_wrap_l21_4 }}
+          __malloc_use_wrap_l21_3 ∈ {1}
+          __malloc_use_wrap_l21_4 ∈ {1}
+  wrap2_main: a ∈ {{ &__malloc_use_wrap_l21_3 }}
+              b ∈ {{ &__malloc_use_wrap_l21_4 }}
+              __malloc_use_wrap_l21_3 ∈ {1}
+              __malloc_use_wrap_l21_4 ∈ {1}
+wrap2_main, after heap_alloc_wrappers.c:30 `return;`:
+  joined: a ∈ {{ &__malloc_use_wrap_l21_3 }}
+          b ∈ {{ &__malloc_use_wrap_l21_4 }}
+          __malloc_use_wrap_l21_3 ∈ {1}
+          __malloc_use_wrap_l21_4 ∈ {1}
+  wrap2_main: a ∈ {{ &__malloc_use_wrap_l21_3 }}
+              b ∈ {{ &__malloc_use_wrap_l21_4 }}
+              __malloc_use_wrap_l21_3 ∈ {1}
+              __malloc_use_wrap_l21_4 ∈ {1}
+Hits against the analysed call of their cache entry:
+  use_wrap :: heap_alloc_wrappers.c:28 <- wrap2_main, hit of cache entry 17, against use_wrap :: heap_alloc_wrappers.c:27 <- wrap2_main: differs on __malloc_use_wrap_l21_3, __malloc_use_wrap_l21_4, a, p, at 7 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 101 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 28 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 28 points.
+Filtered requests that reject one callstack: 17.
+Requests made: 157; reported by the trap: 157, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 26 requests, 55 reads of the legacy store in them, 72 reads outside any request.
+  with -eva-hit-log: 26 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 15 requests
+    statistics: 11 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
+Statuses of the properties: those of the run without memexec, for 74 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.

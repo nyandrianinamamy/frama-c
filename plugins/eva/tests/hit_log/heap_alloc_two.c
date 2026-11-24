@@ -12,14 +12,14 @@
 #include <stdlib.h>
 
 /* Run 0: a call that creates two blocks, on two stacks. mk_pair allocates
-   at two statements, each block with its own value. The second call is a
-   hit that creates two blocks, one on each stack of its own call: each
-   creation symbol is bound to the block created on its stack. pa and pb,
-   which the call writes, are reset before the second call. */
+   at two statements, each block with its own size and value. The second
+   call is a hit that creates two blocks, one on each stack of its own
+   call: each creation symbol is bound to the block created on its stack.
+   pa and pb, which the call writes, are reset before the second call. */
 int *pa, *pb;
 void mk_pair(int v) {
   pa = malloc(sizeof(int));
-  pb = malloc(sizeof(int));
+  pb = malloc(2 * sizeof(int));
   *pa = v;
   *pb = v + 1;
   MP: ;
@@ -38,12 +38,12 @@ void pair_main(void) {
    the second iteration of the loop of level finds the block of rank 0 in
    the state and creates the block of rank 1 on the same stack. The second
    call is a hit that creates the blocks of ranks 0 and 1 on the stack of
-   its own call, in this order, each with its own value. l0 and l1 are
-   reset before the second call. */
+   its own call, in this order, each with its own size and value. l0 and l1
+   are reset before the second call. */
 int *l0, *l1;
 void level(void) {
   for (int i = 0; i < 2; i++) {
-    int *p = malloc(sizeof *p);
+    int *p = malloc((i + 1) * sizeof *p);
     *p = i + 1;
     if (i == 0) l0 = p; else l1 = p;
   }

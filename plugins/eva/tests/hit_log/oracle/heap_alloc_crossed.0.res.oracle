@@ -1,0 +1,237 @@
+[kernel] Parsing heap_alloc_crossed.c (with preprocessing)
+Tables of the allocated blocks after the analysis with -eva-hit-log:
+  list of malloc :: heap_alloc_crossed.c:25 <- new_one :: heap_alloc_crossed.c:38 <- crossed_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc_crossed.c:25 <- new_one :: heap_alloc_crossed.c:39 <- crossed_main: 0: strong, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc_crossed.c:32 <- keep_two :: heap_alloc_crossed.c:41 <- crossed_main: 0: weak, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc_crossed.c:32 <- keep_two :: heap_alloc_crossed.c:44 <- crossed_main: 0: weak, record Variable [0..31--31], type int, malloc
+  block 0 of malloc :: heap_alloc_crossed.c:25 <- new_one :: heap_alloc_crossed.c:38 <- crossed_main: owned by new_one :: heap_alloc_crossed.c:38 <- crossed_main
+  block 0 of malloc :: heap_alloc_crossed.c:25 <- new_one :: heap_alloc_crossed.c:39 <- crossed_main: owned by new_one :: heap_alloc_crossed.c:39 <- crossed_main
+  block 0 of malloc :: heap_alloc_crossed.c:32 <- keep_two :: heap_alloc_crossed.c:41 <- crossed_main: owned by keep_two :: heap_alloc_crossed.c:41 <- crossed_main
+  block 0 of malloc :: heap_alloc_crossed.c:32 <- keep_two :: heap_alloc_crossed.c:44 <- crossed_main: owned by keep_two :: heap_alloc_crossed.c:44 <- crossed_main
+These are the tables of the run without memexec.
+Calls:
+  malloc :: heap_alloc_crossed.c:25 <- new_one :: heap_alloc_crossed.c:38 <- crossed_main: builtin
+  new_one :: heap_alloc_crossed.c:38 <- crossed_main: analysed, cache entry 15
+  new_one :: heap_alloc_crossed.c:39 <- crossed_main: hit of cache entry 15
+  malloc :: heap_alloc_crossed.c:32 <- keep_two :: heap_alloc_crossed.c:41 <- crossed_main: builtin
+  keep_two :: heap_alloc_crossed.c:41 <- crossed_main: analysed, cache entry 16
+  malloc :: heap_alloc_crossed.c:32 <- keep_two :: heap_alloc_crossed.c:41 <- crossed_main: builtin
+  keep_two :: heap_alloc_crossed.c:41 <- crossed_main: analysed, cache entry 17
+  malloc :: heap_alloc_crossed.c:32 <- keep_two :: heap_alloc_crossed.c:44 <- crossed_main: builtin
+  keep_two :: heap_alloc_crossed.c:44 <- crossed_main: analysed, cache entry 18
+  malloc :: heap_alloc_crossed.c:32 <- keep_two :: heap_alloc_crossed.c:44 <- crossed_main: builtin
+  keep_two :: heap_alloc_crossed.c:44 <- crossed_main: analysed, cache entry 19
+  crossed_main: analysed, cache entry 20
+Heap calls, not stored by memexec: crossed_main 1.
+Heap calls stored by memexec: keep_two 4, new_one 1.
+Heap calls whose answers come from full states: crossed_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  crossed_main 1.
+Hits not made because memexec does not store the heap calls: none.
+keep_two, start:
+  joined: last ∈
+              {{ NULL ; &__malloc_new_one_l25_4 ;
+                 &__malloc_w_keep_two_l32_3 }}
+          other ∈ {{ &__malloc_new_one_l25_3 ; &__malloc_w_keep_two_l32_4 }}
+          x ∈ {{ &__malloc_new_one_l25_3 }}
+          y ∈ {{ &__malloc_new_one_l25_4 }}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          __malloc_new_one_l25_3 ∈ {1}
+          __malloc_new_one_l25_4 ∈ {1}
+          __malloc_w_keep_two_l32_3 ∈ {1} or UNINITIALIZED
+          __malloc_w_keep_two_l32_4 ∈ {1}
+  keep_two :: heap_alloc_crossed.c:41 <- crossed_main: last ∈
+                                                           {{ NULL ;
+                                                              &__malloc_w_keep_two_l32_3 }}
+                                                       other ∈
+                                                            {{ &__malloc_new_one_l25_3 }}
+                                                       x ∈
+                                                        {{ &__malloc_new_one_l25_3 }}
+                                                       y ∈
+                                                        {{ &__malloc_new_one_l25_4 }}
+                                                       i ∈ {0; 1}
+                                                       __malloc_new_one_l25_3
+                                                        ∈ {1}
+                                                       __malloc_new_one_l25_4
+                                                        ∈ {1}
+                                                       __malloc_w_keep_two_l32_3
+                                                        ∈ {1}
+  keep_two :: heap_alloc_crossed.c:44 <- crossed_main: last ∈
+                                                           {{ &__malloc_new_one_l25_4 ;
+                                                              &__malloc_w_keep_two_l32_3 }}
+                                                       other ∈
+                                                            {{ &__malloc_new_one_l25_3 ;
+                                                               &__malloc_w_keep_two_l32_4 }}
+                                                       x ∈
+                                                        {{ &__malloc_new_one_l25_3 }}
+                                                       y ∈
+                                                        {{ &__malloc_new_one_l25_4 }}
+                                                       i_0 ∈ {0; 1}
+                                                       __malloc_new_one_l25_3
+                                                        ∈ {1}
+                                                       __malloc_new_one_l25_4
+                                                        ∈ {1}
+                                                       __malloc_w_keep_two_l32_3
+                                                        ∈
+                                                       {1} or UNINITIALIZED
+                                                       __malloc_w_keep_two_l32_4
+                                                        ∈ {1}
+keep_two, before heap_alloc_crossed.c:34 `;` (KT):
+  joined: last ∈
+              {{ &__malloc_w_keep_two_l32_3 ; &__malloc_w_keep_two_l32_4 }}
+          other ∈ {{ &__malloc_new_one_l25_3 ; &__malloc_w_keep_two_l32_4 }}
+          v ∈ {1}
+          x ∈ {{ &__malloc_new_one_l25_3 }}
+          y ∈ {{ &__malloc_new_one_l25_4 }}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          __malloc_new_one_l25_3 ∈ {1}
+          __malloc_new_one_l25_4 ∈ {1}
+          __malloc_w_keep_two_l32_3 ∈ {1} or UNINITIALIZED
+          __malloc_w_keep_two_l32_4 ∈ {1} or UNINITIALIZED
+  keep_two :: heap_alloc_crossed.c:41 <- crossed_main: last ∈
+                                                           {{ &__malloc_w_keep_two_l32_3 }}
+                                                       other ∈
+                                                            {{ &__malloc_new_one_l25_3 }}
+                                                       v ∈ {1}
+                                                       x ∈
+                                                        {{ &__malloc_new_one_l25_3 }}
+                                                       y ∈
+                                                        {{ &__malloc_new_one_l25_4 }}
+                                                       i ∈ {0; 1}
+                                                       __malloc_new_one_l25_3
+                                                        ∈ {1}
+                                                       __malloc_new_one_l25_4
+                                                        ∈ {1}
+                                                       __malloc_w_keep_two_l32_3
+                                                        ∈
+                                                       {1} or UNINITIALIZED
+  keep_two :: heap_alloc_crossed.c:44 <- crossed_main: last ∈
+                                                           {{ &__malloc_w_keep_two_l32_4 }}
+                                                       other ∈
+                                                            {{ &__malloc_new_one_l25_3 ;
+                                                               &__malloc_w_keep_two_l32_4 }}
+                                                       v ∈ {1}
+                                                       x ∈
+                                                        {{ &__malloc_new_one_l25_3 }}
+                                                       y ∈
+                                                        {{ &__malloc_new_one_l25_4 }}
+                                                       i_0 ∈ {0; 1}
+                                                       __malloc_new_one_l25_3
+                                                        ∈ {1}
+                                                       __malloc_new_one_l25_4
+                                                        ∈ {1}
+                                                       __malloc_w_keep_two_l32_3
+                                                        ∈
+                                                       {1} or UNINITIALIZED
+                                                       __malloc_w_keep_two_l32_4
+                                                        ∈
+                                                       {1} or UNINITIALIZED
+keep_two, after heap_alloc_crossed.c:35 `return;`:
+  joined: last ∈
+              {{ &__malloc_w_keep_two_l32_3 ; &__malloc_w_keep_two_l32_4 }}
+          other ∈ {{ &__malloc_new_one_l25_3 ; &__malloc_w_keep_two_l32_4 }}
+          v ∈ {1}
+          x ∈ {{ &__malloc_new_one_l25_3 }}
+          y ∈ {{ &__malloc_new_one_l25_4 }}
+          i ∈ {0; 1}
+          i_0 ∈ {0; 1}
+          __malloc_new_one_l25_3 ∈ {1}
+          __malloc_new_one_l25_4 ∈ {1}
+          __malloc_w_keep_two_l32_3 ∈ {1} or UNINITIALIZED
+          __malloc_w_keep_two_l32_4 ∈ {1} or UNINITIALIZED
+  keep_two :: heap_alloc_crossed.c:41 <- crossed_main: last ∈
+                                                           {{ &__malloc_w_keep_two_l32_3 }}
+                                                       other ∈
+                                                            {{ &__malloc_new_one_l25_3 }}
+                                                       v ∈ {1}
+                                                       x ∈
+                                                        {{ &__malloc_new_one_l25_3 }}
+                                                       y ∈
+                                                        {{ &__malloc_new_one_l25_4 }}
+                                                       i ∈ {0; 1}
+                                                       __malloc_new_one_l25_3
+                                                        ∈ {1}
+                                                       __malloc_new_one_l25_4
+                                                        ∈ {1}
+                                                       __malloc_w_keep_two_l32_3
+                                                        ∈
+                                                       {1} or UNINITIALIZED
+  keep_two :: heap_alloc_crossed.c:44 <- crossed_main: last ∈
+                                                           {{ &__malloc_w_keep_two_l32_4 }}
+                                                       other ∈
+                                                            {{ &__malloc_new_one_l25_3 ;
+                                                               &__malloc_w_keep_two_l32_4 }}
+                                                       v ∈ {1}
+                                                       x ∈
+                                                        {{ &__malloc_new_one_l25_3 }}
+                                                       y ∈
+                                                        {{ &__malloc_new_one_l25_4 }}
+                                                       i_0 ∈ {0; 1}
+                                                       __malloc_new_one_l25_3
+                                                        ∈ {1}
+                                                       __malloc_new_one_l25_4
+                                                        ∈ {1}
+                                                       __malloc_w_keep_two_l32_3
+                                                        ∈
+                                                       {1} or UNINITIALIZED
+                                                       __malloc_w_keep_two_l32_4
+                                                        ∈
+                                                       {1} or UNINITIALIZED
+crossed_main, start:
+  joined: last ∈ {0}
+          other ∈ {0}
+  crossed_main: last ∈ {0}
+                other ∈ {0}
+crossed_main, before heap_alloc_crossed.c:46 `;` (CR):
+  joined: last ∈ {{ &__malloc_w_keep_two_l32_4 }}
+          other ∈ {{ &__malloc_w_keep_two_l32_4 }}
+          x ∈ {{ &__malloc_new_one_l25_3 }}
+          y ∈ {{ &__malloc_new_one_l25_4 }}
+          __malloc_new_one_l25_3 ∈ {1}
+          __malloc_new_one_l25_4 ∈ {1}
+          __malloc_w_keep_two_l32_3 ∈ {1} or UNINITIALIZED
+          __malloc_w_keep_two_l32_4 ∈ {1} or UNINITIALIZED
+  crossed_main: last ∈ {{ &__malloc_w_keep_two_l32_4 }}
+                other ∈ {{ &__malloc_w_keep_two_l32_4 }}
+                x ∈ {{ &__malloc_new_one_l25_3 }}
+                y ∈ {{ &__malloc_new_one_l25_4 }}
+                __malloc_new_one_l25_3 ∈ {1}
+                __malloc_new_one_l25_4 ∈ {1}
+                __malloc_w_keep_two_l32_3 ∈ {1} or UNINITIALIZED
+                __malloc_w_keep_two_l32_4 ∈ {1} or UNINITIALIZED
+crossed_main, after heap_alloc_crossed.c:47 `return;`:
+  joined: last ∈ {{ &__malloc_w_keep_two_l32_4 }}
+          other ∈ {{ &__malloc_w_keep_two_l32_4 }}
+          x ∈ {{ &__malloc_new_one_l25_3 }}
+          y ∈ {{ &__malloc_new_one_l25_4 }}
+          __malloc_new_one_l25_3 ∈ {1}
+          __malloc_new_one_l25_4 ∈ {1}
+          __malloc_w_keep_two_l32_3 ∈ {1} or UNINITIALIZED
+          __malloc_w_keep_two_l32_4 ∈ {1} or UNINITIALIZED
+  crossed_main: last ∈ {{ &__malloc_w_keep_two_l32_4 }}
+                other ∈ {{ &__malloc_w_keep_two_l32_4 }}
+                x ∈ {{ &__malloc_new_one_l25_3 }}
+                y ∈ {{ &__malloc_new_one_l25_4 }}
+                __malloc_new_one_l25_3 ∈ {1}
+                __malloc_new_one_l25_4 ∈ {1}
+                __malloc_w_keep_two_l32_3 ∈ {1} or UNINITIALIZED
+                __malloc_w_keep_two_l32_4 ∈ {1} or UNINITIALIZED
+Hits against the analysed call of their cache entry:
+  new_one :: heap_alloc_crossed.c:39 <- crossed_main, hit of cache entry 15, against new_one :: heap_alloc_crossed.c:38 <- crossed_main: differs on __malloc_new_one_l25_3, __malloc_new_one_l25_4, p, x, at 7 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 219 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 67 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 67 points.
+Filtered requests that reject one callstack: 18.
+Requests made: 353; reported by the trap: 353, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 65 requests, 135 reads of the legacy store in them, 153 reads outside any request.
+  with -eva-hit-log: 65 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 34 requests
+    statistics: 31 requests
+Statuses of the properties: those of the run without memexec, for 74 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.

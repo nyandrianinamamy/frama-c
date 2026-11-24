@@ -1,7 +1,7 @@
 [kernel] Parsing heap_alloc_two.c (with preprocessing)
 Tables of the allocated blocks after the analysis with -eva-hit-log:
-  list of malloc :: heap_alloc_two.c:46 <- level :: heap_alloc_two.c:54 <- level_main: 0: strong, record Variable [0..31--31], type int, malloc; 1: strong, record Variable [0..31--31], type int, malloc
-  list of malloc :: heap_alloc_two.c:46 <- level :: heap_alloc_two.c:58 <- level_main: 0: strong, record Variable [0..31--31], type int, malloc; 1: strong, record Variable [0..31--31], type int, malloc
+  list of malloc :: heap_alloc_two.c:46 <- level :: heap_alloc_two.c:54 <- level_main: 0: strong, record Variable [0..31--31], type int, malloc; 1: strong, record Variable [0..63--63], type int [2], malloc
+  list of malloc :: heap_alloc_two.c:46 <- level :: heap_alloc_two.c:58 <- level_main: 0: strong, record Variable [0..31--31], type int, malloc; 1: strong, record Variable [0..63--63], type int [2], malloc
   block 0 of malloc :: heap_alloc_two.c:46 <- level :: heap_alloc_two.c:54 <- level_main: owned by level :: heap_alloc_two.c:54 <- level_main
   block 0 of malloc :: heap_alloc_two.c:46 <- level :: heap_alloc_two.c:58 <- level_main: owned by level :: heap_alloc_two.c:58 <- level_main
   block 1 of malloc :: heap_alloc_two.c:46 <- level :: heap_alloc_two.c:54 <- level_main: owned by level :: heap_alloc_two.c:54 <- level_main
@@ -25,9 +25,10 @@ level, start:
           l0 ∈ {0}
           l1 ∈ {0}
           a ∈ {{ &__malloc_level_l46_7 }} or UNINITIALIZED
-          b ∈ {{ &__malloc_level_l46_8 }} or UNINITIALIZED
+          b ∈ {{ &__malloc_level_l46_8[0] }} or UNINITIALIZED
           __malloc_level_l46_7 ∈ {1}
-          __malloc_level_l46_8 ∈ {2}
+          __malloc_level_l46_8[0] ∈ {2}
+                              [1] ∈ UNINITIALIZED
   level :: heap_alloc_two.c:54 <- level_main: pa ∈ {0}
                                               pb ∈ {0}
                                               l0 ∈ {0}
@@ -39,75 +40,96 @@ level, start:
                                               l0 ∈ {0}
                                               l1 ∈ {0}
                                               a ∈ {{ &__malloc_level_l46_7 }}
-                                              b ∈ {{ &__malloc_level_l46_8 }}
+                                              b ∈
+                                               {{ &__malloc_level_l46_8[0] }}
                                               __malloc_level_l46_7 ∈ {1}
-                                              __malloc_level_l46_8 ∈ {2}
+                                              __malloc_level_l46_8[0] ∈ {2}
+                                                                  [1] ∈
+                                                                  UNINITIALIZED
 level, before heap_alloc_two.c:50 `;` (LV):
   joined: pa ∈ {0}
           pb ∈ {0}
           l0 ∈ {{ &__malloc_level_l46_7 ; &__malloc_level_l46_9 }}
-          l1 ∈ {{ &__malloc_level_l46_8 ; &__malloc_level_l46_10 }}
+          l1 ∈ {{ &__malloc_level_l46_8[0] ; &__malloc_level_l46_10[0] }}
           a ∈ {{ &__malloc_level_l46_7 }} or UNINITIALIZED
-          b ∈ {{ &__malloc_level_l46_8 }} or UNINITIALIZED
+          b ∈ {{ &__malloc_level_l46_8[0] }} or UNINITIALIZED
           __malloc_level_l46_7 ∈ {1}
-          __malloc_level_l46_8 ∈ {2}
+          __malloc_level_l46_8[0] ∈ {2}
+                              [1] ∈ UNINITIALIZED
           __malloc_level_l46_9 ∈ {1}
-          __malloc_level_l46_10 ∈ {2}
+          __malloc_level_l46_10[0] ∈ {2}
+                               [1] ∈ UNINITIALIZED
   level :: heap_alloc_two.c:54 <- level_main: pa ∈ {0}
                                               pb ∈ {0}
                                               l0 ∈
                                                 {{ &__malloc_level_l46_7 }}
                                               l1 ∈
-                                                {{ &__malloc_level_l46_8 }}
+                                                {{ &__malloc_level_l46_8[0] }}
                                               a ∈ UNINITIALIZED
                                               b ∈ UNINITIALIZED
                                               __malloc_level_l46_7 ∈ {1}
-                                              __malloc_level_l46_8 ∈ {2}
+                                              __malloc_level_l46_8[0] ∈ {2}
+                                                                  [1] ∈
+                                                                  UNINITIALIZED
   level :: heap_alloc_two.c:58 <- level_main: pa ∈ {0}
                                               pb ∈ {0}
                                               l0 ∈
                                                 {{ &__malloc_level_l46_9 }}
                                               l1 ∈
-                                                {{ &__malloc_level_l46_10 }}
+                                                {{ &__malloc_level_l46_10[0] }}
                                               a ∈ {{ &__malloc_level_l46_7 }}
-                                              b ∈ {{ &__malloc_level_l46_8 }}
+                                              b ∈
+                                               {{ &__malloc_level_l46_8[0] }}
                                               __malloc_level_l46_7 ∈ {1}
-                                              __malloc_level_l46_8 ∈ {2}
+                                              __malloc_level_l46_8[0] ∈ {2}
+                                                                  [1] ∈
+                                                                  UNINITIALIZED
                                               __malloc_level_l46_9 ∈ {1}
-                                              __malloc_level_l46_10 ∈ {2}
+                                              __malloc_level_l46_10[0] ∈ {2}
+                                                                   [1] ∈
+                                                                   UNINITIALIZED
 level, after heap_alloc_two.c:51 `return;`:
   joined: pa ∈ {0}
           pb ∈ {0}
           l0 ∈ {{ &__malloc_level_l46_7 ; &__malloc_level_l46_9 }}
-          l1 ∈ {{ &__malloc_level_l46_8 ; &__malloc_level_l46_10 }}
+          l1 ∈ {{ &__malloc_level_l46_8[0] ; &__malloc_level_l46_10[0] }}
           a ∈ {{ &__malloc_level_l46_7 }} or UNINITIALIZED
-          b ∈ {{ &__malloc_level_l46_8 }} or UNINITIALIZED
+          b ∈ {{ &__malloc_level_l46_8[0] }} or UNINITIALIZED
           __malloc_level_l46_7 ∈ {1}
-          __malloc_level_l46_8 ∈ {2}
+          __malloc_level_l46_8[0] ∈ {2}
+                              [1] ∈ UNINITIALIZED
           __malloc_level_l46_9 ∈ {1}
-          __malloc_level_l46_10 ∈ {2}
+          __malloc_level_l46_10[0] ∈ {2}
+                               [1] ∈ UNINITIALIZED
   level :: heap_alloc_two.c:54 <- level_main: pa ∈ {0}
                                               pb ∈ {0}
                                               l0 ∈
                                                 {{ &__malloc_level_l46_7 }}
                                               l1 ∈
-                                                {{ &__malloc_level_l46_8 }}
+                                                {{ &__malloc_level_l46_8[0] }}
                                               a ∈ UNINITIALIZED
                                               b ∈ UNINITIALIZED
                                               __malloc_level_l46_7 ∈ {1}
-                                              __malloc_level_l46_8 ∈ {2}
+                                              __malloc_level_l46_8[0] ∈ {2}
+                                                                  [1] ∈
+                                                                  UNINITIALIZED
   level :: heap_alloc_two.c:58 <- level_main: pa ∈ {0}
                                               pb ∈ {0}
                                               l0 ∈
                                                 {{ &__malloc_level_l46_9 }}
                                               l1 ∈
-                                                {{ &__malloc_level_l46_10 }}
+                                                {{ &__malloc_level_l46_10[0] }}
                                               a ∈ {{ &__malloc_level_l46_7 }}
-                                              b ∈ {{ &__malloc_level_l46_8 }}
+                                              b ∈
+                                               {{ &__malloc_level_l46_8[0] }}
                                               __malloc_level_l46_7 ∈ {1}
-                                              __malloc_level_l46_8 ∈ {2}
+                                              __malloc_level_l46_8[0] ∈ {2}
+                                                                  [1] ∈
+                                                                  UNINITIALIZED
                                               __malloc_level_l46_9 ∈ {1}
-                                              __malloc_level_l46_10 ∈ {2}
+                                              __malloc_level_l46_10[0] ∈ {2}
+                                                                   [1] ∈
+                                                                   UNINITIALIZED
 level_main, start:
   joined: pa ∈ {0}
           pb ∈ {0}
@@ -121,44 +143,52 @@ level_main, before heap_alloc_two.c:59 `;` (LE):
   joined: pa ∈ {0}
           pb ∈ {0}
           l0 ∈ {{ &__malloc_level_l46_9 }}
-          l1 ∈ {{ &__malloc_level_l46_10 }}
+          l1 ∈ {{ &__malloc_level_l46_10[0] }}
           a ∈ {{ &__malloc_level_l46_7 }}
-          b ∈ {{ &__malloc_level_l46_8 }}
+          b ∈ {{ &__malloc_level_l46_8[0] }}
           __malloc_level_l46_7 ∈ {1}
-          __malloc_level_l46_8 ∈ {2}
+          __malloc_level_l46_8[0] ∈ {2}
+                              [1] ∈ UNINITIALIZED
           __malloc_level_l46_9 ∈ {1}
-          __malloc_level_l46_10 ∈ {2}
+          __malloc_level_l46_10[0] ∈ {2}
+                               [1] ∈ UNINITIALIZED
   level_main: pa ∈ {0}
               pb ∈ {0}
               l0 ∈ {{ &__malloc_level_l46_9 }}
-              l1 ∈ {{ &__malloc_level_l46_10 }}
+              l1 ∈ {{ &__malloc_level_l46_10[0] }}
               a ∈ {{ &__malloc_level_l46_7 }}
-              b ∈ {{ &__malloc_level_l46_8 }}
+              b ∈ {{ &__malloc_level_l46_8[0] }}
               __malloc_level_l46_7 ∈ {1}
-              __malloc_level_l46_8 ∈ {2}
+              __malloc_level_l46_8[0] ∈ {2}
+                                  [1] ∈ UNINITIALIZED
               __malloc_level_l46_9 ∈ {1}
-              __malloc_level_l46_10 ∈ {2}
+              __malloc_level_l46_10[0] ∈ {2}
+                                   [1] ∈ UNINITIALIZED
 level_main, after heap_alloc_two.c:60 `return;`:
   joined: pa ∈ {0}
           pb ∈ {0}
           l0 ∈ {{ &__malloc_level_l46_9 }}
-          l1 ∈ {{ &__malloc_level_l46_10 }}
+          l1 ∈ {{ &__malloc_level_l46_10[0] }}
           a ∈ {{ &__malloc_level_l46_7 }}
-          b ∈ {{ &__malloc_level_l46_8 }}
+          b ∈ {{ &__malloc_level_l46_8[0] }}
           __malloc_level_l46_7 ∈ {1}
-          __malloc_level_l46_8 ∈ {2}
+          __malloc_level_l46_8[0] ∈ {2}
+                              [1] ∈ UNINITIALIZED
           __malloc_level_l46_9 ∈ {1}
-          __malloc_level_l46_10 ∈ {2}
+          __malloc_level_l46_10[0] ∈ {2}
+                               [1] ∈ UNINITIALIZED
   level_main: pa ∈ {0}
               pb ∈ {0}
               l0 ∈ {{ &__malloc_level_l46_9 }}
-              l1 ∈ {{ &__malloc_level_l46_10 }}
+              l1 ∈ {{ &__malloc_level_l46_10[0] }}
               a ∈ {{ &__malloc_level_l46_7 }}
-              b ∈ {{ &__malloc_level_l46_8 }}
+              b ∈ {{ &__malloc_level_l46_8[0] }}
               __malloc_level_l46_7 ∈ {1}
-              __malloc_level_l46_8 ∈ {2}
+              __malloc_level_l46_8[0] ∈ {2}
+                                  [1] ∈ UNINITIALIZED
               __malloc_level_l46_9 ∈ {1}
-              __malloc_level_l46_10 ∈ {2}
+              __malloc_level_l46_10[0] ∈ {2}
+                                   [1] ∈ UNINITIALIZED
 Hits against the analysed call of their cache entry:
   level :: heap_alloc_two.c:58 <- level_main, hit of cache entry 7, against level :: heap_alloc_two.c:54 <- level_main: differs on __malloc_level_l46_10, __malloc_level_l46_7, __malloc_level_l46_8, __malloc_level_l46_9, a, b, l0, l1, p, at 29 points.
 Initial state: equal.
