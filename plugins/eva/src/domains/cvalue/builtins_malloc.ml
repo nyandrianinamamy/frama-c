@@ -399,29 +399,22 @@ module Base_with_Size = Datatype.Pair (Base.Base) (Z)
 
 (* Memoize the creation of the weakest base for [region]. Returns a function
    returning the base, its size, and the suitable cache status: NoCacheCallers
-   if the base is new, Cacheable otherwise. The function takes the builtin,
-   the blocks it copies and the size requested, to emit the allocation. *)
+   if the base is new, Cacheable otherwise. The function takes the size
+   requested only: a closure that takes more than one argument is one word
+   larger, and the three made below are allocated when the module is
+   loaded. *)
 let memo_weakest_base name region =
   let module Info = struct
     let name = "Eva.Builtins_malloc." ^ name
     let dependencies = [ Self.state ]
   end in
   let module M = State_builder.Option_ref (Base_with_Size) (Info) in
-  let emit ~builtin ~copied sizev decision base =
-    if Heap_effects.enabled () then
-      let stack = call_stack_no_wrappers () in
-      emit_allocation ~builtin ~copied ~policy:Imprecise ~stack ~sizev decision
-        base
-  in
-  fun ~builtin ~copied sizev ->
+  fun _sizev ->
     match M.get_option () with
-    | Some (base, size) ->
-      emit ~builtin ~copied sizev (Reused { weakened = false }) base;
-      base, size, Builtins.Cacheable
+    | Some (base, size) -> base, size, Builtins.Cacheable
     | None ->
       let base, size = create_weakest_base region in
       M.set (base, size);
-      emit ~builtin ~copied sizev Created base;
       base, size, Builtins.NoCacheCallers
 
 let malloc_weakest_base = memo_weakest_base "SingeMalloc" Base.Malloc
@@ -429,12 +422,27 @@ let vla_weakest_base = memo_weakest_base "SingleVLA" Base.VLA
 let alloca_weakest_base = memo_weakest_base "SingleAlloca" Base.Alloca
 
 (* Returns the single base representing the given region, its size and the
-   suitable cache status. *)
+   suitable cache status. With -eva-hit-log, emits its allocation by
+   [builtin], which copies the blocks [copied] into it: created if the base
+   is new, reused otherwise. *)
 let alloc_weakest_base ~builtin ~copied region sizev =
-  match region with
-  | Base.Malloc -> malloc_weakest_base ~builtin ~copied sizev
-  | Base.VLA -> vla_weakest_base ~builtin ~copied sizev
-  | Base.Alloca -> alloca_weakest_base ~builtin ~copied sizev
+  let base, _, cacheable as result =
+    match region with
+    | Base.Malloc -> malloc_weakest_base sizev
+    | Base.VLA -> vla_weakest_base sizev
+    | Base.Alloca -> alloca_weakest_base sizev
+  in
+  if Heap_effects.enabled () then begin
+    let decision =
+      match cacheable with
+      | Builtins.NoCacheCallers -> Heap_effects.Created
+      | Cacheable | NoCache -> Reused { weakened = false }
+    in
+    let stack = call_stack_no_wrappers () in
+    emit_allocation ~builtin ~copied ~policy:Imprecise ~stack ~sizev decision
+      base
+  end;
+  result
 
 (* Variables that have been returned by a call to an allocation function
    at this callstack. The first allocated variable is at the top of the
