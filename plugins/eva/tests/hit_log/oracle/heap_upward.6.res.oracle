@@ -1,0 +1,260 @@
+[kernel] Parsing heap_upward.c (with preprocessing)
+Calls:
+  malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: builtin
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: analysed, cache entry 19
+  free :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: builtin
+  malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: builtin
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: analysed, cache entry 20
+  free :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: builtin
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: hit of cache entry 20
+  free :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: builtin
+  repeat :: heap_upward.c:138 <- loop_main: analysed, cache entry 21
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main: hit of cache entry 19
+  free :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main: builtin
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main: hit of cache entry 20
+  free :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main: builtin
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main: hit of cache entry 20
+  free :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main: builtin
+  repeat :: heap_upward.c:139 <- loop_main: analysed, cache entry 22
+  loop_main: analysed, cache entry 23
+Heap calls, not stored by memexec: loop_main 1, repeat 2.
+Heap calls stored by memexec: child_mk 2.
+Heap calls whose answers come from full states: loop_main 1, repeat 2.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  loop_main 1, repeat 2.
+Hits not made because memexec does not store the heap calls: repeat 1.
+child_mk, start:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          v ∈ {7}
+          i ∈ {0; 1; 2}
+          q ∈ UNINITIALIZED
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  v ∈ {7}
+  i ∈ {0; 1; 2}
+  q ∈ UNINITIALIZED
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  v ∈ {7}
+  i ∈ {0; 1; 2}
+  q ∈ UNINITIALIZED
+child_mk, before heap_upward.c:47 `;` (K):
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          v ∈ {7}
+          p ∈ {{ &__malloc_child_mk_l47_3 ; &__malloc_child_mk_l47_4 }}
+          i ∈ {0; 1; 2}
+          q ∈ UNINITIALIZED
+          __malloc_child_mk_l47_3 ∈ {7}
+          __malloc_child_mk_l47_4 ∈ {7}
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  v ∈ {7}
+  p ∈ {{ &__malloc_child_mk_l47_3 }}
+  i ∈ {0; 1; 2}
+  q ∈ UNINITIALIZED
+  __malloc_child_mk_l47_3 ∈ {7}
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  v ∈ {7}
+  p ∈ {{ &__malloc_child_mk_l47_4 }}
+  i ∈ {0; 1; 2}
+  q ∈ UNINITIALIZED
+  __malloc_child_mk_l47_4 ∈ {7}
+child_mk, after heap_upward.c:47 `return p;`:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          v ∈ {7}
+          p ∈ {{ &__malloc_child_mk_l47_3 ; &__malloc_child_mk_l47_4 }}
+          i ∈ {0; 1; 2}
+          q ∈ UNINITIALIZED
+          __malloc_child_mk_l47_3 ∈ {7}
+          __malloc_child_mk_l47_4 ∈ {7}
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  v ∈ {7}
+  p ∈ {{ &__malloc_child_mk_l47_3 }}
+  i ∈ {0; 1; 2}
+  q ∈ UNINITIALIZED
+  __malloc_child_mk_l47_3 ∈ {7}
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  v ∈ {7}
+  p ∈ {{ &__malloc_child_mk_l47_4 }}
+  i ∈ {0; 1; 2}
+  q ∈ UNINITIALIZED
+  __malloc_child_mk_l47_4 ∈ {7}
+repeat, start:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+  repeat :: heap_upward.c:138 <- loop_main: cur ∈ {0}
+                                            keep ∈ {0}
+                                            slot ∈ {0}
+                                            mode ∈ {0}
+  repeat :: heap_upward.c:139 <- loop_main: cur ∈ {0}
+                                            keep ∈ {0}
+                                            slot ∈ {0}
+                                            mode ∈ {0}
+repeat, before heap_upward.c:134 `;` (L):
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+  repeat :: heap_upward.c:138 <- loop_main: cur ∈ {0}
+                                            keep ∈ {0}
+                                            slot ∈ {0}
+                                            mode ∈ {0}
+  repeat :: heap_upward.c:139 <- loop_main: cur ∈ {0}
+                                            keep ∈ {0}
+                                            slot ∈ {0}
+                                            mode ∈ {0}
+repeat, after heap_upward.c:135 `return;`:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+  repeat :: heap_upward.c:138 <- loop_main: cur ∈ {0}
+                                            keep ∈ {0}
+                                            slot ∈ {0}
+                                            mode ∈ {0}
+  repeat :: heap_upward.c:139 <- loop_main: cur ∈ {0}
+                                            keep ∈ {0}
+                                            slot ∈ {0}
+                                            mode ∈ {0}
+loop_main, start:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+  loop_main: cur ∈ {0}
+             keep ∈ {0}
+             slot ∈ {0}
+             mode ∈ {0}
+loop_main, before heap_upward.c:140 `;` (Z):
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+  loop_main: cur ∈ {0}
+             keep ∈ {0}
+             slot ∈ {0}
+             mode ∈ {0}
+loop_main, after heap_upward.c:141 `return;`:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+  loop_main: cur ∈ {0}
+             keep ∈ {0}
+             slot ∈ {0}
+             mode ∈ {0}
+Hits against the analysed call of their cache entry:
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main, hit of cache entry 19, against child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: differs on __malloc_child_mk_l47_3, __malloc_child_mk_l47_4, p, at 9 points.
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main, hit of cache entry 20, against child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: differs on __malloc_child_mk_l47_3, __malloc_child_mk_l47_4, p, at 9 points.
+  child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main, hit of cache entry 20, against child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main: differs on __malloc_child_mk_l47_3, __malloc_child_mk_l47_4, p, at 9 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 715 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 320 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 320 points.
+Filtered requests that reject one callstack: 32.
+Requests made: 1355; reported by the trap: 1355, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 176 requests, 95 reads of the legacy store in them, 120 reads outside any request.
+  with -eva-hit-log: 176 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 149 requests
+    statistics: 19 requests
+    summary: 8 requests
+Statuses of the properties: those of the run without memexec, for 301 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1154, 0 alarms, those of the run without memexec.
+Calls of the functions of the test:
+child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main, analysed:
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  heap effects:
+    heap_upward.c:47, in malloc: allocation of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main, suffix malloc :: heap_upward.c:47, rank 0, created
+  stored by memexec, key: __fc_heap_status, errno, p, v
+  created: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main
+  before K: covers block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main; does not bind none; swept on every path: none; on some path only: none
+child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main, analysed:
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  heap effects:
+    heap_upward.c:47, in malloc: allocation of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main, suffix malloc :: heap_upward.c:47, rank 0, reused
+  stored by memexec, key: __fc_heap_status, block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main, errno, p, v
+  created: none
+  before K: covers block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main; does not bind none; swept on every path: none; on some path only: none
+child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main, hit:
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+repeat :: heap_upward.c:138 <- loop_main, analysed:
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main{[0..31]}; errno{[0..31]}; i{[0..31]}; q{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main{[0..31]}; errno{[0..31]}; i{[0..31]}; q{[0..31]}
+  sure outputs: i{[0..31]}
+  heap effects:
+    heap_upward.c:133, in child_mk: allocation of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main, suffix malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133, rank 0, created
+    heap_upward.c:133, in free: removal of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main
+    heap_upward.c:133, in free: sweep of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main, exact
+    heap_upward.c:133, in child_mk: allocation of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main, suffix malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133, rank 0, reused
+    heap_upward.c:133, in free: removal of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main
+    heap_upward.c:133, in free: sweep of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main, exact
+    heap_upward.c:133, in free: removal of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main
+    heap_upward.c:133, in free: sweep of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:138 <- loop_main, exact
+  not stored by memexec
+  before L: full states
+child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main, hit:
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main, hit:
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main, hit:
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+repeat :: heap_upward.c:139 <- loop_main, analysed:
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main{[0..31]}; errno{[0..31]}; i{[0..31]}; q{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main{[0..31]}; errno{[0..31]}; i{[0..31]}; q{[0..31]}
+  sure outputs: i{[0..31]}
+  heap effects:
+    heap_upward.c:133, in free: removal of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main
+    heap_upward.c:133, in free: sweep of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main, exact
+    heap_upward.c:133, in free: removal of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main
+    heap_upward.c:133, in free: sweep of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main, exact
+    heap_upward.c:133, in free: removal of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main
+    heap_upward.c:133, in free: sweep of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:133 <- repeat :: heap_upward.c:139 <- loop_main, exact
+  not stored by memexec
+  before L: full states

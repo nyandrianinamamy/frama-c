@@ -1,0 +1,186 @@
+[kernel] Parsing heap_upward.c (with preprocessing)
+Calls:
+  malloc :: heap_upward.c:76 <- free_main: builtin
+  free :: heap_upward.c:67 <- child_rel :: heap_upward.c:69 <- parent_free :: heap_upward.c:78 <- free_main: builtin
+  child_rel :: heap_upward.c:69 <- parent_free :: heap_upward.c:78 <- free_main: analysed, cache entry 11
+  parent_free :: heap_upward.c:78 <- free_main: analysed, cache entry 12
+  malloc :: heap_upward.c:79 <- free_main: builtin
+  parent_free :: heap_upward.c:81 <- free_main: hit of cache entry 12
+  free_main: analysed, cache entry 13
+Heap calls, not stored by memexec: free_main 1.
+Heap calls stored by memexec: child_rel 1, parent_free 1.
+Heap calls whose answers come from full states: free_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  free_main 1.
+Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  child_rel :: heap_upward.c:69 <- parent_free :: heap_upward.c:81 <- free_main
+child_rel, start:
+  joined: cur ∈ {{ &__malloc_free_main_l76_1 ; &__malloc_free_main_l79_1 }}
+          keep ∈ {{ &__malloc_free_main_l76_1 ; &__malloc_free_main_l79_1 }}
+          slot ∈ {0}
+          mode ∈ {0}
+          __malloc_free_main_l76_1 ∈ {2}
+          __malloc_free_main_l79_1 ∈ {2}
+  child_rel :: heap_upward.c:69 <- parent_free :: heap_upward.c:78 <- free_main: 
+  cur ∈ {{ &__malloc_free_main_l76_1 }}
+  keep ∈ {{ &__malloc_free_main_l76_1 }}
+  slot ∈ {0}
+  mode ∈ {0}
+  __malloc_free_main_l76_1 ∈ {2}
+  child_rel :: heap_upward.c:69 <- parent_free :: heap_upward.c:81 <- free_main: 
+  cur ∈ {{ &__malloc_free_main_l79_1 }}
+  keep ∈ {{ &__malloc_free_main_l79_1 }}
+  slot ∈ {0}
+  mode ∈ {0}
+  __malloc_free_main_l79_1 ∈ {2}
+child_rel, before heap_upward.c:67 `;` (R):
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+  child_rel :: heap_upward.c:69 <- parent_free :: heap_upward.c:78 <- free_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  child_rel :: heap_upward.c:69 <- parent_free :: heap_upward.c:81 <- free_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+child_rel, after heap_upward.c:67 `return;`:
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+  child_rel :: heap_upward.c:69 <- parent_free :: heap_upward.c:78 <- free_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  child_rel :: heap_upward.c:69 <- parent_free :: heap_upward.c:81 <- free_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+parent_free, start:
+  joined: cur ∈ {{ &__malloc_free_main_l76_1 ; &__malloc_free_main_l79_1 }}
+          keep ∈ {{ &__malloc_free_main_l76_1 ; &__malloc_free_main_l79_1 }}
+          slot ∈ {0}
+          mode ∈ {0}
+          __malloc_free_main_l76_1 ∈ {2}
+          __malloc_free_main_l79_1 ∈ {2}
+  parent_free :: heap_upward.c:78 <- free_main: cur ∈
+                                                   {{ &__malloc_free_main_l76_1 }}
+                                                keep ∈
+                                                    {{ &__malloc_free_main_l76_1 }}
+                                                slot ∈ {0}
+                                                mode ∈ {0}
+                                                __malloc_free_main_l76_1
+                                                 ∈ {2}
+  parent_free :: heap_upward.c:81 <- free_main: cur ∈
+                                                   {{ &__malloc_free_main_l79_1 }}
+                                                keep ∈
+                                                    {{ &__malloc_free_main_l79_1 }}
+                                                slot ∈ {0}
+                                                mode ∈ {0}
+                                                __malloc_free_main_l79_1
+                                                 ∈ {2}
+parent_free, before heap_upward.c:69 `;` (Q):
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+  parent_free :: heap_upward.c:78 <- free_main: cur ∈ ESCAPINGADDR
+                                                keep ∈ ESCAPINGADDR
+                                                slot ∈ {0}
+                                                mode ∈ {0}
+  parent_free :: heap_upward.c:81 <- free_main: cur ∈ ESCAPINGADDR
+                                                keep ∈ ESCAPINGADDR
+                                                slot ∈ {0}
+                                                mode ∈ {0}
+parent_free, after heap_upward.c:69 `return;`:
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+  parent_free :: heap_upward.c:78 <- free_main: cur ∈ ESCAPINGADDR
+                                                keep ∈ ESCAPINGADDR
+                                                slot ∈ {0}
+                                                mode ∈ {0}
+  parent_free :: heap_upward.c:81 <- free_main: cur ∈ ESCAPINGADDR
+                                                keep ∈ ESCAPINGADDR
+                                                slot ∈ {0}
+                                                mode ∈ {0}
+free_main, start:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+  free_main: cur ∈ {0}
+             keep ∈ {0}
+             slot ∈ {0}
+             mode ∈ {0}
+free_main, before heap_upward.c:82 `;` (Z):
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+  free_main: cur ∈ ESCAPINGADDR
+             keep ∈ ESCAPINGADDR
+             slot ∈ {0}
+             mode ∈ {0}
+free_main, after heap_upward.c:83 `return;`:
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+  free_main: cur ∈ ESCAPINGADDR
+             keep ∈ ESCAPINGADDR
+             slot ∈ {0}
+             mode ∈ {0}
+Hits against the analysed call of their cache entry:
+  parent_free :: heap_upward.c:81 <- free_main, hit of cache entry 12, against parent_free :: heap_upward.c:78 <- free_main: differs on __malloc_free_main_l76_1, __malloc_free_main_l79_1, cur, keep, at 7 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 691 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 320 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 320 points.
+Filtered requests that reject one callstack: 14.
+Requests made: 1331; reported by the trap: 1331, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 173 requests, 74 reads of the legacy store in them, 90 reads outside any request.
+  with -eva-hit-log: 173 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 149 requests
+    statistics: 16 requests
+    summary: 8 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
+Statuses of the properties: those of the run without memexec, for 301 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1154, 0 alarms, those of the run without memexec.
+Calls of the functions of the test:
+child_rel :: heap_upward.c:69 <- parent_free :: heap_upward.c:78 <- free_main, analysed:
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
+  heap effects:
+    heap_upward.c:67, in free: removal of block 0 of malloc :: heap_upward.c:76 <- free_main
+    heap_upward.c:67, in free: sweep of block 0 of malloc :: heap_upward.c:76 <- free_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:76 <- free_main, cur, keep
+  created: none
+  before R: covers block 0 of malloc :: heap_upward.c:76 <- free_main; does not bind block 0 of malloc :: heap_upward.c:76 <- free_main; swept on every path: block 0 of malloc :: heap_upward.c:76 <- free_main; on some path only: none
+parent_free :: heap_upward.c:78 <- free_main, analysed:
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
+  heap effects:
+    heap_upward.c:69, in child_rel: removal of block 0 of malloc :: heap_upward.c:76 <- free_main
+    heap_upward.c:69, in child_rel: sweep of block 0 of malloc :: heap_upward.c:76 <- free_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:76 <- free_main, cur, keep
+  created: none
+  before Q: covers block 0 of malloc :: heap_upward.c:76 <- free_main; does not bind block 0 of malloc :: heap_upward.c:76 <- free_main; swept on every path: block 0 of malloc :: heap_upward.c:76 <- free_main; on some path only: none
+parent_free :: heap_upward.c:81 <- free_main, hit:
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}

@@ -1,0 +1,407 @@
+[kernel] Parsing heap_upward.c (with preprocessing)
+Calls:
+  malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:53 <- alloc_main: builtin
+  child_mk :: heap_upward.c:53 <- alloc_main: analysed, cache entry 13
+  child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main: hit of cache entry 13
+  parent_alloc :: heap_upward.c:55 <- alloc_main: analysed, cache entry 14
+  child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main: hit of cache entry 13
+  parent_alloc :: heap_upward.c:56 <- alloc_main: analysed, cache entry 15
+  alloc_main: analysed, cache entry 16
+Heap calls, not stored by memexec: alloc_main 1.
+Heap calls stored by memexec: child_mk 1.
+Heap calls whose answers come from full states: alloc_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  alloc_main 1, parent_alloc 2.
+Hits not made because memexec does not store the heap calls: none.
+child_mk, start:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          v ∈ {1}
+          v ∈ {1}
+          q ∈ UNINITIALIZED
+          w ∈ {{ &__malloc_child_mk_l47_5 }} or UNINITIALIZED
+          a ∈ {{ &__malloc_child_mk_l47_6 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          __malloc_child_mk_l47_5 ∈ {1}
+          __malloc_child_mk_l47_6 ∈ {1}
+  child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  v ∈ {1}
+  v ∈ {1}
+  q ∈ UNINITIALIZED
+  w ∈ {{ &__malloc_child_mk_l47_5 }}
+  a ∈ UNINITIALIZED
+  b ∈ UNINITIALIZED
+  __malloc_child_mk_l47_5 ∈ {1}
+  child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  v ∈ {1}
+  v ∈ {1}
+  q ∈ UNINITIALIZED
+  w ∈ {{ &__malloc_child_mk_l47_5 }}
+  a ∈ {{ &__malloc_child_mk_l47_6 }}
+  b ∈ UNINITIALIZED
+  __malloc_child_mk_l47_5 ∈ {1}
+  __malloc_child_mk_l47_6 ∈ {1}
+  child_mk :: heap_upward.c:53 <- alloc_main: cur ∈ {0}
+                                              keep ∈ {0}
+                                              slot ∈ {0}
+                                              mode ∈ {0}
+                                              v ∈ {1}
+                                              w ∈ UNINITIALIZED
+                                              a ∈ UNINITIALIZED
+                                              b ∈ UNINITIALIZED
+child_mk, before heap_upward.c:47 `;` (K):
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          v ∈ {1}
+          p ∈
+           {{ &__malloc_child_mk_l47_5 ; &__malloc_child_mk_l47_6 ;
+              &__malloc_child_mk_l47_7 }}
+          v ∈ {1}
+          q ∈ UNINITIALIZED
+          w ∈ {{ &__malloc_child_mk_l47_5 }} or UNINITIALIZED
+          a ∈ {{ &__malloc_child_mk_l47_6 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          __malloc_child_mk_l47_5 ∈ {1}
+          __malloc_child_mk_l47_6 ∈ {1}
+          __malloc_child_mk_l47_7 ∈ {1}
+  child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  v ∈ {1}
+  p ∈ {{ &__malloc_child_mk_l47_6 }}
+  v ∈ {1}
+  q ∈ UNINITIALIZED
+  w ∈ {{ &__malloc_child_mk_l47_5 }}
+  a ∈ UNINITIALIZED
+  b ∈ UNINITIALIZED
+  __malloc_child_mk_l47_5 ∈ {1}
+  __malloc_child_mk_l47_6 ∈ {1}
+  child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  v ∈ {1}
+  p ∈ {{ &__malloc_child_mk_l47_7 }}
+  v ∈ {1}
+  q ∈ UNINITIALIZED
+  w ∈ {{ &__malloc_child_mk_l47_5 }}
+  a ∈ {{ &__malloc_child_mk_l47_6 }}
+  b ∈ UNINITIALIZED
+  __malloc_child_mk_l47_5 ∈ {1}
+  __malloc_child_mk_l47_6 ∈ {1}
+  __malloc_child_mk_l47_7 ∈ {1}
+  child_mk :: heap_upward.c:53 <- alloc_main: cur ∈ {0}
+                                              keep ∈ {0}
+                                              slot ∈ {0}
+                                              mode ∈ {0}
+                                              v ∈ {1}
+                                              p ∈
+                                               {{ &__malloc_child_mk_l47_5 }}
+                                              w ∈ UNINITIALIZED
+                                              a ∈ UNINITIALIZED
+                                              b ∈ UNINITIALIZED
+                                              __malloc_child_mk_l47_5 ∈ {1}
+child_mk, after heap_upward.c:47 `return p;`:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          v ∈ {1}
+          p ∈
+           {{ &__malloc_child_mk_l47_5 ; &__malloc_child_mk_l47_6 ;
+              &__malloc_child_mk_l47_7 }}
+          v ∈ {1}
+          q ∈ UNINITIALIZED
+          w ∈ {{ &__malloc_child_mk_l47_5 }} or UNINITIALIZED
+          a ∈ {{ &__malloc_child_mk_l47_6 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          __malloc_child_mk_l47_5 ∈ {1}
+          __malloc_child_mk_l47_6 ∈ {1}
+          __malloc_child_mk_l47_7 ∈ {1}
+  child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  v ∈ {1}
+  p ∈ {{ &__malloc_child_mk_l47_6 }}
+  v ∈ {1}
+  q ∈ UNINITIALIZED
+  w ∈ {{ &__malloc_child_mk_l47_5 }}
+  a ∈ UNINITIALIZED
+  b ∈ UNINITIALIZED
+  __malloc_child_mk_l47_5 ∈ {1}
+  __malloc_child_mk_l47_6 ∈ {1}
+  child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main: 
+  cur ∈ {0}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  v ∈ {1}
+  p ∈ {{ &__malloc_child_mk_l47_7 }}
+  v ∈ {1}
+  q ∈ UNINITIALIZED
+  w ∈ {{ &__malloc_child_mk_l47_5 }}
+  a ∈ {{ &__malloc_child_mk_l47_6 }}
+  b ∈ UNINITIALIZED
+  __malloc_child_mk_l47_5 ∈ {1}
+  __malloc_child_mk_l47_6 ∈ {1}
+  __malloc_child_mk_l47_7 ∈ {1}
+  child_mk :: heap_upward.c:53 <- alloc_main: cur ∈ {0}
+                                              keep ∈ {0}
+                                              slot ∈ {0}
+                                              mode ∈ {0}
+                                              v ∈ {1}
+                                              p ∈
+                                               {{ &__malloc_child_mk_l47_5 }}
+                                              w ∈ UNINITIALIZED
+                                              a ∈ UNINITIALIZED
+                                              b ∈ UNINITIALIZED
+                                              __malloc_child_mk_l47_5 ∈ {1}
+parent_alloc, start:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          v ∈ {1}
+          w ∈ {{ &__malloc_child_mk_l47_5 }}
+          a ∈ {{ &__malloc_child_mk_l47_6 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          __malloc_child_mk_l47_5 ∈ {1}
+          __malloc_child_mk_l47_6 ∈ {1}
+  parent_alloc :: heap_upward.c:55 <- alloc_main: cur ∈ {0}
+                                                  keep ∈ {0}
+                                                  slot ∈ {0}
+                                                  mode ∈ {0}
+                                                  v ∈ {1}
+                                                  w ∈
+                                                   {{ &__malloc_child_mk_l47_5 }}
+                                                  a ∈ UNINITIALIZED
+                                                  b ∈ UNINITIALIZED
+                                                  __malloc_child_mk_l47_5
+                                                   ∈ {1}
+  parent_alloc :: heap_upward.c:56 <- alloc_main: cur ∈ {0}
+                                                  keep ∈ {0}
+                                                  slot ∈ {0}
+                                                  mode ∈ {0}
+                                                  v ∈ {1}
+                                                  w ∈
+                                                   {{ &__malloc_child_mk_l47_5 }}
+                                                  a ∈
+                                                   {{ &__malloc_child_mk_l47_6 }}
+                                                  b ∈ UNINITIALIZED
+                                                  __malloc_child_mk_l47_5
+                                                   ∈ {1}
+                                                  __malloc_child_mk_l47_6
+                                                   ∈ {1}
+parent_alloc, before heap_upward.c:49 `;` (P):
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          v ∈ {1}
+          q ∈ {{ &__malloc_child_mk_l47_6 ; &__malloc_child_mk_l47_7 }}
+          w ∈ {{ &__malloc_child_mk_l47_5 }}
+          a ∈ {{ &__malloc_child_mk_l47_6 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          __malloc_child_mk_l47_5 ∈ {1}
+          __malloc_child_mk_l47_6 ∈ {1}
+          __malloc_child_mk_l47_7 ∈ {1}
+  parent_alloc :: heap_upward.c:55 <- alloc_main: cur ∈ {0}
+                                                  keep ∈ {0}
+                                                  slot ∈ {0}
+                                                  mode ∈ {0}
+                                                  v ∈ {1}
+                                                  q ∈
+                                                   {{ &__malloc_child_mk_l47_6 }}
+                                                  w ∈
+                                                   {{ &__malloc_child_mk_l47_5 }}
+                                                  a ∈ UNINITIALIZED
+                                                  b ∈ UNINITIALIZED
+                                                  __malloc_child_mk_l47_5
+                                                   ∈ {1}
+                                                  __malloc_child_mk_l47_6
+                                                   ∈ {1}
+  parent_alloc :: heap_upward.c:56 <- alloc_main: cur ∈ {0}
+                                                  keep ∈ {0}
+                                                  slot ∈ {0}
+                                                  mode ∈ {0}
+                                                  v ∈ {1}
+                                                  q ∈
+                                                   {{ &__malloc_child_mk_l47_7 }}
+                                                  w ∈
+                                                   {{ &__malloc_child_mk_l47_5 }}
+                                                  a ∈
+                                                   {{ &__malloc_child_mk_l47_6 }}
+                                                  b ∈ UNINITIALIZED
+                                                  __malloc_child_mk_l47_5
+                                                   ∈ {1}
+                                                  __malloc_child_mk_l47_6
+                                                   ∈ {1}
+                                                  __malloc_child_mk_l47_7
+                                                   ∈ {1}
+parent_alloc, after heap_upward.c:49 `return q;`:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          v ∈ {1}
+          q ∈ {{ &__malloc_child_mk_l47_6 ; &__malloc_child_mk_l47_7 }}
+          w ∈ {{ &__malloc_child_mk_l47_5 }}
+          a ∈ {{ &__malloc_child_mk_l47_6 }} or UNINITIALIZED
+          b ∈ UNINITIALIZED
+          __malloc_child_mk_l47_5 ∈ {1}
+          __malloc_child_mk_l47_6 ∈ {1}
+          __malloc_child_mk_l47_7 ∈ {1}
+  parent_alloc :: heap_upward.c:55 <- alloc_main: cur ∈ {0}
+                                                  keep ∈ {0}
+                                                  slot ∈ {0}
+                                                  mode ∈ {0}
+                                                  v ∈ {1}
+                                                  q ∈
+                                                   {{ &__malloc_child_mk_l47_6 }}
+                                                  w ∈
+                                                   {{ &__malloc_child_mk_l47_5 }}
+                                                  a ∈ UNINITIALIZED
+                                                  b ∈ UNINITIALIZED
+                                                  __malloc_child_mk_l47_5
+                                                   ∈ {1}
+                                                  __malloc_child_mk_l47_6
+                                                   ∈ {1}
+  parent_alloc :: heap_upward.c:56 <- alloc_main: cur ∈ {0}
+                                                  keep ∈ {0}
+                                                  slot ∈ {0}
+                                                  mode ∈ {0}
+                                                  v ∈ {1}
+                                                  q ∈
+                                                   {{ &__malloc_child_mk_l47_7 }}
+                                                  w ∈
+                                                   {{ &__malloc_child_mk_l47_5 }}
+                                                  a ∈
+                                                   {{ &__malloc_child_mk_l47_6 }}
+                                                  b ∈ UNINITIALIZED
+                                                  __malloc_child_mk_l47_5
+                                                   ∈ {1}
+                                                  __malloc_child_mk_l47_6
+                                                   ∈ {1}
+                                                  __malloc_child_mk_l47_7
+                                                   ∈ {1}
+alloc_main, start:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+  alloc_main: cur ∈ {0}
+              keep ∈ {0}
+              slot ∈ {0}
+              mode ∈ {0}
+alloc_main, before heap_upward.c:57 `;` (Z):
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          w ∈ {{ &__malloc_child_mk_l47_5 }}
+          a ∈ {{ &__malloc_child_mk_l47_6 }}
+          b ∈ {{ &__malloc_child_mk_l47_7 }}
+          __malloc_child_mk_l47_5 ∈ {1}
+          __malloc_child_mk_l47_6 ∈ {1}
+          __malloc_child_mk_l47_7 ∈ {1}
+  alloc_main: cur ∈ {0}
+              keep ∈ {0}
+              slot ∈ {0}
+              mode ∈ {0}
+              w ∈ {{ &__malloc_child_mk_l47_5 }}
+              a ∈ {{ &__malloc_child_mk_l47_6 }}
+              b ∈ {{ &__malloc_child_mk_l47_7 }}
+              __malloc_child_mk_l47_5 ∈ {1}
+              __malloc_child_mk_l47_6 ∈ {1}
+              __malloc_child_mk_l47_7 ∈ {1}
+alloc_main, after heap_upward.c:58 `return;`:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+          w ∈ {{ &__malloc_child_mk_l47_5 }}
+          a ∈ {{ &__malloc_child_mk_l47_6 }}
+          b ∈ {{ &__malloc_child_mk_l47_7 }}
+          __malloc_child_mk_l47_5 ∈ {1}
+          __malloc_child_mk_l47_6 ∈ {1}
+          __malloc_child_mk_l47_7 ∈ {1}
+  alloc_main: cur ∈ {0}
+              keep ∈ {0}
+              slot ∈ {0}
+              mode ∈ {0}
+              w ∈ {{ &__malloc_child_mk_l47_5 }}
+              a ∈ {{ &__malloc_child_mk_l47_6 }}
+              b ∈ {{ &__malloc_child_mk_l47_7 }}
+              __malloc_child_mk_l47_5 ∈ {1}
+              __malloc_child_mk_l47_6 ∈ {1}
+              __malloc_child_mk_l47_7 ∈ {1}
+Hits against the analysed call of their cache entry:
+  child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main, hit of cache entry 13, against child_mk :: heap_upward.c:53 <- alloc_main: differs on __malloc_child_mk_l47_5, __malloc_child_mk_l47_6, p, q, v, w, at 9 points.
+  child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main, hit of cache entry 13, against child_mk :: heap_upward.c:53 <- alloc_main: differs on __malloc_child_mk_l47_5, __malloc_child_mk_l47_6, __malloc_child_mk_l47_7, a, p, q, v, w, at 9 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 726 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 334 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 334 points.
+Filtered requests that reject one callstack: 18.
+Requests made: 1394; reported by the trap: 1394, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 177 requests, 67 reads of the legacy store in them, 89 reads outside any request.
+  with -eva-hit-log: 177 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 156 requests
+    statistics: 13 requests
+    summary: 8 requests
+Statuses of the properties: those of the run without memexec, for 302 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1154, 0 alarms, those of the run without memexec.
+Calls of the functions of the test:
+child_mk :: heap_upward.c:53 <- alloc_main, analysed:
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:53 <- alloc_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:53 <- alloc_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:53 <- alloc_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  heap effects:
+    heap_upward.c:47, in malloc: allocation of block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:53 <- alloc_main, suffix malloc :: heap_upward.c:47, rank 0, created
+  stored by memexec, key: __fc_heap_status, errno, p, v
+  created: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:53 <- alloc_main
+  before K: covers block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:53 <- alloc_main; does not bind none; swept on every path: none; on some path only: none
+child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main, hit:
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+parent_alloc :: heap_upward.c:55 <- alloc_main, analysed:
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main{[0..31]}; errno{[0..31]}; q{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main{[0..31]}; errno{[0..31]}; q{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:55 <- alloc_main{[0..31]}; errno{[0..31]}; q{[0..31]}
+  heap effects:
+    none
+  not stored by memexec
+  before P: full states
+child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main, hit:
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main{[0..31]}; errno{[0..31]}; p{[0..31]}
+parent_alloc :: heap_upward.c:56 <- alloc_main, analysed:
+  outputs: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main{[0..31]}; errno{[0..31]}; q{[0..31]}
+  outputs on return: __fc_heap_status{[0..31]}; block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main{[0..31]}; errno{[0..31]}; q{[0..31]}
+  sure outputs: block 0 of malloc :: heap_upward.c:47 <- child_mk :: heap_upward.c:49 <- parent_alloc :: heap_upward.c:56 <- alloc_main{[0..31]}; errno{[0..31]}; q{[0..31]}
+  heap effects:
+    none
+  not stored by memexec
+  before P: full states

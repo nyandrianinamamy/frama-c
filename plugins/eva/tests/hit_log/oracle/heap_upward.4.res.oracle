@@ -1,0 +1,607 @@
+[kernel] Parsing heap_upward.c (with preprocessing)
+Calls:
+  malloc :: heap_upward.c:98 <- chain_main: builtin
+  free :: heap_upward.c:92 <- leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: builtin
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: analysed, cache entry 31
+  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: analysed, cache entry 32
+  top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: analysed, cache entry 33
+  outer :: heap_upward.c:99 <- chain_main: analysed, cache entry 34
+  malloc :: heap_upward.c:100 <- chain_main: builtin
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: hit of cache entry 31
+  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: analysed, cache entry 35
+  top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: analysed, cache entry 36
+  outer :: heap_upward.c:102 <- chain_main: analysed, cache entry 37
+  malloc :: heap_upward.c:103 <- chain_main: builtin
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: hit of cache entry 31
+  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: analysed, cache entry 38
+  top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: analysed, cache entry 39
+  outer :: heap_upward.c:105 <- chain_main: analysed, cache entry 40
+  malloc :: heap_upward.c:106 <- chain_main: builtin
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:108 <- chain_main: hit of cache entry 31
+  mid :: heap_upward.c:108 <- chain_main: analysed, cache entry 41
+  chain_main: analysed, cache entry 42
+Heap calls, not stored by memexec: chain_main 1.
+Heap calls stored by memexec: leaf 1, mid 1, outer 1, top 1.
+Heap calls whose answers come from full states: chain_main 1.
+Calls that enclose a hit on the entry of a heap call, not stored by memexec, with full states:
+  chain_main 1, mid 3, outer 2, top 2.
+Hits not made because memexec does not store the heap calls: none.
+leaf, start:
+  joined: cur ∈
+             {{ &__malloc_chain_main_l98_1 ; &__malloc_chain_main_l100_1 ;
+                &__malloc_chain_main_l103_1 ; &__malloc_chain_main_l106_1 }}
+          keep ∈
+              {{ NULL ; &__malloc_chain_main_l100_1 ;
+                 &__malloc_chain_main_l103_1 ; &__malloc_chain_main_l106_1 }}
+          slot ∈ {0}
+          mode ∈ {0}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+          __malloc_chain_main_l98_1 ∈ {3}
+          __malloc_chain_main_l100_1 ∈ {3}
+          __malloc_chain_main_l103_1 ∈ {3}
+          __malloc_chain_main_l106_1 ∈ {3}
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:108 <- chain_main: 
+  cur ∈ {{ &__malloc_chain_main_l106_1 }}
+  keep ∈ {{ &__malloc_chain_main_l106_1 }}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  __malloc_chain_main_l106_1 ∈ {3}
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: 
+  cur ∈ {{ &__malloc_chain_main_l100_1 }}
+  keep ∈ {{ &__malloc_chain_main_l100_1 }}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  k ∈ {1}
+  __malloc_chain_main_l100_1 ∈ {3}
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: 
+  cur ∈ {{ &__malloc_chain_main_l103_1 }}
+  keep ∈ {{ &__malloc_chain_main_l103_1 }}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  k ∈ {1}
+  __malloc_chain_main_l103_1 ∈ {3}
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: 
+  cur ∈ {{ &__malloc_chain_main_l98_1 }}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+  __malloc_chain_main_l98_1 ∈ {3}
+leaf, before heap_upward.c:92 `;` (F):
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ {0} or ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:108 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  k ∈ {1}
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  k ∈ {1}
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+leaf, after heap_upward.c:92 `return;`:
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ {0} or ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:108 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  k ∈ {1}
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  k ∈ {1}
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+mid, start:
+  joined: cur ∈
+             {{ &__malloc_chain_main_l98_1 ; &__malloc_chain_main_l100_1 ;
+                &__malloc_chain_main_l103_1 ; &__malloc_chain_main_l106_1 }}
+          keep ∈
+              {{ NULL ; &__malloc_chain_main_l100_1 ;
+                 &__malloc_chain_main_l103_1 ; &__malloc_chain_main_l106_1 }}
+          slot ∈ {0}
+          mode ∈ {0}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+          __malloc_chain_main_l98_1 ∈ {3}
+          __malloc_chain_main_l100_1 ∈ {3}
+          __malloc_chain_main_l103_1 ∈ {3}
+          __malloc_chain_main_l106_1 ∈ {3}
+  mid :: heap_upward.c:108 <- chain_main: cur ∈
+                                             {{ &__malloc_chain_main_l106_1 }}
+                                          keep ∈
+                                              {{ &__malloc_chain_main_l106_1 }}
+                                          slot ∈ {0}
+                                          mode ∈ {0}
+                                          k ∈ {1}
+                                          __malloc_chain_main_l106_1 ∈ {3}
+  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: 
+  cur ∈ {{ &__malloc_chain_main_l100_1 }}
+  keep ∈ {{ &__malloc_chain_main_l100_1 }}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  k ∈ {1}
+  __malloc_chain_main_l100_1 ∈ {3}
+  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: 
+  cur ∈ {{ &__malloc_chain_main_l103_1 }}
+  keep ∈ {{ &__malloc_chain_main_l103_1 }}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  k ∈ {1}
+  __malloc_chain_main_l103_1 ∈ {3}
+  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: 
+  cur ∈ {{ &__malloc_chain_main_l98_1 }}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+  __malloc_chain_main_l98_1 ∈ {3}
+mid, before heap_upward.c:93 `;` (G):
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ {0} or ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+  mid :: heap_upward.c:108 <- chain_main: cur ∈ ESCAPINGADDR
+                                          keep ∈ ESCAPINGADDR
+                                          slot ∈ {0}
+                                          mode ∈ {0}
+                                          k ∈ {1}
+  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  k ∈ {1}
+  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  k ∈ {1}
+  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+mid, after heap_upward.c:93 `return;`:
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ {0} or ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+  mid :: heap_upward.c:108 <- chain_main: cur ∈ ESCAPINGADDR
+                                          keep ∈ ESCAPINGADDR
+                                          slot ∈ {0}
+                                          mode ∈ {0}
+                                          k ∈ {1}
+  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  k ∈ {1}
+  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  k ∈ {1}
+  mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+top, start:
+  joined: cur ∈
+             {{ &__malloc_chain_main_l98_1 ; &__malloc_chain_main_l100_1 ;
+                &__malloc_chain_main_l103_1 }}
+          keep ∈
+              {{ NULL ; &__malloc_chain_main_l100_1 ;
+                 &__malloc_chain_main_l103_1 }}
+          slot ∈ {0}
+          mode ∈ {0}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+          __malloc_chain_main_l98_1 ∈ {3}
+          __malloc_chain_main_l100_1 ∈ {3}
+          __malloc_chain_main_l103_1 ∈ {3}
+  top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: 
+  cur ∈ {{ &__malloc_chain_main_l100_1 }}
+  keep ∈ {{ &__malloc_chain_main_l100_1 }}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  __malloc_chain_main_l100_1 ∈ {3}
+  top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: 
+  cur ∈ {{ &__malloc_chain_main_l103_1 }}
+  keep ∈ {{ &__malloc_chain_main_l103_1 }}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  __malloc_chain_main_l103_1 ∈ {3}
+  top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: 
+  cur ∈ {{ &__malloc_chain_main_l98_1 }}
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+  __malloc_chain_main_l98_1 ∈ {3}
+top, before heap_upward.c:94 `;` (H):
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ {0} or ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+  top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+top, after heap_upward.c:94 `return;`:
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ {0} or ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+          k ∈ {0; 1}
+          k ∈ {0; 1}
+  top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ ESCAPINGADDR
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {1}
+  k ∈ {1}
+  top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: 
+  cur ∈ ESCAPINGADDR
+  keep ∈ {0}
+  slot ∈ {0}
+  mode ∈ {0}
+  k ∈ {0}
+  k ∈ {0}
+outer, start:
+  joined: cur ∈
+             {{ &__malloc_chain_main_l98_1 ; &__malloc_chain_main_l100_1 ;
+                &__malloc_chain_main_l103_1 }}
+          keep ∈
+              {{ NULL ; &__malloc_chain_main_l100_1 ;
+                 &__malloc_chain_main_l103_1 }}
+          slot ∈ {0}
+          mode ∈ {0}
+          k ∈ {0; 1}
+          __malloc_chain_main_l98_1 ∈ {3}
+          __malloc_chain_main_l100_1 ∈ {3}
+          __malloc_chain_main_l103_1 ∈ {3}
+  outer :: heap_upward.c:102 <- chain_main: cur ∈
+                                               {{ &__malloc_chain_main_l100_1 }}
+                                            keep ∈
+                                                {{ &__malloc_chain_main_l100_1 }}
+                                            slot ∈ {0}
+                                            mode ∈ {0}
+                                            k ∈ {1}
+                                            __malloc_chain_main_l100_1 ∈ {3}
+  outer :: heap_upward.c:105 <- chain_main: cur ∈
+                                               {{ &__malloc_chain_main_l103_1 }}
+                                            keep ∈
+                                                {{ &__malloc_chain_main_l103_1 }}
+                                            slot ∈ {0}
+                                            mode ∈ {0}
+                                            k ∈ {1}
+                                            __malloc_chain_main_l103_1 ∈ {3}
+  outer :: heap_upward.c:99 <- chain_main: cur ∈
+                                              {{ &__malloc_chain_main_l98_1 }}
+                                           keep ∈ {0}
+                                           slot ∈ {0}
+                                           mode ∈ {0}
+                                           k ∈ {0}
+                                           __malloc_chain_main_l98_1 ∈ {3}
+outer, before heap_upward.c:95 `;` (O):
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ {0} or ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+          k ∈ {0; 1}
+  outer :: heap_upward.c:102 <- chain_main: cur ∈ ESCAPINGADDR
+                                            keep ∈ ESCAPINGADDR
+                                            slot ∈ {0}
+                                            mode ∈ {0}
+                                            k ∈ {1}
+  outer :: heap_upward.c:105 <- chain_main: cur ∈ ESCAPINGADDR
+                                            keep ∈ ESCAPINGADDR
+                                            slot ∈ {0}
+                                            mode ∈ {0}
+                                            k ∈ {1}
+  outer :: heap_upward.c:99 <- chain_main: cur ∈ ESCAPINGADDR
+                                           keep ∈ {0}
+                                           slot ∈ {0}
+                                           mode ∈ {0}
+                                           k ∈ {0}
+outer, after heap_upward.c:95 `return;`:
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ {0} or ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+          k ∈ {0; 1}
+  outer :: heap_upward.c:102 <- chain_main: cur ∈ ESCAPINGADDR
+                                            keep ∈ ESCAPINGADDR
+                                            slot ∈ {0}
+                                            mode ∈ {0}
+                                            k ∈ {1}
+  outer :: heap_upward.c:105 <- chain_main: cur ∈ ESCAPINGADDR
+                                            keep ∈ ESCAPINGADDR
+                                            slot ∈ {0}
+                                            mode ∈ {0}
+                                            k ∈ {1}
+  outer :: heap_upward.c:99 <- chain_main: cur ∈ ESCAPINGADDR
+                                           keep ∈ {0}
+                                           slot ∈ {0}
+                                           mode ∈ {0}
+                                           k ∈ {0}
+chain_main, start:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+          slot ∈ {0}
+          mode ∈ {0}
+  chain_main: cur ∈ {0}
+              keep ∈ {0}
+              slot ∈ {0}
+              mode ∈ {0}
+chain_main, before heap_upward.c:109 `;` (Z):
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+  chain_main: cur ∈ ESCAPINGADDR
+              keep ∈ ESCAPINGADDR
+              slot ∈ {0}
+              mode ∈ {0}
+chain_main, after heap_upward.c:110 `return;`:
+  joined: cur ∈ ESCAPINGADDR
+          keep ∈ ESCAPINGADDR
+          slot ∈ {0}
+          mode ∈ {0}
+  chain_main: cur ∈ ESCAPINGADDR
+              keep ∈ ESCAPINGADDR
+              slot ∈ {0}
+              mode ∈ {0}
+Hits against the analysed call of their cache entry:
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main, hit of cache entry 31, against leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: differs on __malloc_chain_main_l100_1, __malloc_chain_main_l98_1, cur, k, keep, at 7 points.
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main, hit of cache entry 31, against leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: differs on __malloc_chain_main_l103_1, __malloc_chain_main_l98_1, cur, k, keep, at 7 points.
+  leaf :: heap_upward.c:93 <- mid :: heap_upward.c:108 <- chain_main, hit of cache entry 31, against leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main: differs on __malloc_chain_main_l106_1, __malloc_chain_main_l98_1, cur, k, keep, at 7 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 775 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 320 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 320 points.
+Filtered requests that reject one callstack: 28.
+Requests made: 1415; reported by the trap: 1415, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 188 requests, 152 reads of the legacy store in them, 206 reads outside any request.
+  with -eva-hit-log: 188 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 151 requests
+    statistics: 29 requests
+    summary: 8 requests
+Statuses of the properties: those of the run without memexec, for 301 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 0.1923, 0 alarms, those of the run without memexec.
+Calls of the functions of the test:
+leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main, analysed:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+  heap effects:
+    heap_upward.c:92, in free: removal of block 0 of malloc :: heap_upward.c:98 <- chain_main
+    heap_upward.c:92, in free: sweep of block 0 of malloc :: heap_upward.c:98 <- chain_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:98 <- chain_main, cur
+  created: none
+  before F: covers block 0 of malloc :: heap_upward.c:98 <- chain_main; does not bind block 0 of malloc :: heap_upward.c:98 <- chain_main; swept on every path: block 0 of malloc :: heap_upward.c:98 <- chain_main; on some path only: none
+mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main, analysed:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+  heap effects:
+    heap_upward.c:93, in leaf: removal of block 0 of malloc :: heap_upward.c:98 <- chain_main
+    heap_upward.c:93, in leaf: sweep of block 0 of malloc :: heap_upward.c:98 <- chain_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:98 <- chain_main, cur
+  created: none
+  before G: covers block 0 of malloc :: heap_upward.c:98 <- chain_main; does not bind block 0 of malloc :: heap_upward.c:98 <- chain_main; swept on every path: block 0 of malloc :: heap_upward.c:98 <- chain_main; on some path only: none
+top :: heap_upward.c:95 <- outer :: heap_upward.c:99 <- chain_main, analysed:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+  heap effects:
+    heap_upward.c:94, in mid: removal of block 0 of malloc :: heap_upward.c:98 <- chain_main
+    heap_upward.c:94, in mid: sweep of block 0 of malloc :: heap_upward.c:98 <- chain_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:98 <- chain_main, cur, k
+  created: none
+  before H: covers block 0 of malloc :: heap_upward.c:98 <- chain_main; does not bind block 0 of malloc :: heap_upward.c:98 <- chain_main; swept on every path: block 0 of malloc :: heap_upward.c:98 <- chain_main; on some path only: none
+outer :: heap_upward.c:99 <- chain_main, analysed:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+  heap effects:
+    heap_upward.c:95, in top: removal of block 0 of malloc :: heap_upward.c:98 <- chain_main
+    heap_upward.c:95, in top: sweep of block 0 of malloc :: heap_upward.c:98 <- chain_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward.c:98 <- chain_main, cur, k
+  created: none
+  before O: covers block 0 of malloc :: heap_upward.c:98 <- chain_main; does not bind block 0 of malloc :: heap_upward.c:98 <- chain_main; swept on every path: block 0 of malloc :: heap_upward.c:98 <- chain_main; on some path only: none
+leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main, hit:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main, analysed:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+  heap effects:
+    none
+  not stored by memexec
+  before G: full states
+top :: heap_upward.c:95 <- outer :: heap_upward.c:102 <- chain_main, analysed:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+  heap effects:
+    none
+  not stored by memexec
+  before H: full states
+outer :: heap_upward.c:102 <- chain_main, analysed:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+  heap effects:
+    none
+  not stored by memexec
+  before O: full states
+leaf :: heap_upward.c:93 <- mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main, hit:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+mid :: heap_upward.c:94 <- top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main, analysed:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+  heap effects:
+    none
+  not stored by memexec
+  before G: full states
+top :: heap_upward.c:95 <- outer :: heap_upward.c:105 <- chain_main, analysed:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+  heap effects:
+    none
+  not stored by memexec
+  before H: full states
+outer :: heap_upward.c:105 <- chain_main, analysed:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+  heap effects:
+    none
+  not stored by memexec
+  before O: full states
+leaf :: heap_upward.c:93 <- mid :: heap_upward.c:108 <- chain_main, hit:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+mid :: heap_upward.c:108 <- chain_main, analysed:
+  outputs: cur{[0..31]}
+  outputs on return: cur{[0..31]}
+  sure outputs: cur{[0..31]}
+  heap effects:
+    none
+  not stored by memexec
+  before G: full states
