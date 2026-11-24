@@ -9,9 +9,9 @@ analysis and across two versions of a program.
 
 **Cache entry**:
 The stored result of analysing one statement from one abstract input. The
-cache entry of a heap call other than a call that frees, or of a call that
-encloses a hit on the cache entry of a heap call, holds full states and no
-hit uses it.
+cache entry of a heap call other than a call that frees or a call that
+allocates, or of a call that encloses a hit on the cache entry of a heap
+call, holds full states and no hit uses it.
 _Avoid_: Summary (names Eva's statistics report), memo, record
 
 **Part**:
@@ -50,9 +50,22 @@ _Avoid_: Allocating call (leaves out `free`)
 A heap call whose heap effects are removals and sweeps only. Memexec stores
 it, with the blocks it removes in its matching key and the blocks it sweeps
 at its return. A hit on it removes the blocks it removed and sweeps the
-frame. Memexec stores no other heap call: its cache entry holds the full
-state before and after each statement of its body, and no hit reuses it.
+frame. Memexec stores no other heap call but the calls that allocate: the
+cache entry of any other heap call holds the full state before and after
+each statement of its body, and no hit reuses it.
 _Avoid_: Freeing call
+
+**Call that allocates**:
+A heap call whose heap effects are removals, sweeps, and allocations by
+`malloc` under the policy `by_stack`, at a statement without annotation
+`eva_allocate`, on a stack that extends the callstack of the call by at
+least one call; a validity mutation is allowed only as the resize of a block
+that the builtin reuses. Memexec stores it, with the candidate blocks of its
+allocations in its matching key and the blocks it creates as creation
+symbols. A hit on it replays the decisions of the policy in their order on
+the callstack of the hit, then removes and sweeps as a hit on a call that
+frees.
+_Avoid_: Allocating call (also used for any heap call)
 
 ### Parts of an entry
 
@@ -126,15 +139,28 @@ An allocated block of the matching key of a cache entry, or one that a
 pointer value of the arguments or of the matching key may point to when the
 statement starts. A mentioned block outside the matching key is not
 compared by its content. This is the definition of #123, which the cache
-entries of calls that free use as well; when the calls that allocate are
-stored, #120 adds the candidate blocks of each allocation, absent ones
-included.
+entries of calls that free use as well. The cache entry of a call that
+allocates also mentions the candidate blocks of its allocations, absent ones
+included (#120, #127).
 _Avoid_: Reachable block (reachability is transitive)
+
+**Candidate block**:
+For an allocation of a call that allocates, a block that the policy
+`by_stack` made on the stack of the allocation before the call starts,
+present in its input or not. The candidate blocks of each stack are in the
+matching key, in the order of their creation, and a hit requires that they
+have the numbers that the stored call recorded, in this order.
+
+**Creation symbol**:
+A number of a numbered form that stands for a block that a call that
+allocates creates. The creation symbols are numbered after every other
+block, in the order of the creations, and have no snapshot. A hit binds each
+to the block that its replay creates.
 
 **Snapshot**:
 The strength, validity record, type and kind (heap allocation, `alloca` or
 variable-length array) of each mentioned block of a cache entry, when the
-statement starts.
+statement starts. A creation symbol has none.
 _Avoid_: Descriptor (names what the observer of the hit log captures)
 
 **Numbered form**:
@@ -143,7 +169,8 @@ block of its number. The blocks are numbered in a fixed order: the targets
 of the arguments, then those of the blocks of the matching key that are not
 allocated, then those of each numbered block of the matching key in the
 order of the numbers, then the candidate blocks, then the allocated blocks
-of the matching key that no value points to. Two entries that differ only
+of the matching key that no value points to, then the creation symbols.
+Two entries that differ only
 by the allocated blocks they use have the same numbered form; two entries
 that a renaming maps to each other may not.
 _Avoid_: Canonical form (a renaming does not always give the same form)
