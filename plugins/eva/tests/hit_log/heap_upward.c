@@ -198,10 +198,10 @@ void rec_main(void) {
    then reads the freed block: the analysis stops on this path, which does
    not return. The sweep of the block is not in the exit of the entry of
    child_stop. A call of child_stop analysed by its body reports keep, which
-   points to the block, as written on some path, and not on the paths that
-   return. With WARM, the first call of child_stop computes its entry while
-   keep does not point to the block: keep is not in its key, and child_stop
-   is a hit in the first call of parent_stop. */
+   points to the block, in its outputs and its outputs on return, and not in
+   its sure outputs. With WARM, the first call of child_stop computes its
+   entry while keep does not point to the block: keep is not in its key, and
+   child_stop is a hit in the first call of parent_stop. */
 void child_stop(int k) { if (k) { free(cur); k = *cur; } S: ; }
 void parent_stop(int k) { child_stop(k); T: ; }
 
