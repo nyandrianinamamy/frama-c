@@ -1,0 +1,69 @@
+[kernel] Parsing heap_upward_calldeps.c (with preprocessing)
+[from] Computing for function child_rel
+[from] Done for function child_rel
+[from] Computing for function parent_free
+[from] Done for function parent_free
+[from] Computing for function free_main
+[from] Done for function free_main
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to free at heap_upward_calldeps.c:27 (by child_rel):
+  p FROM \nothing
+  cur FROM \nothing
+  keep FROM \nothing
+[from] call to child_rel at heap_upward_calldeps.c:28 (by parent_free):
+  p FROM \nothing
+  cur FROM \nothing
+  keep FROM \nothing
+[from] call to malloc at heap_upward_calldeps.c:35 (by free_main):
+  __fc_heap_status FROM __fc_heap_status; size (and SELF)
+  errno FROM __fc_heap_status; size
+  \result FROM __fc_heap_status; size
+[from] call to parent_free at heap_upward_calldeps.c:37 (by free_main):
+  p FROM \nothing
+  cur FROM \nothing
+  keep FROM \nothing
+[from] call to malloc at heap_upward_calldeps.c:38 (by free_main):
+  __fc_heap_status FROM __fc_heap_status; size (and SELF)
+  errno FROM __fc_heap_status; size
+  \result FROM __fc_heap_status; size
+[from] call to parent_free at heap_upward_calldeps.c:40 (by free_main):
+  p FROM \nothing
+  cur FROM \nothing
+  keep FROM \nothing
+[from] entry point:
+  __fc_heap_status FROM __fc_heap_status (and SELF)
+  errno FROM __fc_heap_status
+  p FROM \nothing
+  cur FROM \nothing
+  keep FROM \nothing
+  __malloc_free_main_l35 FROM __fc_heap_status
+  __malloc_free_main_l38 FROM __fc_heap_status
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+Calls of the functions of the test:
+child_rel :: heap_upward_calldeps.c:28 <- parent_free :: heap_upward_calldeps.c:37 <- free_main, analysed:
+  inputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
+  heap effects:
+    heap_upward_calldeps.c:27, in free: removal of block 0 of malloc :: heap_upward_calldeps.c:35 <- free_main
+    heap_upward_calldeps.c:27, in free: sweep of block 0 of malloc :: heap_upward_calldeps.c:35 <- free_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward_calldeps.c:35 <- free_main, cur, keep
+  created: none
+  before R: covers block 0 of malloc :: heap_upward_calldeps.c:35 <- free_main; does not bind block 0 of malloc :: heap_upward_calldeps.c:35 <- free_main; swept on every path: block 0 of malloc :: heap_upward_calldeps.c:35 <- free_main; on some path only: none
+parent_free :: heap_upward_calldeps.c:37 <- free_main, analysed:
+  inputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}
+  heap effects:
+    heap_upward_calldeps.c:28, in child_rel: removal of block 0 of malloc :: heap_upward_calldeps.c:35 <- free_main
+    heap_upward_calldeps.c:28, in child_rel: sweep of block 0 of malloc :: heap_upward_calldeps.c:35 <- free_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward_calldeps.c:35 <- free_main, cur, keep
+  created: none
+  before Q: covers block 0 of malloc :: heap_upward_calldeps.c:35 <- free_main; does not bind block 0 of malloc :: heap_upward_calldeps.c:35 <- free_main; swept on every path: block 0 of malloc :: heap_upward_calldeps.c:35 <- free_main; on some path only: none
+parent_free :: heap_upward_calldeps.c:40 <- free_main, hit:
+  inputs: cur{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: cur{[0..31]}; keep{[0..31]}

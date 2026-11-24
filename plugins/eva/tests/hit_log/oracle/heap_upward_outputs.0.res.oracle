@@ -1,0 +1,317 @@
+[kernel] Parsing heap_upward_outputs.c (with preprocessing)
+Calls:
+  Frama_C_interval :: heap_upward_outputs.c:35 <- split_main: specification
+  malloc :: heap_upward_outputs.c:37 <- split_main: builtin
+  free :: heap_upward_outputs.c:29 <- child_split :: heap_upward_outputs.c:38 <- split_main: builtin
+  child_split :: heap_upward_outputs.c:38 <- split_main: analysed, cache entry 13
+  malloc :: heap_upward_outputs.c:40 <- split_main: builtin
+  child_split :: heap_upward_outputs.c:32 <- parent_split :: heap_upward_outputs.c:42 <- split_main: hit of cache entry 13
+  parent_split :: heap_upward_outputs.c:42 <- split_main: analysed, cache entry 14
+  malloc :: heap_upward_outputs.c:43 <- split_main: builtin
+  parent_split :: heap_upward_outputs.c:45 <- split_main: hit of cache entry 14
+  split_main: analysed, cache entry 15
+Heap calls, not stored by memexec: none.
+Heap calls stored by memexec: child_split 1, parent_split 1, split_main 1.
+Heap calls whose answers come from full states: none.
+Hits not made because memexec does not store the heap calls: none.
+Calls below a hit:
+  child_split :: heap_upward_outputs.c:32 <- parent_split :: heap_upward_outputs.c:45 <- split_main
+child_split, start:
+  joined: cur ∈
+             {{ &__malloc_split_main_l37_1 ; &__malloc_split_main_l40_1 ;
+                &__malloc_split_main_l43_1 }}
+          keep ∈
+              {{ NULL ; &__malloc_split_main_l40_1 ;
+                 &__malloc_split_main_l43_1 }}
+          c ∈ {0; 1}
+          c ∈ {0; 1}
+          c ∈ {0; 1}
+          __malloc_split_main_l37_1 ∈ {9}
+          __malloc_split_main_l40_1 ∈ {9}
+          __malloc_split_main_l43_1 ∈ {9}
+  child_split :: heap_upward_outputs.c:32 <- parent_split :: heap_upward_outputs.c:42 <- split_main: 
+  cur ∈ {{ &__malloc_split_main_l40_1 }}
+  keep ∈ {{ &__malloc_split_main_l40_1 }}
+  c ∈ {0; 1}
+  c ∈ {0; 1}
+  c ∈ {0; 1}
+  __malloc_split_main_l37_1 ∈ {9}
+  __malloc_split_main_l40_1 ∈ {9}
+  child_split :: heap_upward_outputs.c:32 <- parent_split :: heap_upward_outputs.c:45 <- split_main: 
+  cur ∈ {{ &__malloc_split_main_l43_1 }}
+  keep ∈ {{ &__malloc_split_main_l43_1 }}
+  c ∈ {0; 1}
+  c ∈ {0; 1}
+  c ∈ {0; 1}
+  __malloc_split_main_l37_1 ∈ {9}
+  __malloc_split_main_l40_1 ∈ {9}
+  __malloc_split_main_l43_1 ∈ {9}
+  child_split :: heap_upward_outputs.c:38 <- split_main: cur ∈
+                                                            {{ &__malloc_split_main_l37_1 }}
+                                                         keep ∈ {0}
+                                                         c ∈ {0; 1}
+                                                         c ∈ {0; 1}
+                                                         __malloc_split_main_l37_1
+                                                          ∈ {9}
+child_split, before heap_upward_outputs.c:30 `__retres = 0;` (CS):
+  joined: cur ∈
+             {{ &__malloc_split_main_l37_1 ; &__malloc_split_main_l40_1 ;
+                &__malloc_split_main_l43_1 }}
+          keep ∈
+              {{ NULL ; &__malloc_split_main_l40_1 ;
+                 &__malloc_split_main_l43_1 }}
+          c ∈ {0}
+          c ∈ {0; 1}
+          c ∈ {0; 1}
+          __retres ∈ UNINITIALIZED
+          __malloc_split_main_l37_1 ∈ {9}
+          __malloc_split_main_l40_1 ∈ {9}
+          __malloc_split_main_l43_1 ∈ {9}
+  child_split :: heap_upward_outputs.c:32 <- parent_split :: heap_upward_outputs.c:42 <- split_main: 
+  cur ∈ {{ &__malloc_split_main_l40_1 }}
+  keep ∈ {{ &__malloc_split_main_l40_1 }}
+  c ∈ {0}
+  c ∈ {0; 1}
+  c ∈ {0; 1}
+  __retres ∈ UNINITIALIZED
+  __malloc_split_main_l37_1 ∈ {9}
+  __malloc_split_main_l40_1 ∈ {9}
+  child_split :: heap_upward_outputs.c:32 <- parent_split :: heap_upward_outputs.c:45 <- split_main: 
+  cur ∈ {{ &__malloc_split_main_l43_1 }}
+  keep ∈ {{ &__malloc_split_main_l43_1 }}
+  c ∈ {0}
+  c ∈ {0; 1}
+  c ∈ {0; 1}
+  __retres ∈ UNINITIALIZED
+  __malloc_split_main_l37_1 ∈ {9}
+  __malloc_split_main_l40_1 ∈ {9}
+  __malloc_split_main_l43_1 ∈ {9}
+  child_split :: heap_upward_outputs.c:38 <- split_main: cur ∈
+                                                            {{ &__malloc_split_main_l37_1 }}
+                                                         keep ∈ {0}
+                                                         c ∈ {0}
+                                                         c ∈ {0; 1}
+                                                         __retres ∈
+                                                                 UNINITIALIZED
+                                                         __malloc_split_main_l37_1
+                                                          ∈ {9}
+child_split, after heap_upward_outputs.c:30 `return __retres;`:
+  joined: cur ∈
+             {{ &__malloc_split_main_l37_1 ; &__malloc_split_main_l40_1 ;
+                &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+          keep ∈
+              {{ NULL ; &__malloc_split_main_l40_1 ;
+                 &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+          c ∈ {0; 1}
+          c ∈ {0; 1}
+          c ∈ {0; 1}
+          __retres ∈ {0; 1}
+          __malloc_split_main_l37_1 ∈ {9}
+          __malloc_split_main_l40_1 ∈ {9}
+          __malloc_split_main_l43_1 ∈ {9}
+  child_split :: heap_upward_outputs.c:32 <- parent_split :: heap_upward_outputs.c:42 <- split_main: 
+  cur ∈ {{ &__malloc_split_main_l40_1 }} or ESCAPINGADDR
+  keep ∈ {{ &__malloc_split_main_l40_1 }} or ESCAPINGADDR
+  c ∈ {0; 1}
+  c ∈ {0; 1}
+  c ∈ {0; 1}
+  __retres ∈ {0; 1}
+  __malloc_split_main_l37_1 ∈ {9}
+  __malloc_split_main_l40_1 ∈ {9}
+  child_split :: heap_upward_outputs.c:32 <- parent_split :: heap_upward_outputs.c:45 <- split_main: 
+  cur ∈ {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+  keep ∈ {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+  c ∈ {0; 1}
+  c ∈ {0; 1}
+  c ∈ {0; 1}
+  __retres ∈ {0; 1}
+  __malloc_split_main_l37_1 ∈ {9}
+  __malloc_split_main_l40_1 ∈ {9}
+  __malloc_split_main_l43_1 ∈ {9}
+  child_split :: heap_upward_outputs.c:38 <- split_main: cur ∈
+                                                            {{ &__malloc_split_main_l37_1 }} or ESCAPINGADDR
+                                                         keep ∈ {0}
+                                                         c ∈ {0; 1}
+                                                         c ∈ {0; 1}
+                                                         __retres ∈ {0; 1}
+                                                         __malloc_split_main_l37_1
+                                                          ∈ {9}
+parent_split, start:
+  joined: cur ∈ {{ &__malloc_split_main_l40_1 ; &__malloc_split_main_l43_1 }}
+          keep ∈
+              {{ &__malloc_split_main_l40_1 ; &__malloc_split_main_l43_1 }}
+          c ∈ {0; 1}
+          c ∈ {0; 1}
+          __malloc_split_main_l37_1 ∈ {9}
+          __malloc_split_main_l40_1 ∈ {9}
+          __malloc_split_main_l43_1 ∈ {9}
+  parent_split :: heap_upward_outputs.c:42 <- split_main: cur ∈
+                                                             {{ &__malloc_split_main_l40_1 }}
+                                                          keep ∈
+                                                              {{ &__malloc_split_main_l40_1 }}
+                                                          c ∈ {0; 1}
+                                                          c ∈ {0; 1}
+                                                          __malloc_split_main_l37_1
+                                                           ∈ {9}
+                                                          __malloc_split_main_l40_1
+                                                           ∈ {9}
+  parent_split :: heap_upward_outputs.c:45 <- split_main: cur ∈
+                                                             {{ &__malloc_split_main_l43_1 }}
+                                                          keep ∈
+                                                              {{ &__malloc_split_main_l43_1 }}
+                                                          c ∈ {0; 1}
+                                                          c ∈ {0; 1}
+                                                          __malloc_split_main_l37_1
+                                                           ∈ {9}
+                                                          __malloc_split_main_l40_1
+                                                           ∈ {9}
+                                                          __malloc_split_main_l43_1
+                                                           ∈ {9}
+parent_split, before heap_upward_outputs.c:32 `;` (PS):
+  joined: cur ∈
+             {{ &__malloc_split_main_l40_1 ; &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+          keep ∈
+              {{ &__malloc_split_main_l40_1 ; &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+          c ∈ {0; 1}
+          c ∈ {0; 1}
+          __malloc_split_main_l37_1 ∈ {9}
+          __malloc_split_main_l40_1 ∈ {9}
+          __malloc_split_main_l43_1 ∈ {9}
+  parent_split :: heap_upward_outputs.c:42 <- split_main: cur ∈
+                                                             {{ &__malloc_split_main_l40_1 }} or ESCAPINGADDR
+                                                          keep ∈
+                                                              {{ &__malloc_split_main_l40_1 }} or ESCAPINGADDR
+                                                          c ∈ {0; 1}
+                                                          c ∈ {0; 1}
+                                                          __malloc_split_main_l37_1
+                                                           ∈ {9}
+                                                          __malloc_split_main_l40_1
+                                                           ∈ {9}
+  parent_split :: heap_upward_outputs.c:45 <- split_main: cur ∈
+                                                             {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+                                                          keep ∈
+                                                              {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+                                                          c ∈ {0; 1}
+                                                          c ∈ {0; 1}
+                                                          __malloc_split_main_l37_1
+                                                           ∈ {9}
+                                                          __malloc_split_main_l40_1
+                                                           ∈ {9}
+                                                          __malloc_split_main_l43_1
+                                                           ∈ {9}
+parent_split, after heap_upward_outputs.c:32 `return;`:
+  joined: cur ∈
+             {{ &__malloc_split_main_l40_1 ; &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+          keep ∈
+              {{ &__malloc_split_main_l40_1 ; &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+          c ∈ {0; 1}
+          c ∈ {0; 1}
+          __malloc_split_main_l37_1 ∈ {9}
+          __malloc_split_main_l40_1 ∈ {9}
+          __malloc_split_main_l43_1 ∈ {9}
+  parent_split :: heap_upward_outputs.c:42 <- split_main: cur ∈
+                                                             {{ &__malloc_split_main_l40_1 }} or ESCAPINGADDR
+                                                          keep ∈
+                                                              {{ &__malloc_split_main_l40_1 }} or ESCAPINGADDR
+                                                          c ∈ {0; 1}
+                                                          c ∈ {0; 1}
+                                                          __malloc_split_main_l37_1
+                                                           ∈ {9}
+                                                          __malloc_split_main_l40_1
+                                                           ∈ {9}
+  parent_split :: heap_upward_outputs.c:45 <- split_main: cur ∈
+                                                             {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+                                                          keep ∈
+                                                              {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+                                                          c ∈ {0; 1}
+                                                          c ∈ {0; 1}
+                                                          __malloc_split_main_l37_1
+                                                           ∈ {9}
+                                                          __malloc_split_main_l40_1
+                                                           ∈ {9}
+                                                          __malloc_split_main_l43_1
+                                                           ∈ {9}
+split_main, start:
+  joined: cur ∈ {0}
+          keep ∈ {0}
+  split_main: cur ∈ {0}
+              keep ∈ {0}
+split_main, before heap_upward_outputs.c:46 `;` (Z):
+  joined: cur ∈ {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+          keep ∈ {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+          c ∈ {0; 1}
+          __malloc_split_main_l37_1 ∈ {9}
+          __malloc_split_main_l40_1 ∈ {9}
+          __malloc_split_main_l43_1 ∈ {9}
+  split_main: cur ∈ {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+              keep ∈ {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+              c ∈ {0; 1}
+              __malloc_split_main_l37_1 ∈ {9}
+              __malloc_split_main_l40_1 ∈ {9}
+              __malloc_split_main_l43_1 ∈ {9}
+split_main, after heap_upward_outputs.c:47 `return;`:
+  joined: cur ∈ {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+          keep ∈ {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+          c ∈ {0; 1}
+          __malloc_split_main_l37_1 ∈ {9}
+          __malloc_split_main_l40_1 ∈ {9}
+          __malloc_split_main_l43_1 ∈ {9}
+  split_main: cur ∈ {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+              keep ∈ {{ &__malloc_split_main_l43_1 }} or ESCAPINGADDR
+              c ∈ {0; 1}
+              __malloc_split_main_l37_1 ∈ {9}
+              __malloc_split_main_l40_1 ∈ {9}
+              __malloc_split_main_l43_1 ∈ {9}
+Hits against the analysed call of their cache entry:
+  child_split :: heap_upward_outputs.c:32 <- parent_split :: heap_upward_outputs.c:42 <- split_main, hit of cache entry 13, against child_split :: heap_upward_outputs.c:38 <- split_main: differs on __malloc_split_main_l37_1, __malloc_split_main_l40_1, c, cur, keep, at 15 points.
+  parent_split :: heap_upward_outputs.c:45 <- split_main, hit of cache entry 14, against parent_split :: heap_upward_outputs.c:42 <- split_main: differs on __malloc_split_main_l43_1, cur, keep, at 7 points.
+Initial state: equal.
+Differences with the run without memexec:
+Answers: 196 equal, 0 covering, 0 more precise, 0 omitting, 0 unavailable.
+Callstacks listed: those of the run without memexec at each of the 53 points.
+Callstacks listed through the filter: those of the run without memexec at each of the 53 points.
+Filtered requests that reject one callstack: 22.
+Requests made: 302; reported by the trap: 302, each once with its description; reads of the legacy store: 0.
+Passes after the iteration:
+  with memexec, without recording: 53 requests, 118 reads of the legacy store in them, 149 reads outside any request.
+  with -eva-hit-log: 53 requests, 0 reads of the legacy store in them, 0 reads outside any request.
+    unreachable statements: 27 requests
+    statistics: 24 requests
+    summary: 2 requests
+  requests of the passes on a callstack below a hit, with -eva-hit-log: 0.
+Statuses of the properties: those of the run without memexec, for 288 properties.
+Alarms: 0, of which 0 not proven, those of the run without memexec.
+Summary: statement coverage 1.0000, function coverage 1.0000, 0 alarms, those of the run without memexec.
+Calls of the functions of the test:
+child_split :: heap_upward_outputs.c:38 <- split_main, analysed:
+  inputs: cur{[0..31]}; c{[0..31]}
+  outputs: __retres{[0..31]}; cur{[0..31]}
+  outputs on return: __retres{[0..31]}; cur{[0..31]}
+  sure outputs: __retres{[0..31]}
+  heap effects:
+    heap_upward_outputs.c:29, in free: removal of block 0 of malloc :: heap_upward_outputs.c:37 <- split_main
+    heap_upward_outputs.c:29, in free: sweep of block 0 of malloc :: heap_upward_outputs.c:37 <- split_main, exact
+  stored by memexec, key: __retres, block 0 of malloc :: heap_upward_outputs.c:37 <- split_main, c, cur
+  created: none
+  before CS: covers none; does not bind none; swept on every path: none; on some path only: none
+child_split :: heap_upward_outputs.c:32 <- parent_split :: heap_upward_outputs.c:42 <- split_main, hit:
+  inputs: cur{[0..31]}; c{[0..31]}
+  outputs: __retres{[0..31]}; cur{[0..31]}; keep{[0..31]}
+  outputs on return: __retres{[0..31]}; cur{[0..31]}; keep{[0..31]}
+  sure outputs: __retres{[0..31]}
+parent_split :: heap_upward_outputs.c:42 <- split_main, analysed:
+  inputs: cur{[0..31]}; c{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: none
+  heap effects:
+    heap_upward_outputs.c:32, in child_split: removal of block 0 of malloc :: heap_upward_outputs.c:40 <- split_main
+    heap_upward_outputs.c:32, in child_split: sweep of block 0 of malloc :: heap_upward_outputs.c:40 <- split_main, exact
+  stored by memexec, key: block 0 of malloc :: heap_upward_outputs.c:40 <- split_main, c, cur, keep
+  created: none
+  before PS: covers block 0 of malloc :: heap_upward_outputs.c:40 <- split_main; does not bind none; swept on every path: none; on some path only: block 0 of malloc :: heap_upward_outputs.c:40 <- split_main
+parent_split :: heap_upward_outputs.c:45 <- split_main, hit:
+  inputs: cur{[0..31]}; c{[0..31]}
+  outputs: cur{[0..31]}; keep{[0..31]}
+  outputs on return: cur{[0..31]}; keep{[0..31]}
+  sure outputs: none
