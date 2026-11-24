@@ -87,8 +87,9 @@
     automatic release at the end of the call runs after the entry is stored,
     and after a hit, on the blocks that the table of the allocated blocks
     gives to the callstack of the call, and its effects go to the caller. A
-    hit registers the blocks it creates for its own callstack, see
-    {!Builtins_malloc.replay_creation}. The entry of a
+    hit registers each block it creates for the callstack of its
+    allocation without the call of the builtin, which can be a call nested
+    below the hit, see {!Builtins_malloc.replay_creation}. The entry of a
     heap call keeps the calls made by the body, projected as above and on
     the blocks covered by the heap effects before the call statement: a hit
     on the entry of a call that frees has calls below it. A hit on the entry
