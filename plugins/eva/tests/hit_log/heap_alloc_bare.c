@@ -9,9 +9,10 @@
    does not exist at the start of the call. This block is not among the
    locations that the call reads or writes: it is in the key of the stored
    call as a candidate, and its state at the end of the call, where it
-   exists, is copied on a hit. Each run is compared by the observer with the
-   run without memexec; heap_alloc.ml compares the tables of the allocated
-   blocks. */
+   exists, is copied on a hit. The assertion after each call holds if the
+   block exists and is not initialized, as in the run without memexec. Each
+   run is compared by the observer with the run without memexec;
+   heap_alloc.ml compares the tables of the allocated blocks. */
 
 #include <stdlib.h>
 
@@ -22,6 +23,7 @@ int *bare(void) {
 void bare_main(void) {
   for (int i = 0; i < 4; i++) {
     int *p = bare();
+    //@ assert !\initialized(p);
     *p = i;
     free(p);
   }
